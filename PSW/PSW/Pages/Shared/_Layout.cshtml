@@ -1,0 +1,275 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="IE=edge,chrome=1' http-equiv='X-UA-Compatible">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <meta name="description" content="A tool to help you generate the scripts needed to install Umbraco and the associated packages.">
+    <title>Package Script Writer</title>
+    <link rel="canonical" href="https://psw.codeshare.co.uk">
+    <link rel="stylesheet preload" as="style" href="@Url.Content("~/portfolio-assets/bootstrap.min.css")">
+    <link rel="stylesheet preload" as="style" href="@Url.Content("~/portfolio-assets/ionicons.min.css")">
+    <link rel="stylesheet preload" as="style" href="@Url.Content("~/css/sunburst.css")">
+    <style>
+        #packagelist div img {
+            width: 64px;
+            height: 64px;
+            max-width: 80%;
+            margin: 0 auto;
+        }
+
+        main.page .portfolio-block form {
+            max-width: none;
+        }
+
+        .pre li.L0, pre li.L1, pre li.L2, pre li.L3,
+        pre li.L5, pre li.L6, pre li.L7, pre li.L8 {
+            list-style-type: decimal !important;
+        }
+
+        #submit-wrapper {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: #fff;
+            z-index: 999;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: 1em;
+            height: 1em;
+            float: left;
+            margin-right: 0.8em;
+        }
+
+        pre:not(.prettyprinted) {
+            background-color: #000;
+            color: #fff;
+        }
+
+        #packagelist .card {
+            border: 5px solid #fff;
+        }
+
+            #packagelist .card.selected {
+                border: 5px solid #3B0084;
+            }
+
+            #packagelist .card input[type="checkbox"] {
+                width: 1em;
+                height: 1em;
+            }
+
+        .nav-tabs .nav-item .nav-link:not(.active) {
+            background-color: lightgrey;
+        }
+
+        #submit-wrapper {
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark navbar-expand-lg fixed-top bg-primary portfolio-navbar">
+        <div class="container">
+            <a class="navbar-brand logo" href="/">Package Script Writer</a><button data-toggle="collapse" class="navbar-toggler" data-target="#navbarNav"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    @RenderBody()
+
+    <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
+            integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI="
+            crossorigin="anonymous"></script>
+    <script src="@Url.Content("/portfolio-assets/bootstrap.min.js")"></script>
+    <script src="@Url.Content("~/portfolio-assets/theme.js")"></script>
+    <script src="@Url.Content("~/js/run_prettify.js?autoload=true&skin=sunburst")"></script>
+
+    <script>
+          var $checkboxes = $("#packagelist input[type=checkbox]");
+
+          //$(".card").on('click', function() {
+          //    $(this).toggleClass('selected');
+          //    var checkbox = $(this).find('input[type="checkbox"]');
+          //    var checkboxId = $(checkbox).attr("id");
+
+          //    updatePackages(checkboxId);
+
+          //    var isChecked = $(checkbox).prop("checked");
+          //    if(isChecked) {
+          //        $(checkbox).prop("checked", false)
+          //    }
+          //    else {
+          //        $(checkbox).prop("checked", true)
+          //    }
+          //});
+
+
+
+          $checkboxes.on('change',function(){
+              updatePackages(this.id);
+          });
+
+          function updatePackages(thisId) {
+              console.log(thisId);
+              var thisVal = $('#' + thisId).val();
+              var allVals = $('#Packages').val();
+
+              var isChecked = $('#' + thisId).prop("checked");
+              var card = $('#' + thisId).closest('.card');
+
+              $(card).toggleClass('selected', isChecked);
+
+              if(!isChecked && allVals != '')
+              {
+                  allVals = allVals.replace(thisVal + ',', '');
+                  allVals = allVals.replace(',' + thisVal, '');
+                  allVals = allVals.replace(thisVal, '');
+              }
+              else
+              {
+                  if(allVals != '')
+                  {
+                      allVals += ',' + thisVal;
+                  }
+                  else {
+                      allVals = thisVal;
+                  }
+              }
+             //var ids = $checkboxes.filter(':checked').map(function(){
+             //    var packageId = $('#'+this.id).val();
+             //   return packageId;
+             //}).get().join(',');
+             $('#Packages').val(allVals);
+          }
+
+
+          $('#myTab a').on('click', function (event) {
+            event.preventDefault()
+            $(this).tab('show')
+          });
+
+          $('#clearpackages').on('click', function (event) {
+            event.preventDefault()
+            $('#packagelist input[type="checkbox"]').each(function() {
+                var thisId = this.id;
+                $(this).prop("checked", false);
+                var card = $('#' + thisId).closest('.card');
+                $(card).removeClass('selected');
+                $('#Packages').val('');
+            })
+          });
+
+        $('#reset').on('click', function (event) {
+            event.preventDefault()
+            $('#InstallUmbracoTemplate').prop("checked", true);
+            $('#UmbracoTemplateVersion').val('');
+            $('#IncludeStarterKit').prop("checked", true);
+            $('#StarterKitPackage').val('Umbraco.TheStarterKit');
+            $('#CreateSolutionFile').prop("checked", true);
+            $('#SolutionName').val('MySolution');
+            $('#ProjectName').val('MyProject');
+            $('#UseUnattendedInstall').prop("checked", true);
+            $('#UserFriendlyName').val('Administrator');
+            $('#UserEmail').val('admin@example.com');
+            $('#UserPassword').val('1234567890');
+            $("#DatabaseType").val("LocalDb");
+            $('#DatabaseType').removeAttr('disabled');
+            $('#UserFriendlyName').removeAttr('disabled');
+            $('#UserEmail').removeAttr('disabled');
+            $('#UserPassword').removeAttr('disabled');
+            $('#StarterKitPackage').removeAttr('disabled');
+            $('#SolutionName').removeAttr('disabled');
+          });
+
+          $('#search').on('keyup', function() {
+        var input, filter, ul, li, a, i, txtValue;
+        input = document.getElementById('search');
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("packagelist");
+        li = ul.getElementsByClassName("packageItem");
+
+        // Loop through all list items, and hide those who don't match the search query
+        for (i = 0; i < li.length; i++) {
+          txtValue = li[i].getAttribute("data-packageid");
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+          } else {
+            li[i].style.display = "none";
+          }
+        }
+          });
+
+          $('#UseUnattendedInstall').on('click', function(event) {
+              var thisId = this.id;
+              var isChecked = $('#' + thisId).prop("checked");
+              if(isChecked)
+              {
+                  $('#DatabaseType').removeAttr('disabled');
+                  $('#UserFriendlyName').removeAttr('disabled');
+                  $('#UserEmail').removeAttr('disabled');
+                  $('#UserPassword').removeAttr('disabled');
+              }
+              else
+              {
+                  $('#DatabaseType').attr('disabled', 'disabled');
+                  $('#UserFriendlyName').attr('disabled', 'disabled');
+                  $('#UserEmail').attr('disabled', 'disabled');
+                  $('#UserPassword').attr('disabled', 'disabled');
+              }
+          });
+
+            $('#InstallUmbracoTemplate').on('click', function(event) {
+              var thisId = this.id;
+              var isChecked = $('#' + thisId).prop("checked");
+              if(isChecked)
+              {
+                  $('#UmbracoTemplateVersion').removeAttr('disabled');
+              }
+              else
+              {
+                  $('#UmbracoTemplateVersion').attr('disabled', 'disabled');
+              }
+          });
+
+        $('#IncludeStarterKit').on('click', function(event) {
+              var thisId = this.id;
+              var isChecked = $('#' + thisId).prop("checked");
+              if(isChecked)
+              {
+                  $('#StarterKitPackage').removeAttr('disabled');
+              }
+              else
+              {
+                  $('#StarterKitPackage').attr('disabled', 'disabled');
+              }
+          });
+
+        $('#CreateSolutionFile').on('click', function(event) {
+              var thisId = this.id;
+              var isChecked = $('#' + thisId).prop("checked");
+              if(isChecked)
+              {
+                  $('#SolutionName').removeAttr('disabled');
+              }
+              else
+              {
+                  $('#SolutionName').attr('disabled', 'disabled');
+              }
+          });
+
+          $('#copy').on('click', function(event) {
+              console.log('clicked');
+              event.preventDefault();
+                var pre = $('pre')[0];
+                navigator.clipboard.writeText(pre.innerText);
+          });
+
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

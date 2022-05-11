@@ -1,0 +1,172 @@
+﻿@model PackagesViewModel
+@using PSW.Models
+@using PSW.Controllers
+
+@{
+    var hasQueryString = Context.Request.Query.Count > 0;
+}
+
+@using (Html.BeginForm("SubmitForm", "Packages"))
+{
+    <div id="submit-wrapper" class="p-3 w-100 border-top">
+        <button class="btn btn-success float-right ml-2" name="generate"><i class="ion-checkmark-circled"></i> Generate Script</button>
+        <button class="btn btn-danger float-right ml-2" id="clearpackages"><i class="ion-android-delete"></i> Clear All Packages</button>
+        <a href="/" class="btn btn-primary float-right ml-2" id="startover"><i class="ion-ios-undo"></i> Start Over</a>
+    </div>
+    <div class="heading">
+        <h2>Umbraco Packages Script Writer</h2>
+        <p>Tick the box under the packages you want to install and configure the options to generate the required script to run.</p>
+        <input type="hidden" asp-for="@Model.Packages" />
+    </div>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(hasQueryString ? null : "active")" id="packages-tab" data-toggle="tab" href="#packagestabcontent" role="tab" aria-controls="packagestabcontent" aria-selected="true"><i class="ion-search"></i> Packages</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link @(hasQueryString ? "active" : null)" id="code-tab" data-toggle="tab" href="#code" role="tab" aria-controls="home" aria-selected="true"><i class="ion-code"></i> Install Script</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="options-tab" data-toggle="tab" href="#options" role="tab" aria-controls="options" aria-selected="false"><i class="ion-settings"></i> Options</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane fade show @(hasQueryString ? null : "active")" id="packagestabcontent" role="tabpanel" aria-labelledby="packages-tab">
+            @if (Model.AllPackages != null && Model.AllPackages.Any())
+            {
+                var selectedPackages = Model.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries)?.ToList();
+                int packageId = 0;
+                <div class="row m-4">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <input type="text" id="search" class="form-control" placeholder="Search for packages...">
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4" id="packagelist">
+                    @foreach (var package in Model.AllPackages.OrderBy(x => x.Name))
+                    {
+                        var isChecked = selectedPackages != null && selectedPackages.Contains(package.NuGetPackageId);
+
+                        <div class="col-md-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
+                            <div class="card special-skill-item p-2 @(isChecked ? "selected" : null)">
+                                <img src="@package.Image" />
+                                <div class="card-body">
+                                    <h3 class="card-title"><a href="@package.Url" target="_blank">@package.Name</a></h3>
+                                    <p class="card-text">@package.Summary</p>
+                                </div>
+                                <div class="checkbox-outer">
+                                    <input type="checkbox" name="package" id="package_@packageId" value="@package.NuGetPackageId" checked="@(isChecked ? "checked" : null)" />
+                                </div>
+                            </div>
+                        </div>
+                        packageId++;
+                    }
+                </div>
+            }
+        </div>
+        <div class="tab-pane fade show  @(hasQueryString ? "active" : null)" id="code" role="tabpanel" aria-labelledby="code-tab">
+            <pre class="prettyprint ps">@Model.Output</pre>
+            <div class="row">
+                <div class="col-12 text-right">
+                    <button id="copy" class="btn btn-success"><i class="ion-ios-copy"></i> Copy Script</button>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade show " id="options" role="tabpanel" aria-labelledby="options-tab">
+            <div class="container clearfix mt-4 bg-light p-3">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <div class="checkbox-outer">
+                                <label asp-for="@Model.InstallUmbracoTemplate"></label>
+                                <input asp-for="@Model.InstallUmbracoTemplate" class="form-control" type="checkbox" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="@Model.UmbracoTemplateVersion"></label>
+                            @if(Model.UmbracoVersions != null && Model.UmbracoVersions.Any())
+                            {
+                                <select class="form-control" id="UmbracoTemplateVersion" name="UmbracoTemplateVersion" disabled="@(Model.InstallUmbracoTemplate ? null : "disabled")">
+                                    <option selected="@(Model.UmbracoTemplateVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                                    @foreach(var version in Model.UmbracoVersions)
+                                    {
+                                        <option selected="@(Model.UmbracoTemplateVersion == version ? "selected" : null)" value="@version">@version</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input asp-for="@Model.UmbracoTemplateVersion" class="form-control" disabled="@(Model.InstallUmbracoTemplate ? null : "disabled")" />                                
+                            }
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-outer">
+                                <label asp-for="@Model.IncludeStarterKit"></label>
+                                <input asp-for="@Model.IncludeStarterKit" class="form-control" type="checkbox" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <select class="form-control" id="StarterKitPackage" name="StarterKitPackage" disabled="@(Model.IncludeStarterKit ? null : "disabled")">
+                                <option selected="@(Model.StarterKitPackage == "Umbraco.TheStarterKit" ? "selected" : null)" value="Umbraco.TheStarterKit">The Starter Kit</option>
+                                <option selected="@(Model.StarterKitPackage == "clean" ? "selected" : null)" value="clean">Clean Starter Kit</option>
+                                <option selected="@(Model.StarterKitPackage == "Portfolio" ? "selected" : null)" value="Portfolio">Portfolio Starter Kit</option>
+                                <option selected="@(Model.StarterKitPackage == "uSkinnedSiteBuilder" ? "selected" : null)" value="uSkinnedSiteBuilder">uSkinned Site Builder</option>
+                                <option selected="@(Model.StarterKitPackage == "LittleNorth.Igloo" ? "selected" : null)" value="LittleNorth.Igloo">Igloo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="checkbox-outer">
+                                <label asp-for="@Model.CreateSolutionFile"></label>
+                                <input asp-for="@Model.CreateSolutionFile" class="form-control" type="checkbox" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="@Model.SolutionName"></label>
+                            <input asp-for="@Model.SolutionName" class="form-control" disabled="@(Model.CreateSolutionFile ? null : "disabled")" />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="@Model.ProjectName"></label>
+                            <input asp-for="@Model.ProjectName" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <div class="checkbox-outer">
+                                <label asp-for="@Model.UseUnattendedInstall"></label>
+                                <input asp-for="@Model.UseUnattendedInstall" class="form-control" type="checkbox" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="@Model.DatabaseType"></label>
+                            <select class="form-control" id="DatabaseType" name="DatabaseType" disabled="@(Model.UseUnattendedInstall ? null : "disabled")">
+                                <option selected="@(Model.DatabaseType == "LocalDb" ? "selected" : null)" value="LocalDb">LocalDb</option>
+                                <option selected="@(Model.DatabaseType == "SQLCE" ? "selected" : null)" value="SQLCE">SQLCE (v9 only)</option>
+                                <option selected="@(Model.DatabaseType == "SQLite" ? "selected" : null)" value="SQLite">SQLite (v10+ only)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="@Model.UserFriendlyName"></label>
+                            <input asp-for="@Model.UserFriendlyName" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="@Model.UserEmail"></label>
+                            <input asp-for="@Model.UserEmail" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="@Model.UserPassword"></label>
+                            <input asp-for="@Model.UserPassword" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
+                        </div>
+                        <div class="form-group text-right">
+                            <a href="/" class="btn btn-warning" id="reset">Reset to Defaults</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+<script>
+
+</script>
