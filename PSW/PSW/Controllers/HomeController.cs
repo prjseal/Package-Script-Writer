@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using PSW.Extensions;
 using PSW.Models;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Xml.Serialization;
@@ -9,6 +12,16 @@ namespace PSW.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IMemoryCache _memoryCache;
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger, IMemoryCache memoryCache)
+        {
+            _logger = logger;
+            _memoryCache = memoryCache;
+        }
+
+        [HttpGet]
         public IActionResult Index()
         {
             bool.TryParse(Request.Query["IncludeStarterKit"], out var includeStarterKit);
@@ -35,10 +48,23 @@ namespace PSW.Controllers
             var packages = GetStringFromQueryString("Packages", "");
 
             var allPackages = new List<PagedPackagesPackage>();
-            allPackages = GetAllPackagesFromUmbraco("allpackages", TimeSpan.FromMinutes(60));
+
+            allPackages = _memoryCache.GetOrCreate(
+                "allPackages",
+                cacheEntry =>
+                {
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+                    return GetAllPackagesFromUmbraco();
+                });
 
             var umbracoVersions = new List<string>();
-            umbracoVersions = GetPackageVersions("https://www.nuget.org/packages/Umbraco.Templates", "umbracoVersions", TimeSpan.FromMinutes(60));
+            umbracoVersions = _memoryCache.GetOrCreate(
+                "umbracoVersions",
+                cacheEntry =>
+                {
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+                    return GetPackageVersions("https://www.nuget.org/packages/Umbraco.Templates");
+                });
 
             var packageOptions = new PackagesViewModel()
             {
@@ -66,6 +92,35 @@ namespace PSW.Controllers
             return View(packageOptions);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Index(PackagesViewModel model)
+        {
+            var queryString = new QueryString();
+
+            queryString = queryString.Add("InstallUmbracoTemplate", model.InstallUmbracoTemplate.ToString());
+            queryString = queryString.AddValueIfNotEmpty("UmbracoTemplateVersion", model.UmbracoTemplateVersion);
+            queryString = queryString.Add("IncludeStarterKit", model.IncludeStarterKit.ToString());
+            queryString = queryString.AddValueIfNotEmpty("StarterKitPackage", model.StarterKitPackage);
+            queryString = queryString.Add("UseUnattendedInstall", model.UseUnattendedInstall.ToString());
+            queryString = queryString.AddValueIfNotEmpty("DatabaseType", model.DatabaseType);
+            queryString = queryString.AddValueIfNotEmpty("UserEmail", model.UserEmail);
+            queryString = queryString.AddValueIfNotEmpty("UserFriendlyName", model.UserFriendlyName);
+            queryString = queryString.AddValueIfNotEmpty("UserPassword", model.UserPassword);
+            queryString = queryString.AddValueIfNotEmpty("ProjectName", model.ProjectName);
+            queryString = queryString.Add("CreateSolutionFile", model.CreateSolutionFile.ToString());
+            queryString = queryString.AddValueIfNotEmpty("SolutionName", model.SolutionName);
+            queryString = queryString.AddValueIfNotEmpty("Packages", model.Packages);
+
+            return Redirect("/" + queryString);
+
+        }
+
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
         private string GetStringFromQueryString(string keyName, string fallbackValue)
         {
             var returnValue = fallbackValue;
@@ -79,88 +134,82 @@ namespace PSW.Controllers
             return returnValue;
         }
 
-        private List<PagedPackagesPackage> GetAllPackagesFromUmbraco(string cacheKey, TimeSpan timeout)
+        private List<PagedPackagesPackage> GetAllPackagesFromUmbraco()
         {
 
-            //return _runtimeCache.GetCacheItem(cacheKey, () =>
-            //{
-                int pageIndex = 1;
-                var pageSize = 24;
-                var carryOn = true;
-                List<PagedPackagesPackage> allPackages = new List<PagedPackagesPackage>();
+            int pageIndex = 1;
+            var pageSize = 24;
+            var carryOn = true;
+            List<PagedPackagesPackage> allPackages = new List<PagedPackagesPackage>();
 
-                while (carryOn)
-                {
-                    var url = $"https://our.umbraco.com/webapi/packages/v1?pageIndex={pageIndex}&pageSize={pageSize}&category=&query=&order=Latest&version=9.5.0";
-                    var httpRequest = (HttpWebRequest)WebRequest.Create(url);
-                    httpRequest.Accept = "application/xml";
-
-                    var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                    using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                    {
-                        XmlSerializer serializer = new XmlSerializer(typeof(PagedPackages));
-                        var baseStream = streamReader.BaseStream;
-                        if (baseStream == null)
-                        {
-                            carryOn = false;
-                            break;
-                        }
-                        try
-                        {
-                            var packageFeed = (PagedPackages)serializer.Deserialize(baseStream);
-                            if (packageFeed?.Packages != null)
-                            {
-                                allPackages.AddRange(packageFeed.Packages);
-                                carryOn = true;
-                            }
-                            else
-                            {
-                                carryOn = false;
-                            }
-                        }
-                        catch
-                        {
-                            carryOn = false;
-                            break;
-                        }
-                    }
-                    pageIndex++;
-                }
-                return allPackages;
-            //}, timeout);
-        }
-
-        private List<string> GetPackageVersions(string packageUrl, string cacheKey, TimeSpan timeout)
-        {
-            //return _runtimeCache.GetCacheItem(cacheKey, () =>
-            //{
-                List<string> allVersions = new List<string>();
-
-                var url = $"{packageUrl}/atom.xml";
+            while (carryOn)
+            {
+                var url = $"https://our.umbraco.com/webapi/packages/v1?pageIndex={pageIndex}&pageSize={pageSize}&category=&query=&order=Latest&version=9.5.0";
                 var httpRequest = (HttpWebRequest)WebRequest.Create(url);
                 httpRequest.Accept = "application/xml";
 
                 var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
                 using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
                 {
-                    XmlSerializer serializer = new XmlSerializer(typeof(NugetPackageVersionFeed.feed));
+                    XmlSerializer serializer = new XmlSerializer(typeof(PagedPackages));
                     var baseStream = streamReader.BaseStream;
-                    if (baseStream == null) return allVersions;
-
-                    var packageFeed = (NugetPackageVersionFeed.feed)serializer.Deserialize(baseStream);
-                    if (packageFeed != null)
+                    if (baseStream == null)
                     {
-                        foreach (var entry in packageFeed.entryField)
+                        carryOn = false;
+                        break;
+                    }
+                    try
+                    {
+                        var packageFeed = (PagedPackages)serializer.Deserialize(baseStream);
+                        if (packageFeed?.Packages != null)
                         {
-                            var parts = entry.id.Split('/');
-                            var partCount = parts.Length;
-                            var versionNumber = parts[partCount - 1];
-                            allVersions.Add(versionNumber);
+                            allPackages.AddRange(packageFeed.Packages);
+                            carryOn = true;
+                        }
+                        else
+                        {
+                            carryOn = false;
                         }
                     }
+                    catch
+                    {
+                        carryOn = false;
+                        break;
+                    }
                 }
-                return allVersions;
-            //}, timeout);
+                pageIndex++;
+            }
+            return allPackages;
+        }
+
+        private List<string> GetPackageVersions(string packageUrl)
+        {
+            List<string> allVersions = new List<string>();
+
+            var url = $"{packageUrl}/atom.xml";
+            var httpRequest = (HttpWebRequest)WebRequest.Create(url);
+            httpRequest.Accept = "application/xml";
+
+            var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+            using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                XmlSerializer serializer = new XmlSerializer(typeof(NugetPackageVersionFeed.feed));
+                var baseStream = streamReader.BaseStream;
+                if (baseStream == null) return allVersions;
+
+                var packageFeed = (NugetPackageVersionFeed.feed)serializer.Deserialize(baseStream);
+                if (packageFeed != null)
+                {
+                    foreach (var entry in packageFeed.entryField)
+                    {
+                        var parts = entry.id.Split('/');
+                        var partCount = parts.Length;
+                        var versionNumber = parts[partCount - 1];
+                        allVersions.Add(versionNumber);
+                    }
+                }
+            }
+            return allVersions;
         }
 
         private string GeneratePackageScript(PackagesViewModel model)

@@ -6,7 +6,7 @@
     var hasQueryString = Context.Request.Query.Count > 0;
 }
 
-@using (Html.BeginForm("SubmitForm", "Packages"))
+@using (Html.BeginForm("Index", "Home"))
 {
     <div id="submit-wrapper" class="p-3 w-100 border-top">
         <button class="btn btn-success float-right ml-2" name="generate"><i class="ion-checkmark-circled"></i> Generate Script</button>

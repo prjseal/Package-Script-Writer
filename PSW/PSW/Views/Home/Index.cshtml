@@ -1,6 +1,5 @@
-﻿@page
-@using PSW.Models
-@model IndexModel
+﻿@using PSW.Models
+@model PackagesViewModel
 @{
     ViewData["Title"] = "Home page";
 }
@@ -9,7 +8,7 @@
 
     <section class="portfolio-block skills">
         <div class="container">
-            @await Component.InvokeAsync("Packages", new PackagesViewModel())
+            @await Component.InvokeAsync("Packages", Model)
         </div>
     </section>
 </main>
