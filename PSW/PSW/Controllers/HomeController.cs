@@ -49,11 +49,13 @@ namespace PSW.Controllers
 
             var allPackages = new List<PagedPackagesPackage>();
 
+            int cacheTime = 60;
+
             allPackages = _memoryCache.GetOrCreate(
                 "allPackages",
                 cacheEntry =>
                 {
-                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
                     return GetAllPackagesFromUmbraco();
                 });
 
@@ -62,7 +64,7 @@ namespace PSW.Controllers
                 "umbracoVersions",
                 cacheEntry =>
                 {
-                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(60);
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
                     return GetPackageVersions("https://www.nuget.org/packages/Umbraco.Templates");
                 });
 
@@ -163,7 +165,7 @@ namespace PSW.Controllers
                         var packageFeed = (PagedPackages)serializer.Deserialize(baseStream);
                         if (packageFeed?.Packages != null)
                         {
-                            allPackages.AddRange(packageFeed.Packages);
+                            allPackages.AddRange(packageFeed.Packages.Where(x => x != null));
                             carryOn = true;
                         }
                         else
