@@ -39,7 +39,7 @@ namespace PSW.Controllers
 
             var umbracoTemplateVersion = GetStringFromQueryString("UmbracoTemplateVersion", "");
             var starterKitPackage = GetStringFromQueryString("StarterKitPackage", "Umbraco.TheStarterKit");
-            var projectName = GetStringFromQueryString("ProjectName", "MyProject");
+            var projectName = GetStringFromQueryString("ProjectName", createSolutionFile || installUmbracoTemplate ? "MyProject" : "");
             var solutionName = GetStringFromQueryString("SolutionName", "MySolution");
             var databaseType = GetStringFromQueryString("DatabaseType", "LocalDb");
             var userFriendlyName = GetStringFromQueryString("UserFriendlyName", "Administrator");
@@ -137,8 +137,8 @@ namespace PSW.Controllers
         private List<PagedPackagesPackage> GetAllPackagesFromUmbraco()
         {
 
-            int pageIndex = 1;
-            var pageSize = 24;
+            int pageIndex = 0;
+            var pageSize = 1;
             var carryOn = true;
             List<PagedPackagesPackage> allPackages = new List<PagedPackagesPackage>();
 
@@ -215,6 +215,9 @@ namespace PSW.Controllers
         private string GeneratePackageScript(PackagesViewModel model)
         {
             StringBuilder sb = new StringBuilder();
+
+            var renderPackageName = !string.IsNullOrWhiteSpace(model.ProjectName);
+
             if (model.InstallUmbracoTemplate)
             {
                 sb.AppendLine("# Ensure we have the latest Umbraco templates");
@@ -280,7 +283,14 @@ namespace PSW.Controllers
             if (model.IncludeStarterKit)
             {
                 sb.AppendLine("#Add starter kit");
-                sb.AppendLine($"dotnet add \"{model.ProjectName}\" package {model.StarterKitPackage}");
+                if(renderPackageName)
+                {
+                    sb.AppendLine($"dotnet add \"{model.ProjectName}\" package {model.StarterKitPackage}");
+                }
+                else
+                {
+                    sb.AppendLine($"dotnet add package {model.StarterKitPackage}");
+                }
                 sb.AppendLine();
             }
 
@@ -294,13 +304,28 @@ namespace PSW.Controllers
 
                     foreach (var package in packages)
                     {
-                        sb.AppendLine($"dotnet add \"{model.ProjectName}\" package {package}");
+                        if(renderPackageName)
+                        {
+                            sb.AppendLine($"dotnet add \"{model.ProjectName}\" package {package}");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"dotnet add package {package}");
+                        }
                     }
                 }
                 sb.AppendLine();
             }
 
-            sb.AppendLine($"dotnet run --project \"{model.ProjectName}\"");
+            if(renderPackageName)
+            {
+                sb.AppendLine($"dotnet run --project \"{model.ProjectName}\"");
+            }
+            else
+            {
+                sb.AppendLine($"dotnet run");
+            }
+            
             sb.AppendLine("#Running");
             return sb.ToString();
         }

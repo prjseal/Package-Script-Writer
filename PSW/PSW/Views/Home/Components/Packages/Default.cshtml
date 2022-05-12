@@ -20,7 +20,7 @@
     </div>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <a class="nav-link @(hasQueryString ? null : "active")" id="packages-tab" data-toggle="tab" href="#packagestabcontent" role="tab" aria-controls="packagestabcontent" aria-selected="true"><i class="ion-search"></i> Packages</a>
+            <a class="nav-link @(hasQueryString ? null : "active")" id="packages-tab" data-toggle="tab" href="#packagestabcontent" role="tab" aria-controls="packagestabcontent" aria-selected="true"><i class="ion-search"></i> Packages (@(Model.AllPackages?.Count ?? 0))</a>
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link @(hasQueryString ? "active" : null)" id="code-tab" data-toggle="tab" href="#code" role="tab" aria-controls="home" aria-selected="true"><i class="ion-code"></i> Install Script</a>
