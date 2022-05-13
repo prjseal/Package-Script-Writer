@@ -28,6 +28,9 @@
         <li class="nav-item" role="presentation">
             <a class="nav-link" id="options-tab" data-toggle="tab" href="#options" role="tab" aria-controls="options" aria-selected="false"><i class="ion-settings"></i> Options</a>
         </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="help-tab" data-toggle="tab" href="#help" role="tab" aria-controls="help" aria-selected="false"><i class="ion-help"></i> Help</a>
+        </li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane fade show @(hasQueryString ? null : "active")" id="packagestabcontent" role="tabpanel" aria-labelledby="packages-tab">
@@ -49,10 +52,11 @@
 
                         <div class="col-md-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
                             <div class="card special-skill-item p-2 @(isChecked ? "selected" : null)">
-                                <img src="@package.Image" />
+                                <img src="@(package.Image)?width=64&height=64&mode=pad" alt="@package.Name" />
                                 <div class="card-body">
-                                    <h3 class="card-title"><a href="@package.Url" target="_blank">@package.Name</a></h3>
+                                    <h3 class="card-title"><a href="@package.Url" target="_blank" rel="noopener">@package.Name</a></h3>
                                     <p class="card-text">@package.Summary</p>
+                                    <small>by <strong>@package.OwnerInfo.Owner</strong></small>
                                 </div>
                                 <div class="checkbox-outer">
                                     <input type="checkbox" name="package" id="package_@packageId" value="@package.NuGetPackageId" checked="@(isChecked ? "checked" : null)" />
@@ -160,6 +164,13 @@
                             <a href="/" class="btn btn-warning" id="reset">Reset to Defaults</a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade show" id="help" role="tabpanel" aria-labelledby="help-tab">
+            <div class="row pt-5">
+                <div class="col-12">
+                    <p>You can learn how to use this tool by <a href="https://www.youtube.com/watch?v=ny5wzOSKFFA" target="_blank" rel="noopener">watching this video</a></p>
                 </div>
             </div>
         </div>
