@@ -52,7 +52,7 @@
 
                         <div class="col-md-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
                             <div class="card special-skill-item p-2 @(isChecked ? "selected" : null)">
-                                <img src="@(package.Image)?width=64&height=64&mode=pad" alt="@package.Name" />
+                                <img src="@(package.Image)?width=64&height=64&mode=pad&bgcolor=fff" alt="@package.Name" />
                                 <div class="card-body">
                                     <h3 class="card-title"><a href="@package.Url" target="_blank" rel="noopener">@package.Name</a></h3>
                                     <p class="card-text">@package.Summary</p>
