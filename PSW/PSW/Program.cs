@@ -1,7 +1,12 @@
+using PSW.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
+builder.Services.AddScoped<IPackageService, PackageService>();
+builder.Services.AddScoped<IQueryStringService, QueryStringService>();
 
 var app = builder.Build();
 
