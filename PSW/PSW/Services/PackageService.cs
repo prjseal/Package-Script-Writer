@@ -41,7 +41,7 @@ namespace PSW.Services
         {
 
             int pageIndex = 0;
-            var pageSize = 1;
+            var pageSize = 24;
             var carryOn = true;
             List<PagedPackagesPackage> allPackages = new List<PagedPackagesPackage>();
 

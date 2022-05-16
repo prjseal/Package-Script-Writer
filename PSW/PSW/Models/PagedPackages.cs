@@ -13,9 +13,9 @@ public class PackageFeed
 
         private PagedPackagesPackage[] packagesField;
 
-        private byte pagesField;
+        private int pagesField;
 
-        private byte totalField;
+        private int totalField;
 
         /// <remarks/>
         [System.Xml.Serialization.XmlArrayItemAttribute("Package", IsNullable = false)]
@@ -32,7 +32,7 @@ public class PackageFeed
         }
 
         /// <remarks/>
-        public byte Pages
+        public int Pages
         {
             get
             {
@@ -45,7 +45,7 @@ public class PackageFeed
         }
 
         /// <remarks/>
-        public byte Total
+        public int Total
         {
             get
             {
@@ -71,7 +71,7 @@ public class PackageFeed
 
         private System.DateTime createdField;
 
-        private uint downloadsField;
+        private int downloadsField;
 
         private string excerptField;
 
@@ -95,7 +95,7 @@ public class PackageFeed
 
         private PagedPackagesPackageOwnerInfo ownerInfoField;
 
-        private ushort scoreField;
+        private int scoreField;
 
         private string summaryField;
 
@@ -143,7 +143,7 @@ public class PackageFeed
         }
 
         /// <remarks/>
-        public uint Downloads
+        public int Downloads
         {
             get
             {
@@ -299,7 +299,7 @@ public class PackageFeed
         }
 
         /// <remarks/>
-        public ushort Score
+        public int Score
         {
             get
             {
@@ -360,7 +360,7 @@ public class PackageFeed
 
         private string[] contributorsField;
 
-        private ushort karmaField;
+        private int karmaField;
 
         private string ownerField;
 
@@ -382,7 +382,7 @@ public class PackageFeed
         }
 
         /// <remarks/>
-        public ushort Karma
+        public int Karma
         {
             get
             {
