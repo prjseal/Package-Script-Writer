@@ -1,5 +1,6 @@
 ﻿using PSW.Models;
 using System.Net;
+using System.Xml;
 using System.Xml.Serialization;
 using static PSW.Models.PackageFeed;
 
@@ -41,45 +42,43 @@ namespace PSW.Services
         {
 
             int pageIndex = 0;
-            var pageSize = 24;
+            var pageSize = 200;
             var carryOn = true;
             List<PagedPackagesPackage> allPackages = new List<PagedPackagesPackage>();
-
-            while (carryOn)
+            var total = 0;
+            var totalSoFar = 0;
+            while (carryOn && (pageIndex == 0 || totalSoFar < total))
             {
+                totalSoFar = (pageIndex + 1) * pageSize;
                 var url = $"https://our.umbraco.com/webapi/packages/v1?pageIndex={pageIndex}&pageSize={pageSize}&category=&query=&order=Latest&version=9.5.0";
-                var httpRequest = (HttpWebRequest)WebRequest.Create(url);
-                httpRequest.Accept = "application/xml";
+                
+                var XmlReader = new XmlTextReader(url);
 
-                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                var serializer = new XmlSerializer(typeof(PagedPackages));
+
+                try
                 {
-                    XmlSerializer serializer = new XmlSerializer(typeof(PagedPackages));
-                    var baseStream = streamReader.BaseStream;
-                    if (baseStream == null)
+                    PagedPackages? packageFeed = serializer.Deserialize(XmlReader) as PagedPackages;
+                    if (packageFeed?.Packages != null)
+                    {
+                        if(pageIndex == 0)
+                        {
+                            total = packageFeed.Total;
+                        }
+                        allPackages.AddRange(packageFeed.Packages.Where(x => x != null));
+                        carryOn = true;
+                    }
+                    else
                     {
                         carryOn = false;
-                        break;
-                    }
-                    try
-                    {
-                        var packageFeed = (PagedPackages)serializer.Deserialize(baseStream);
-                        if (packageFeed?.Packages != null)
-                        {
-                            allPackages.AddRange(packageFeed.Packages.Where(x => x != null));
-                            carryOn = true;
-                        }
-                        else
-                        {
-                            carryOn = false;
-                        }
-                    }
-                    catch
-                    {
-                        carryOn = false;
-                        break;
                     }
                 }
+                catch
+                {
+                    carryOn = false;
+                    break;
+                }
+
                 pageIndex++;
             }
             return allPackages;
