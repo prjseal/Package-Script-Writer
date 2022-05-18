@@ -1,9 +1,7 @@
 ﻿using PSW.Models;
 
-namespace PSW.Services
+namespace PSW.Services;
+public interface IScriptGeneratorService
 {
-    public interface IScriptGeneratorService
-    {
-        public string GeneratePackageScript(PackagesViewModel model);
-    }
+    public string GeneratePackageScript(PackagesViewModel model);
 }

@@ -1,0 +1,17 @@
+{
+	"InstallUmbracoTemplate": false,
+	"UmbracoTemplateVersion": "",
+	"Packages": "",
+	"UserEmail": "",
+	"ProjectName": "",
+	"DatanaseType": "",
+	"CreateSolutionFile": false,
+	"SolutionName": "",
+	"DatabaseType": "",
+	"UseUnattendedInstall": false,
+	"UserPassword": "",
+	"UmbracoVersions": "",
+	"UserFriendlyName": "",
+	"IncludeStarterKit": false,
+	"StarterKitPackage": ""
+}

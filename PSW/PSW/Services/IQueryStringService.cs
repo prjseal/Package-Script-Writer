@@ -1,11 +1,10 @@
 ﻿using PSW.Models;
 
-namespace PSW.Services
-{
-    public interface IQueryStringService
-    {
-        public PackagesViewModel LoadModelFromQueryString(HttpRequest request);
+namespace PSW.Services;
 
-        public QueryString GenerateQueryStringFromModel(PackagesViewModel model);
-    }
+public interface IQueryStringService
+{
+    public PackagesViewModel LoadModelFromQueryString(HttpRequest request);
+
+    public QueryString GenerateQueryStringFromModel(PackagesViewModel model);
 }

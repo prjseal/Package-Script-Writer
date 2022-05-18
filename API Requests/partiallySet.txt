@@ -1,0 +1,17 @@
+{
+	"InstallUmbracoTemplate": true,
+	"UmbracoTemplateVersion": "",
+	"Packages": "uSync,uSync.Complete",
+	"UserEmail": "admin@example.com",
+	"ProjectName": "MyProject",
+	"DatanaseType": "fsdfsf",
+	"CreateSolutionFile": true,
+	"SolutionName": "MySolution",
+	"DatabaseType": "SQLite",
+	"UseUnattendedInstall": true,
+	"UserPassword": null,
+	"UmbracoVersions": null,
+	"UserFriendlyName": null,
+	"IncludeStarterKit": true,
+	"StarterKitPackage": null
+}
