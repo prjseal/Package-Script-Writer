@@ -51,7 +51,7 @@ public class HomeController : Controller
         packageOptions.AllPackages = allPackages;
         packageOptions.UmbracoVersions = umbracoVersions;
 
-        var output = _scriptGeneratorService.GeneratePackageScript(packageOptions);
+        var output = _scriptGeneratorService.GenerateScript(packageOptions);
 
         packageOptions.Output = output;
 

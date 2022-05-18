@@ -4,7 +4,7 @@ using System.Text;
 namespace PSW.Services;
 public class ScriptGeneratorService : IScriptGeneratorService
 {
-    public string GeneratePackageScript(PackagesViewModel model)
+    public string GenerateScript(PackagesViewModel model)
     {
         var output = new StringBuilder();
 
@@ -12,93 +12,64 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         if (model.InstallUmbracoTemplate)
         {
-            UmbracoTemplatesSection(model, output);
+            output.Append(GenerateUmbracoTemplatesSectionScript(model));
 
-            CreateSoltionFile(model, output);
+            output.Append(GenerateCreateSoltionFileScript(model));
 
-            CreateProject(model, output);
+            output.Append(GenerateCreateProjectScript(model));
 
-            AddProjectToSolution(model, output);
+            output.Append(GenerateAddProjectToSolutionScript(model));
 
             output.AppendLine();
         }
 
-        AddStarterKit(model, output, renderPackageName);
+        output.Append(GenerateAddStarterKitScript(model, renderPackageName));
 
-        AddPackages(model, output, renderPackageName);
+        output.Append(GenerateAddPackagesScript(model, renderPackageName));
 
-        RunProject(model, output, renderPackageName);
+        output.Append(GenerateRunProjectScript(model, renderPackageName));
 
         return output.ToString();
     }
 
-    private static void RunProject(PackagesViewModel model, StringBuilder output, bool renderPackageName)
+    public string GenerateUmbracoTemplatesSectionScript(PackagesViewModel model)
     {
-        if (renderPackageName)
+        var output = new StringBuilder();
+
+        output.AppendLine("# Ensure we have the latest Umbraco templates");
+        if (!string.IsNullOrWhiteSpace(model.UmbracoTemplateVersion))
         {
-            output.AppendLine($"dotnet run --project \"{model.ProjectName}\"");
+            output.AppendLine($"dotnet new -i Umbraco.Templates::{model.UmbracoTemplateVersion}");
         }
         else
         {
-            output.AppendLine($"dotnet run");
+            output.AppendLine("dotnet new -i Umbraco.Templates");
         }
+        output.AppendLine();
 
-        output.AppendLine("#Running");
+        return output.ToString();
     }
 
-    private static void AddPackages(PackagesViewModel model, StringBuilder output, bool renderPackageName)
+    public string GenerateCreateSoltionFileScript(PackagesViewModel model)
     {
-        if (!string.IsNullOrWhiteSpace(model.Packages))
+        var output = new StringBuilder();
+
+        if (model.CreateSolutionFile)
         {
-            var packages = model.Packages.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
-
-            if (packages != null && packages.Length > 0)
+            output.AppendLine("# Create solution/project");
+            if (!string.IsNullOrWhiteSpace(model.SolutionName))
             {
-                output.AppendLine("#Add Packages");
-
-                foreach (var package in packages)
-                {
-                    if (renderPackageName)
-                    {
-                        output.AppendLine($"dotnet add \"{model.ProjectName}\" package {package}");
-                    }
-                    else
-                    {
-                        output.AppendLine($"dotnet add package {package}");
-                    }
-                }
+                output.AppendLine($"dotnet new sln --name \"{model.SolutionName}\"");
             }
-            output.AppendLine();
         }
+
+        return output.ToString();
     }
 
-    private static void AddStarterKit(PackagesViewModel model, StringBuilder output, bool renderPackageName)
+    public string GenerateCreateProjectScript(PackagesViewModel model)
     {
-        if (model.IncludeStarterKit)
-        {
-            output.AppendLine("#Add starter kit");
-            if (renderPackageName)
-            {
-                output.AppendLine($"dotnet add \"{model.ProjectName}\" package {model.StarterKitPackage}");
-            }
-            else
-            {
-                output.AppendLine($"dotnet add package {model.StarterKitPackage}");
-            }
-            output.AppendLine();
-        }
-    }
+        var output = new StringBuilder();
 
-    private static void AddProjectToSolution(PackagesViewModel model, StringBuilder output)
-    {
-        if (model.CreateSolutionFile && !string.IsNullOrWhiteSpace(model.SolutionName))
-        {
-            output.AppendLine($"dotnet sln add \"{model.ProjectName}\"");
-        }
-    }
-
-    private static void CreateProject(PackagesViewModel model, StringBuilder output)
-    {
         if (model.UseUnattendedInstall)
         {
             var connectionString = "";
@@ -129,31 +100,88 @@ public class ScriptGeneratorService : IScriptGeneratorService
         {
             output.AppendLine($"dotnet new umbraco -n \"{model.ProjectName}\"");
         }
+
+        return output.ToString();
     }
 
-    private static void CreateSoltionFile(PackagesViewModel model, StringBuilder output)
+    public string GenerateAddProjectToSolutionScript(PackagesViewModel model)
     {
-        if (model.CreateSolutionFile)
+        var output = new StringBuilder();
+
+        if (model.CreateSolutionFile && !string.IsNullOrWhiteSpace(model.SolutionName))
         {
-            output.AppendLine("# Create solution/project");
-            if (!string.IsNullOrWhiteSpace(model.SolutionName))
-            {
-                output.AppendLine($"dotnet new sln --name \"{model.SolutionName}\"");
-            }
+            output.AppendLine($"dotnet sln add \"{model.ProjectName}\"");
         }
+
+        return output.ToString();
     }
 
-    private static void UmbracoTemplatesSection(PackagesViewModel model, StringBuilder output)
+    public string GenerateAddStarterKitScript(PackagesViewModel model, bool renderPackageName)
     {
-        output.AppendLine("# Ensure we have the latest Umbraco templates");
-        if (!string.IsNullOrWhiteSpace(model.UmbracoTemplateVersion))
+        var output = new StringBuilder();
+
+        if (model.IncludeStarterKit)
         {
-            output.AppendLine($"dotnet new -i Umbraco.Templates::{model.UmbracoTemplateVersion}");
+            output.AppendLine("#Add starter kit");
+            if (renderPackageName)
+            {
+                output.AppendLine($"dotnet add \"{model.ProjectName}\" package {model.StarterKitPackage}");
+            }
+            else
+            {
+                output.AppendLine($"dotnet add package {model.StarterKitPackage}");
+            }
+            output.AppendLine();
+        }
+
+        return output.ToString();
+    }
+
+    public string GenerateAddPackagesScript(PackagesViewModel model, bool renderPackageName)
+    {
+        var output = new StringBuilder();
+
+        if (!string.IsNullOrWhiteSpace(model.Packages))
+        {
+            var packages = model.Packages.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
+
+            if (packages != null && packages.Length > 0)
+            {
+                output.AppendLine("#Add Packages");
+
+                foreach (var package in packages)
+                {
+                    if (renderPackageName)
+                    {
+                        output.AppendLine($"dotnet add \"{model.ProjectName}\" package {package}");
+                    }
+                    else
+                    {
+                        output.AppendLine($"dotnet add package {package}");
+                    }
+                }
+            }
+            output.AppendLine();
+        }
+
+        return output.ToString();
+    }
+
+    public string GenerateRunProjectScript(PackagesViewModel model, bool renderPackageName)
+    {
+        var output = new StringBuilder();
+
+        if (renderPackageName)
+        {
+            output.AppendLine($"dotnet run --project \"{model.ProjectName}\"");
         }
         else
         {
-            output.AppendLine("dotnet new -i Umbraco.Templates");
+            output.AppendLine($"dotnet run");
         }
-        output.AppendLine();
+
+        output.AppendLine("#Running");
+
+        return output.ToString();
     }
 }

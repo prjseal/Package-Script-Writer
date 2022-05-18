@@ -14,6 +14,7 @@ public class ScriptGeneratorApiController : ControllerBase
         _scriptGeneratorService = scriptGeneratorService;
     }
 
+    [Route("generatescript")]
     [HttpPost]
     public ActionResult GenerateScript([FromBody] GeneratorApiRequest apiRequest)
     {
@@ -34,6 +35,6 @@ public class ScriptGeneratorApiController : ControllerBase
         apiRequest.UserPassword = !string.IsNullOrWhiteSpace(apiRequest.UserPassword) ? apiRequest.UserPassword : DefaultValues.UserPassword;
 
         var model = new PackagesViewModel(apiRequest);
-        return Ok(_scriptGeneratorService.GeneratePackageScript(model));
+        return Ok(_scriptGeneratorService.GenerateScript(model));
     }
 }
