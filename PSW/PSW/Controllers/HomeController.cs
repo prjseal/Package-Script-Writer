@@ -8,16 +8,14 @@ namespace PSW.Controllers;
 public class HomeController : Controller
 {
     private readonly IMemoryCache _memoryCache;
-    private readonly ILogger<HomeController> _logger;
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly IPackageService _packageService;
     private readonly IQueryStringService _queryStringService;
 
-    public HomeController(ILogger<HomeController> logger, IMemoryCache memoryCache,
+    public HomeController(IMemoryCache memoryCache,
         IScriptGeneratorService scriptGeneratorService, IPackageService packageService,
         IQueryStringService queryStringService)
     {
-        _logger = logger;
         _memoryCache = memoryCache;
         _scriptGeneratorService = scriptGeneratorService;
         _packageService = packageService;

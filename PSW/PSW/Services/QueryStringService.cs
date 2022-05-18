@@ -6,10 +6,10 @@ public class QueryStringService : IQueryStringService
 {
     public PackagesViewModel LoadModelFromQueryString(HttpRequest request)
     {
-        bool.TryParse(request.Query[nameof(PackagesViewModel.IncludeStarterKit)], out var includeStarterKit);
-        bool.TryParse(request.Query[nameof(PackagesViewModel.InstallUmbracoTemplate)], out var installUmbracoTemplate);
-        bool.TryParse(request.Query[nameof(PackagesViewModel.CreateSolutionFile)], out var createSolutionFile);
-        bool.TryParse(request.Query[nameof(PackagesViewModel.UseUnattendedInstall)], out var useUnattendedInstall);
+        _ = bool.TryParse(request.Query[nameof(PackagesViewModel.IncludeStarterKit)], out var includeStarterKit);
+        _ = bool.TryParse(request.Query[nameof(PackagesViewModel.InstallUmbracoTemplate)], out var installUmbracoTemplate);
+        _ = bool.TryParse(request.Query[nameof(PackagesViewModel.CreateSolutionFile)], out var createSolutionFile);
+        _ = bool.TryParse(request.Query[nameof(PackagesViewModel.UseUnattendedInstall)], out var useUnattendedInstall);
 
         if (request.Query.Count == 0)
         {
@@ -53,18 +53,18 @@ public class QueryStringService : IQueryStringService
         var queryString = new QueryString();
 
         queryString = queryString.Add(nameof(model.InstallUmbracoTemplate), model.InstallUmbracoTemplate.ToString());
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.UmbracoTemplateVersion), model.UmbracoTemplateVersion);
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.UmbracoTemplateVersion), model.UmbracoTemplateVersion ?? "");
         queryString = queryString.Add(nameof(model.IncludeStarterKit), model.IncludeStarterKit.ToString());
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.StarterKitPackage), model.StarterKitPackage);
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.StarterKitPackage), model.StarterKitPackage ?? "");
         queryString = queryString.Add(nameof(model.UseUnattendedInstall), model.UseUnattendedInstall.ToString());
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.DatabaseType), model.DatabaseType);
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.UserEmail), model.UserEmail);
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.UserFriendlyName), model.UserFriendlyName);
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.UserPassword), model.UserPassword);
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.ProjectName), model.ProjectName);
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.DatabaseType), model.DatabaseType ?? "");
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.UserEmail), model.UserEmail ?? "");
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.UserFriendlyName), model.UserFriendlyName ?? "");
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.UserPassword), model.UserPassword ?? "");
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.ProjectName), model.ProjectName ?? "");
         queryString = queryString.Add(nameof(model.CreateSolutionFile), model.CreateSolutionFile.ToString());
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.SolutionName), model.SolutionName);
-        queryString = queryString.AddValueIfNotEmpty(nameof(model.Packages), model.Packages);
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.SolutionName), model.SolutionName ?? "");
+        queryString = queryString.AddValueIfNotEmpty(nameof(model.Packages), model.Packages ?? "");
 
         return queryString;
     }

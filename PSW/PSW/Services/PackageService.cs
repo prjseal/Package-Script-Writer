@@ -1,5 +1,4 @@
 ﻿using PSW.Models;
-using System.Net;
 using System.Xml;
 using System.Xml.Serialization;
 using static PSW.Models.PackageFeed;
@@ -10,31 +9,25 @@ public class PackageService : IPackageService
 {
     public List<string> GetPackageVersions(string packageUrl)
     {
-        List<string> allVersions = new List<string>();
+        var allVersions = new List<string>();
 
         var url = $"{packageUrl}/atom.xml";
-        var httpRequest = (HttpWebRequest)WebRequest.Create(url);
-        httpRequest.Accept = "application/xml";
 
-        var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-        using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+        var XmlReader = new XmlTextReader(url);
+
+        var serializer = new XmlSerializer(typeof(NugetPackageVersionFeed.feed));
+
+        if (serializer.Deserialize(XmlReader) is NugetPackageVersionFeed.feed packageFeed)
         {
-            XmlSerializer serializer = new XmlSerializer(typeof(NugetPackageVersionFeed.feed));
-            var baseStream = streamReader.BaseStream;
-            if (baseStream == null) return allVersions;
-
-            var packageFeed = (NugetPackageVersionFeed.feed)serializer.Deserialize(baseStream);
-            if (packageFeed != null)
+            foreach (var entry in packageFeed.entryField)
             {
-                foreach (var entry in packageFeed.entryField)
-                {
-                    var parts = entry.id.Split('/');
-                    var partCount = parts.Length;
-                    var versionNumber = parts[partCount - 1];
-                    allVersions.Add(versionNumber);
-                }
+                var parts = entry.id.Split('/');
+                var partCount = parts.Length;
+                var versionNumber = parts[partCount - 1];
+                allVersions.Add(versionNumber);
             }
         }
+
         return allVersions;
     }
 
@@ -44,7 +37,7 @@ public class PackageService : IPackageService
         int pageIndex = 0;
         var pageSize = 200;
         var carryOn = true;
-        List<PagedPackagesPackage> allPackages = new List<PagedPackagesPackage>();
+        var allPackages = new List<PagedPackagesPackage>();
         var total = 0;
         var totalSoFar = 0;
         while (carryOn && (pageIndex == 0 || totalSoFar < total))
