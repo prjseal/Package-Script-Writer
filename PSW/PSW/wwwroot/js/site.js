@@ -27,22 +27,36 @@
     },
     addListeners() {
         psw.buttons.clearpackages.addEventListener('click', function (event) {
-            psw.clearAllPackages(event)
+            psw.clearAllPackages(event);
+            psw.updateOutput();
         });
 
         psw.buttons.reset.addEventListener('click', function (event) {
-            psw.reset(event)
+            psw.reset(event);
+            psw.updateOutput();
         });
 
         psw.controls.search.addEventListener('keyup', psw.filterPackages);
 
-        psw.controls.useUnattendedInstall.addEventListener('change', psw.toggleUnattendedInstallControls);
+        psw.controls.useUnattendedInstall.addEventListener('change', function () {
+            psw.toggleUnattendedInstallControls();
+            psw.updateOutput();
+        });
 
-        psw.controls.installUmbracoTemplate.addEventListener('change', psw.toggleInstallUmbracoTemplateControls);
+        psw.controls.installUmbracoTemplate.addEventListener('change', function () {
+            psw.toggleInstallUmbracoTemplateControls();
+            psw.updateOutput();
+        });
 
-        psw.controls.includeStarterKit.addEventListener('change', psw.toggleIncludeStarterKitControls);
+        psw.controls.includeStarterKit.addEventListener('change', function () {
+            psw.toggleIncludeStarterKitControls();
+            psw.updateOutput();
+        });
 
-        psw.controls.createSolutionFile.addEventListener('change', psw.toggleCreateSolutionFileControls);
+        psw.controls.createSolutionFile.addEventListener('change', function () {
+            psw.toggleCreateSolutionFileControls();
+            psw.updateOutput();
+        });
 
         psw.buttons.copy.addEventListener('click', function (event) {
             psw.copyCodeBlock(event);
@@ -51,6 +65,7 @@
         psw.controls.packageCheckboxes.forEach(function (checkbox) {
             checkbox.addEventListener('change', function () {
                 psw.updatePackages(this.id);
+                psw.updateOutput();
             });
         });
 
@@ -188,6 +203,49 @@
     copyCodeBlock: function (event) {
         event.preventDefault();
         navigator.clipboard.writeText(psw.controls.codeBlock.innerText);
+    },
+    updateOutput: function () {
+
+        var data = {
+            "InstallUmbracoTemplate": psw.controls.installUmbracoTemplate.checked,
+            "UmbracoTemplateVersion": psw.controls.umbracoTemplateVersion.value,
+            "Packages": psw.controls.packages.value,
+            "UserEmail": psw.controls.userEmail.value,
+            "ProjectName": psw.controls.projectName.value,
+            "CreateSolutionFile": psw.controls.createSolutionFile.checked,
+            "SolutionName": psw.controls.solutionName.value,
+            "UseUnattendedInstall": psw.controls.useUnattendedInstall.checked,
+            "DatabaseType": psw.controls.databaseType.value,
+            "UserPassword": psw.controls.userPassword.value,
+            "UmbracoTemplateVersion": psw.controls.umbracoTemplateVersion.value,
+            "UserFriendlyName": psw.controls.userFriendlyName.value,
+            "IncludeStarterKit": psw.controls.includeStarterKit.checked,
+            "StarterKitPackage": psw.controls.starterKitPackage.value
+        }
+
+        var url = "https://localhost:7192/api/scriptgeneratorapi/generatescript";
+
+        fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+        }).then((response) => {
+            var result = response.text();
+            console.log(result);
+            if (response.ok) {
+                return result;
+            }
+        }).then((data) => {
+            console.log(data);
+            psw.controls.codeBlock.innerHTML = data;
+            psw.controls.codeBlock.classList.remove('prettyprinted');
+            PR.prettyPrint();
+        }).catch((error) => {
+            console.log(error);
+        });
     }
 }; psw.init();
 
