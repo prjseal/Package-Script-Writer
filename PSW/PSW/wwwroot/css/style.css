@@ -34,7 +34,9 @@ pre:not(.prettyprinted) {
 }
 
 #packagelist .card {
-    border: 5px solid #fff;
+    border: 5px solid #f1f1f1;
+    min-height: 335px;
+    cursor: pointer;
 }
 
     #packagelist .card.selected {
@@ -44,8 +46,14 @@ pre:not(.prettyprinted) {
     #packagelist .card input[type="checkbox"] {
         width: 1em;
         height: 1em;
+        cursor: pointer;
     }
 
 .nav-tabs .nav-item .nav-link:not(.active) {
     background-color: lightgrey;
+}
+
+#code-nav-item.glow .nav-link {
+    border-color: green;
+    box-shadow: inset 0 0 16px green;
 }
