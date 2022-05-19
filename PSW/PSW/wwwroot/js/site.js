@@ -21,7 +21,8 @@
         clearpackages: document.getElementById('clearpackages'),
         reset: document.getElementById('reset'),
         copy: document.getElementById('copy'),
-        generate: document.getElementById('generate')
+        generate: document.getElementById('generate'),
+        update: document.getElementById('update')
     },
     init: function () {
         psw.addListeners();
@@ -70,6 +71,13 @@
         });
 
         psw.buttons.generate.addEventListener('click', function (event) {
+            event.preventDefault();
+            $('#code-tab').tab('show');
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+
+        psw.buttons.update.addEventListener('click', function (event) {
             event.preventDefault();
             $('#code-tab').tab('show');
             psw.updateOutput();
@@ -200,7 +208,6 @@
     },
     reset: function (event) {
         event.preventDefault();
-        psw.controls.packages.value = '';
         psw.controls.installUmbracoTemplate.checked = true;
         psw.controls.umbracoTemplateVersion.value = '';
         psw.controls.includeStarterKit.checked = true;
