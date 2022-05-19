@@ -9,7 +9,7 @@
 @using (Html.BeginForm("Index", "Home"))
 {
     <div id="submit-wrapper" class="p-3 w-100 border-top">
-        <button class="btn btn-success float-right ml-2" id="generate" name="generate"><i class="ion-checkmark-circled"></i> Generate Script</button>
+        <button class="btn btn-success float-right ml-2" id="generate" name="generate"><i class="ion-checkmark-circled"></i> Update Script</button>
         <button class="btn btn-danger float-right ml-2" id="clearpackages"><i class="ion-android-delete"></i> Clear All Packages</button>
         <a href="/" class="btn btn-primary float-right ml-2" id="startover"><i class="ion-ios-undo"></i> Start Over</a>
     </div>
@@ -30,6 +30,9 @@
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link" id="help-tab" data-toggle="tab" href="#help" role="tab" aria-controls="help" aria-selected="false"><i class="ion-help"></i> Help</a>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a class="nav-link" id="source-tab" data-toggle="tab" href="#source" role="tab" aria-controls="source" aria-selected="false"><i class="ion-social-github"></i> Source Code</a>
         </li>
     </ul>
     <div class="tab-content">
@@ -161,7 +164,8 @@
                             <input asp-for="@Model.UserPassword" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
                         </div>
                         <div class="form-group text-right">
-                            <a href="/" class="btn btn-warning" id="reset">Reset to Defaults</a>
+                            <a href="/" class="btn btn-warning" id="reset"><i class="ion-ios-arrow-left"></i> Reset to Defaults</a>
+                            <button class="btn btn-success ml-2" id="update" name="update"><i class="ion-checkmark-circled"></i> Update Script</button>
                         </div>
                     </div>
                 </div>
@@ -171,6 +175,13 @@
             <div class="row pt-5">
                 <div class="col-12">
                     <p>You can learn how to use this tool by <a href="https://www.youtube.com/watch?v=ny5wzOSKFFA" target="_blank" rel="noopener">watching this video</a></p>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade show" id="source" role="tabpanel" aria-labelledby="source-tab">
+            <div class="row pt-5">
+                <div class="col-12">
+                    <p>You can see the source code for this site on <a href="https://github.com/prjseal/Package-Script-Writer" target="_blank">GitHub</a>. </p>
                 </div>
             </div>
         </div>
