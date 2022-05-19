@@ -1,0 +1,48 @@
+### Test Get
+GET https://localhost:7192/api/ScriptGeneratorApi/test/ HTTP/1.1 
+
+
+### Test with Empty Data
+POST https://localhost:7192/api/ScriptGeneratorApi/generatescript/ HTTP/1.1
+content-type: application/json
+
+{
+	"InstallUmbracoTemplate": false,
+	"UmbracoTemplateVersion": "",
+	"Packages": "",
+	"UserEmail": "",
+	"ProjectName": "",
+	"DatanaseType": "",
+	"CreateSolutionFile": false,
+	"SolutionName": "",
+	"DatabaseType": "",
+	"UseUnattendedInstall": false,
+	"UserPassword": "",
+	"UmbracoVersions": "",
+	"UserFriendlyName": "",
+	"IncludeStarterKit": false,
+	"StarterKitPackage": ""
+}
+
+
+### Test with Partially Set Data
+POST https://localhost:7192/api/ScriptGeneratorApi/generatescript/ HTTP/1.1
+content-type: application/json
+
+{
+	"InstallUmbracoTemplate": true,
+	"UmbracoTemplateVersion": "",
+	"Packages": "uSync,uSync.Complete",
+	"UserEmail": "admin@example.com",
+	"ProjectName": "MyProject",
+	"DatanaseType": "fsdfsf",
+	"CreateSolutionFile": true,
+	"SolutionName": "MySolution",
+	"DatabaseType": "SQLite",
+	"UseUnattendedInstall": true,
+	"UserPassword": null,
+	"UmbracoVersions": null,
+	"UserFriendlyName": null,
+	"IncludeStarterKit": true,
+	"StarterKitPackage": null
+}
