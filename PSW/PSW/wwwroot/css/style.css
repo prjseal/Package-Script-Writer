@@ -35,7 +35,7 @@ pre:not(.prettyprinted) {
 
 #packagelist .card {
     border: 5px solid #f1f1f1;
-    min-height: 335px;
+    min-height: 338px;
     cursor: pointer;
 }
 
