@@ -52,8 +52,9 @@
                     </div>
                 </div>
                 <div class="row mt-4" id="packagelist">
-                    @foreach (var package in Model.AllPackages.OrderBy(x => x.Name))
+                    @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
                     {
+                        var downloads = package?.Downloads ?? 0;
                         var isChecked = selectedPackages != null && selectedPackages.Contains(package.NuGetPackageId);
 
                         <div class="col-md-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
@@ -62,7 +63,11 @@
                                 <div class="card-body">
                                     <h3 class="card-title"><a href="@(package?.Url ?? "#")" target="_blank" rel="noopener">@(package?.Name ?? "unknown")</a></h3>
                                     <p class="card-text">@(package?.Summary ?? "")</p>
-                                    <small>by <strong>@(package?.OwnerInfo?.Owner ?? "unknown")</strong></small>
+                                    <p>
+                                        <small>By: <strong>@(package?.OwnerInfo?.Owner ?? "unknown")</strong></small><br/>
+                                        <small>Downloads: <strong>@string.Format("{0:n0}", downloads)</strong></small>
+                                    </p>
+                                    
                                 </div>
                                 <div class="checkbox-outer">
                                     <input type="checkbox" name="package" id="package_@packageId" value="@(package?.NuGetPackageId ?? "")" checked="@(isChecked ? "checked" : null)" />

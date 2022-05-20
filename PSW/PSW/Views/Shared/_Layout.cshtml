@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var clientBuildVersion = 5;
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -8,7 +12,7 @@
     <title>Package Script Writer</title>
     <link rel="canonical" href="https://psw.codeshare.co.uk">
     <link rel="stylesheet preload" as="style" href="@Url.Content("~/portfolio-assets/bootstrap.min.css")">
-    <link rel="stylesheet preload" as="style" href="@Url.Content("~/css/style.css?v=4")">
+    <link rel="stylesheet preload" as="style" href="@Url.Content($"~/css/style.css?v={clientBuildVersion}")">
     <link rel="stylesheet preload" as="style" href="@Url.Content("~/portfolio-assets/ionicons.min.css")">
     <link rel="stylesheet preload" as="style" href="@Url.Content("~/css/sunburst.css")">
 </head>
@@ -28,7 +32,7 @@
     <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js"
             integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI="
             crossorigin="anonymous"></script>
-    <script src="@Url.Content("~/js/site.js?v=4")"></script>
+    <script src="@Url.Content($"~/js/site.js?v={clientBuildVersion}")"></script>
     <script src="@Url.Content("~/portfolio-assets/bootstrap.min.js")"></script>
     <script src="@Url.Content("~/portfolio-assets/theme.js")"></script>
     <script src="@Url.Content("~/js/run_prettify.js?autoload=true&skin=sunburst")" defer></script>
