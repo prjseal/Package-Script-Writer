@@ -15,7 +15,9 @@
         databaseType: document.getElementById('DatabaseType'),
         search: document.getElementById('search'),
         codeBlock: document.querySelector('pre'),
-        packageCheckboxes: document.querySelectorAll('#packagelist input[type=checkbox]')
+        packageCheckboxes: document.querySelectorAll('#packagelist input[type=checkbox]'),
+        packageCards: document.querySelectorAll('#packagelist .card'),
+        codeNavItem: document.getElementById('code-nav-item')
     },
     buttons: {
         clearpackages: document.getElementById('clearpackages'),
@@ -87,6 +89,17 @@
         psw.controls.packageCheckboxes.forEach(function (checkbox) {
             checkbox.addEventListener('change', function () {
                 psw.updatePackages(this.id);
+                psw.updateOutput();
+                psw.updateUrl();
+            });
+        });
+
+        psw.controls.packageCards.forEach(function (card) {
+            card.addEventListener('click', function (event) {
+                if (event.target.nodeName === 'A' || event.target.nodeName == 'INPUT') return;
+                var checkbox = this.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+                psw.updatePackages(checkbox.id);
                 psw.updateOutput();
                 psw.updateUrl();
             });
@@ -323,6 +336,10 @@
             psw.controls.codeBlock.innerHTML = data;
             psw.controls.codeBlock.classList.remove('prettyprinted');
             PR.prettyPrint();
+            psw.controls.codeNavItem.classList.add('glow');
+            setTimeout(function () {
+                psw.controls.codeNavItem.classList.remove('glow');
+            }, 1000)
         }).catch((error) => {
             console.log(error);
         });

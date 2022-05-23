@@ -19,20 +19,23 @@
         <input type="hidden" asp-for="@Model.Packages" />
     </div>
     <ul class="nav nav-tabs" id="myTab" role="tablist">
-        <li class="nav-item" role="presentation">
+        <li class="nav-item pr-1" role="presentation">
             <a class="nav-link @(hasQueryString ? null : "active")" id="packages-tab" data-toggle="tab" href="#packagestabcontent" role="tab" aria-controls="packagestabcontent" aria-selected="true"><i class="ion-search"></i> Packages (@(Model.AllPackages?.Count ?? 0))</a>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item pr-1" id="code-nav-item" role="presentation">
             <a class="nav-link @(hasQueryString ? "active" : null)" id="code-tab" data-toggle="tab" href="#code" role="tab" aria-controls="home" aria-selected="true"><i class="ion-code"></i> Install Script</a>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item pr-1" role="presentation">
             <a class="nav-link" id="options-tab" data-toggle="tab" href="#options" role="tab" aria-controls="options" aria-selected="false"><i class="ion-settings"></i> Options</a>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item pr-1" role="presentation">
             <a class="nav-link" id="help-tab" data-toggle="tab" href="#help" role="tab" aria-controls="help" aria-selected="false"><i class="ion-help"></i> Help</a>
         </li>
-        <li class="nav-item" role="presentation">
+        <li class="nav-item pr-1" role="presentation">
             <a class="nav-link" id="source-tab" data-toggle="tab" href="#source" role="tab" aria-controls="source" aria-selected="false"><i class="ion-social-github"></i> Source Code</a>
+        </li>
+        <li class="nav-item pr-1" role="presentation">
+            <a class="nav-link" id="coffee-tab" data-toggle="tab" href="#coffee" role="tab" aria-controls="coffee" aria-selected="false"><i class="ion-coffee"></i> Buy me a coffee</a>
         </li>
     </ul>
     <div class="tab-content">
@@ -181,7 +184,14 @@
         <div class="tab-pane fade show" id="source" role="tabpanel" aria-labelledby="source-tab">
             <div class="row pt-5">
                 <div class="col-12">
-                    <p>You can see the source code for this site on <a href="https://github.com/prjseal/Package-Script-Writer" target="_blank">GitHub</a>. </p>
+                    <p>You can see the source code for this site on <a href="https://github.com/prjseal/Package-Script-Writer"  target="_blank" rel="noopener">GitHub</a>. </p>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane fade show" id="coffee" role="tabpanel" aria-labelledby="coffee-tab">
+            <div class="row pt-5">
+                <div class="col-12">
+                    <p>This tool is completely free for you to use but, if you want to show your appreciation, you can <a href="https://codeshare.co.uk/coffee" target="_blank" rel="noopener">buy me a coffee</a>.</p>
                 </div>
             </div>
         </div>
