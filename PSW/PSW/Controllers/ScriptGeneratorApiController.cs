@@ -37,4 +37,12 @@ public class ScriptGeneratorApiController : ControllerBase
         var model = new PackagesViewModel(apiRequest);
         return Ok(_scriptGeneratorService.GenerateScript(model));
     }
+
+    [Route("test")]
+    [HttpGet]
+    public ActionResult test()
+    {
+        var model = "Hello, world!. The time is " + DateTime.Now.ToString();
+        return Ok(model);
+    }
 }
