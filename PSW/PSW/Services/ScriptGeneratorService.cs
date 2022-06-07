@@ -73,6 +73,8 @@ public class ScriptGeneratorService : IScriptGeneratorService
         if (model.UseUnattendedInstall)
         {
             var connectionString = "";
+            var databasTypeSwitch = "";
+            var isOldv10RCVersion = false;
             switch (model.DatabaseType)
             {
                 case "LocalDb":
@@ -83,14 +85,19 @@ public class ScriptGeneratorService : IScriptGeneratorService
                     break;
                 case "SQLite":
                     connectionString = "\"Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True\"";
+                    isOldv10RCVersion = model.UmbracoTemplateVersion == "10.0.0-rc1" || model.UmbracoTemplateVersion == "10.0.0-rc2" || model.UmbracoTemplateVersion == "10.0.0-rc3";
+                    if (!isOldv10RCVersion)
+                    {
+                        databasTypeSwitch = " --development-database-type SQLite";
+                    }
                     break;
                 default:
                     break;
             }
 
-            output.AppendLine($"dotnet new umbraco -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\" --connection-string {connectionString}");
+            output.AppendLine($"dotnet new umbraco -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\" --connection-string {connectionString}{databasTypeSwitch}");
 
-            if (model.DatabaseType == "SQLite")
+            if (model.DatabaseType == "SQLite" && isOldv10RCVersion)
             {
                 output.AppendLine("$env:Umbraco__CMS__Global__InstallMissingDatabase=\"true\"");
                 output.AppendLine("$env:ConnectionStrings__umbracoDbDSN_ProviderName=\"Microsoft.Data.SQLite\"");
