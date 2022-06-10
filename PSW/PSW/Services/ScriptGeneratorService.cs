@@ -69,24 +69,37 @@ public class ScriptGeneratorService : IScriptGeneratorService
     public string GenerateCreateProjectScript(PackagesViewModel model)
     {
         var output = new StringBuilder();
+        var isOldv10RCVersion = model.UmbracoTemplateVersion == "10.0.0-rc1" || model.UmbracoTemplateVersion == "10.0.0-rc2" || model.UmbracoTemplateVersion == "10.0.0-rc3";
+        var isV10OrAbove = model.UmbracoTemplateVersion.Split('.').FirstOrDefault().Select(x => (int)x).FirstOrDefault() >= 10;
 
-        if (model.UseUnattendedInstall)
+        if (model.UseUnattendedInstall && !(!isV10OrAbove && model.DatabaseType == "SQLCE"))
         {
             var connectionString = "";
             var databasTypeSwitch = "";
-            var isOldv10RCVersion = false;
             switch (model.DatabaseType)
             {
-                case "LocalDb":
-                    connectionString = "\"Data Source = (localdb)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Umbraco.mdf;Integrated Security=True\"";
-                    break;
                 case "SQLCE":
-                    connectionString = "\"Data Source=|DataDirectory|\\Umbraco.sdf;Flush Interval=1\" -ce";
+                    if(!isV10OrAbove)
+                    {
+                        connectionString = "--connection-string \"Data Source=|DataDirectory|\\Umbraco.sdf;Flush Interval=1\" -ce";
+                    }
+                    break;
+                case "LocalDb":
+                    if(!isV10OrAbove || isOldv10RCVersion)
+                    {
+                        connectionString = " --connection-string \"Data Source = (localdb)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Umbraco.mdf;Integrated Security=True\"";
+                    }
+                    else if(isV10OrAbove && !isOldv10RCVersion)
+                    {
+                        databasTypeSwitch = " --development-database-type LocalDB";
+                    }
                     break;
                 case "SQLite":
-                    connectionString = "\"Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True\"";
-                    isOldv10RCVersion = model.UmbracoTemplateVersion == "10.0.0-rc1" || model.UmbracoTemplateVersion == "10.0.0-rc2" || model.UmbracoTemplateVersion == "10.0.0-rc3";
-                    if (!isOldv10RCVersion)
+                    if (!isV10OrAbove || isOldv10RCVersion)
+                    {
+                        connectionString = " --connection-string \"Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True\"";
+                    }
+                    else if (isV10OrAbove && !isOldv10RCVersion)
                     {
                         databasTypeSwitch = " --development-database-type SQLite";
                     }
@@ -95,7 +108,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
                     break;
             }
 
-            output.AppendLine($"dotnet new umbraco -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\" --connection-string {connectionString}{databasTypeSwitch}");
+            output.AppendLine($"dotnet new umbraco -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
 
             if (model.DatabaseType == "SQLite" && isOldv10RCVersion)
             {
