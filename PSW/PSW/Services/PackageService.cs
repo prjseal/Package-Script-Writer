@@ -27,7 +27,7 @@ public class PackageService : IPackageService
 
             if (packageVersions is { Versions: { } })
             {
-                return packageVersions.Versions.ToList();
+                return packageVersions.Versions.Reverse().ToList();
             }
         }
 
