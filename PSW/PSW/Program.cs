@@ -2,6 +2,7 @@
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
 builder.Services.AddScoped<IPackageService, PackageService>();
 builder.Services.AddScoped<IQueryStringService, QueryStringService>();

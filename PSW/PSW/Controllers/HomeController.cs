@@ -45,7 +45,7 @@ public class HomeController : Controller
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                return _packageService.GetPackageVersions("https://www.nuget.org/packages/Umbraco.Templates");
+                return _packageService.GetNugetPackageVersions("https://api.nuget.org/v3-flatcontainer/umbraco.templates/index.json");
             });
 
         packageOptions.AllPackages = allPackages;

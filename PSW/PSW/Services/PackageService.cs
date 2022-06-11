@@ -1,12 +1,39 @@
-﻿using PSW.Models;
+﻿using System.Text.Json;
+using PSW.Models;
 using System.Xml;
 using System.Xml.Serialization;
+using PSW.Models.NuGet;
 using static PSW.Models.PackageFeed;
 
 namespace PSW.Services;
 
 public class PackageService : IPackageService
 {
+    private readonly IHttpClientFactory clientFactory;
+
+    public PackageService(IHttpClientFactory clientFactory)
+    {
+        this.clientFactory = clientFactory;
+    }
+
+    public List<string> GetNugetPackageVersions(string packageUrl)
+    {
+        var client = clientFactory.CreateClient();
+        var result = client.GetAsync(packageUrl).Result;
+        if (result.IsSuccessStatusCode)
+        {
+            var data = result.Content.ReadAsStringAsync().Result;
+            var packageVersions = JsonSerializer.Deserialize<PackageVersions>(data);
+
+            if (packageVersions is { Versions: { } })
+            {
+                return packageVersions.Versions.ToList();
+            }
+        }
+
+        return new List<string>();
+    }
+
     public List<string> GetPackageVersions(string packageUrl)
     {
         var allVersions = new List<string>();
