@@ -69,27 +69,36 @@ public class ScriptGeneratorService : IScriptGeneratorService
     public string GenerateCreateProjectScript(PackagesViewModel model)
     {
         var output = new StringBuilder();
-        var isOldv10RCVersion = model.UmbracoTemplateVersion == "10.0.0-rc1" || model.UmbracoTemplateVersion == "10.0.0-rc2" || model.UmbracoTemplateVersion == "10.0.0-rc3";
-        var isV10OrAbove = model.UmbracoTemplateVersion.Split('.').FirstOrDefault().Select(x => (int)x).FirstOrDefault() >= 10;
 
-        if (model.UseUnattendedInstall && !(!isV10OrAbove && model.DatabaseType == "SQLCE"))
+        var majorVersionNumberAsString = model.UmbracoTemplateVersion.Split('.').FirstOrDefault();
+        var majorVersionNumber = 9;
+
+        if (!string.IsNullOrWhiteSpace(majorVersionNumberAsString))
+        {
+            _ = int.TryParse(majorVersionNumberAsString, out majorVersionNumber);
+        }
+
+        var isOldv10RCVersion = model.UmbracoTemplateVersion == "10.0.0-rc1" || model.UmbracoTemplateVersion == "10.0.0-rc2" || model.UmbracoTemplateVersion == "10.0.0-rc3";
+        var isV10OrAbove = majorVersionNumber >= 10;
+
+        if (model.UseUnattendedInstall)
         {
             var connectionString = "";
             var databasTypeSwitch = "";
             switch (model.DatabaseType)
             {
                 case "SQLCE":
-                    if(!isV10OrAbove)
+                    if (majorVersionNumber == 9)
                     {
                         connectionString = "--connection-string \"Data Source=|DataDirectory|\\Umbraco.sdf;Flush Interval=1\" -ce";
                     }
                     break;
                 case "LocalDb":
-                    if(!isV10OrAbove || isOldv10RCVersion)
+                    if (!isV10OrAbove || isOldv10RCVersion)
                     {
                         connectionString = " --connection-string \"Data Source = (localdb)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Umbraco.mdf;Integrated Security=True\"";
                     }
-                    else if(isV10OrAbove && !isOldv10RCVersion)
+                    else if (isV10OrAbove && !isOldv10RCVersion)
                     {
                         databasTypeSwitch = " --development-database-type LocalDB";
                     }
@@ -120,6 +129,8 @@ public class ScriptGeneratorService : IScriptGeneratorService
         {
             output.AppendLine($"dotnet new umbraco -n \"{model.ProjectName}\"");
         }
+
+
 
         return output.ToString();
     }
