@@ -1,5 +1,6 @@
 ﻿using PSW.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace PSW.Controllers;
 
@@ -8,10 +9,12 @@ namespace PSW.Controllers;
 public class ScriptGeneratorApiController : ControllerBase
 {
     private readonly IScriptGeneratorService _scriptGeneratorService;
+    private readonly IMemoryCache _memoryCache;
 
-    public ScriptGeneratorApiController(IScriptGeneratorService scriptGeneratorService)
+    public ScriptGeneratorApiController(IScriptGeneratorService scriptGeneratorService, IMemoryCache memoryCache)
     {
         _scriptGeneratorService = scriptGeneratorService;
+        _memoryCache = memoryCache;
     }
 
     [Route("generatescript")]
@@ -44,5 +47,15 @@ public class ScriptGeneratorApiController : ControllerBase
     {
         var model = "Hello, world!. The time is " + DateTime.Now.ToString();
         return Ok(model);
+    }
+
+    [Route("clearcache")]
+    [HttpGet]
+    public ActionResult ClearCache()
+    {
+        _memoryCache.Remove("allPackages");
+        _memoryCache.Remove("umbracoVersions");
+        var message = "Cache Cleared at " + DateTime.Now.ToString();
+        return Ok(message);
     }
 }
