@@ -232,7 +232,7 @@
         psw.controls.userFriendlyName.value = 'Administrator';
         psw.controls.userEmail.value = 'admin@example.com';
         psw.controls.userPassword.value = '1234567890';
-        psw.controls.databaseType.value = 'LocalDb';
+        psw.controls.databaseType.value = 'SQLite';
 
         psw.controls.umbracoTemplateVersion.removeAttribute('disabled');
         psw.controls.starterKitPackage.removeAttribute('disabled');

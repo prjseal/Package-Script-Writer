@@ -71,7 +71,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
         var output = new StringBuilder();
 
         var majorVersionNumberAsString = model.UmbracoTemplateVersion.Split('.').FirstOrDefault();
-        var majorVersionNumber = 9;
+        var majorVersionNumber = 10;
 
         if (!string.IsNullOrWhiteSpace(majorVersionNumberAsString))
         {
