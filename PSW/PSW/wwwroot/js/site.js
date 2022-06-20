@@ -224,7 +224,7 @@
         psw.controls.installUmbracoTemplate.checked = true;
         psw.controls.umbracoTemplateVersion.value = '';
         psw.controls.includeStarterKit.checked = true;
-        psw.controls.starterKitPackage.value = 'Umbraco.TheStarterKit';
+        psw.controls.starterKitPackage.value = 'clean';
         psw.controls.createSolutionFile.checked = true;
         psw.controls.solutionName.value = 'MySolution';
         psw.controls.projectName.value = 'MyProject';

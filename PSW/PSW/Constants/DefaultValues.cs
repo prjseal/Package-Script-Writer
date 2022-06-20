@@ -1,7 +1,7 @@
 ﻿namespace PSW.Constants;
 public static class DefaultValues
 {
-    public const string StarterKitPackage = "Umbraco.TheStarterKit";
+    public const string StarterKitPackage = "clean";
     public const string ProjectName = "MyProject";
     public const string SolutionName = "MySolution";
     public const string DatabaseType = "SQLite";
