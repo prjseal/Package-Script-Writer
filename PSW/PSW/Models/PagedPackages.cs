@@ -374,6 +374,10 @@ public class PackageFeed
                 this.versionRangeField = value;
             }
         }
+
+        public List<string> PackageVersions { get; set; }
+
+        public string SelectedVersion { get; set; }
     }
 
     /// <remarks/>

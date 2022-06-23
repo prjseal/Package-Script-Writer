@@ -101,6 +101,16 @@ public class PackageService : IPackageService
 
             pageIndex++;
         }
+
+        foreach(var package in allPackages)
+        {
+            if(package.NuGetPackageId == "uSync")
+            {
+                var thisPackageVersions = GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{package.NuGetPackageId.ToLower()}/index.json");
+                package.PackageVersions = thisPackageVersions;
+            }
+        }
+
         return allPackages;
     }
 }

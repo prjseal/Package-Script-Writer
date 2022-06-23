@@ -179,7 +179,10 @@
     },
     updatePackages: function (checkboxId) {
         var checkbox = document.getElementById(checkboxId);
-        var thisVal = checkbox.value;
+        var packageId = checkboxId.split('_')[1];
+        var dropdown = document.getElementById('PackageVersion_' + packageId);
+        var dropdownVal = dropdown.value;
+        var thisVal = checkbox.value + '~' + dropdownVal;
         var allVals = psw.controls.packages.value;
 
         var card = checkbox.closest('.card');

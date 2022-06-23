@@ -72,6 +72,24 @@
                                 <div class="checkbox-outer">
                                     <input type="checkbox" name="package" id="package_@packageId" value="@(package?.NuGetPackageId ?? "")" checked="@(isChecked ? "checked" : null)" />
                                 </div>
+                                <div class="dropdown-outer">
+                                    <label asp-for="@package.SelectedVersion"></label>
+                                    @if(package.PackageVersions != null && package.PackageVersions.Any())
+                                    {
+                                        <select class="form-control" id="PackageVersion_@packageId" name="PackageVersion_@packageId">
+                                            <option selected="@(package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                                            <option selected="@(package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
+                                            @foreach(var version in package.PackageVersions)
+                                            {
+                                                <option selected="@(package.SelectedVersion == version ? "selected" : null)" value="@version">@version</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <input asp-for="@package.SelectedVersion" class="form-control" disabled="disabled" />                                
+                                    }
+                                </div>
                             </div>
                         </div>
                         packageId++;
