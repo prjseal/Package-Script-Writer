@@ -186,9 +186,11 @@
 
         if (checkbox.checked) {
             card.classList.add('selected');
+            card.classList.add('shadow');
         }
         else {
             card.classList.remove('selected');
+            card.classList.remove('shadow');
         }
 
         if (!checkbox.checked && allVals != '') {
