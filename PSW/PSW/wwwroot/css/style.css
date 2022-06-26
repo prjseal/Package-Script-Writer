@@ -37,6 +37,7 @@ pre:not(.prettyprinted) {
     //border: 5px solid #f1f1f1;
     min-height: 380px;
     cursor: pointer;
+    transition: box-shadow 0.3s ease-in-out;
 }
 
     #packagelist .card:hover {
@@ -44,6 +45,7 @@ pre:not(.prettyprinted) {
         box-shadow: 0 .5rem 1rem rgba(0,0,0, .15);
         min-height: 380px;
         cursor: pointer;
+        transition: box-shadow 0.3s ease-in-out;
     }
 
     #packagelist .card.selected {
