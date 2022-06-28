@@ -182,13 +182,14 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
                 foreach (var package in packages)
                 {
+                    var packageIdAndVersion = package.TrimEnd('|').Replace("|--prerelease", " --prerelease ").Replace("|", " --version ");
                     if (renderPackageName)
                     {
-                        output.AppendLine($"dotnet add \"{model.ProjectName}\" package {package}");
+                        output.AppendLine($"dotnet add \"{model.ProjectName}\" package {packageIdAndVersion}");
                     }
                     else
                     {
-                        output.AppendLine($"dotnet add package {package}");
+                        output.AppendLine($"dotnet add package {packageIdAndVersion}");
                     }
                 }
             }

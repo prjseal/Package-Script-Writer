@@ -16,6 +16,7 @@
         search: document.getElementById('search'),
         codeBlock: document.querySelector('pre'),
         packageCheckboxes: document.querySelectorAll('#packagelist input[type=checkbox]'),
+        packageVersionDropdowns: document.querySelectorAll('#packagelist select'),
         packageCards: document.querySelectorAll('#packagelist .card'),
         codeNavItem: document.getElementById('code-nav-item')
     },
@@ -88,7 +89,17 @@
 
         psw.controls.packageCheckboxes.forEach(function (checkbox) {
             checkbox.addEventListener('change', function () {
-                psw.updatePackages(this.id);
+                psw.togglePackage(this.id);
+                psw.loadDropdown(this.id);
+                psw.updatePackages();
+                psw.updateOutput();
+                psw.updateUrl();
+            });
+        });
+
+        psw.controls.packageVersionDropdowns.forEach(function (dropdown) {
+            dropdown.addEventListener('change', function () {
+                psw.updatePackages();
                 psw.updateOutput();
                 psw.updateUrl();
             });
@@ -96,10 +107,13 @@
 
         psw.controls.packageCards.forEach(function (card) {
             card.addEventListener('click', function (event) {
-                if (event.target.nodeName === 'A' || event.target.nodeName == 'INPUT') return;
+                if (event.target.nodeName === 'A' || event.target.nodeName == 'INPUT'
+                    || event.target.nodeName == 'SELECT' || event.target.nodeName == 'LABEL') return;
                 var checkbox = this.querySelector('input[type="checkbox"]');
                 checkbox.checked = !checkbox.checked;
-                psw.updatePackages(checkbox.id);
+                psw.togglePackage(checkbox.id);
+                psw.loadDropdown(checkbox.id);
+                psw.updatePackages();
                 psw.updateOutput();
                 psw.updateUrl();
             });
@@ -177,38 +191,100 @@
             psw.updateUrl();
         });
     },
-    updatePackages: function (checkboxId) {
-        var checkbox = document.getElementById(checkboxId);
-        var thisVal = checkbox.value;
-        var allVals = psw.controls.packages.value;
+    updatePackages: function () {
+        var packageListCheckboxes = document.querySelectorAll('#packagelist input[type="checkbox"]:checked');
+        var packageListCheckboxesArr = Array.from(packageListCheckboxes);
 
-        var card = checkbox.closest('.card');
+        var allValues = [];
 
-        if (checkbox.checked) {
+        if (packageListCheckboxesArr != null && packageListCheckboxesArr.length > 0) {
+            packageListCheckboxesArr.forEach(function (checkbox) {
+                var packageId = checkbox.id.split('_')[1];
+                var dropdown = document.getElementById('PackageVersion_' + packageId);
+                var dropdownVal = dropdown.value;
+                var thisVal = checkbox.value + '|' + dropdownVal;
+                allValues.push(thisVal);
+            });
+        }
+
+        var packagesValue = allValues.join();
+
+        psw.controls.packages.value = packagesValue;
+    },
+    togglePackage: function (checkboxId) {
+        var thisCheckbox = document.getElementById(checkboxId);
+        var packageIdForDropdown = checkboxId.split('_')[1];
+        var thisDropdown = document.getElementById('PackageVersion_' + packageIdForDropdown);
+        var card = thisCheckbox.closest('.card');
+
+        if (thisCheckbox.checked) {
             card.classList.add('selected');
             card.classList.add('shadow');
+            thisDropdown.removeAttribute('disabled');
         }
         else {
             card.classList.remove('selected');
             card.classList.remove('shadow');
+            thisDropdown.setAttribute('disabled', 'disabled');
+        }
+    },
+    loadDropdown: function (checkboxId) {
+        var checkbox = document.getElementById(checkboxId);
+        var nugetPackageId = checkbox.value;
+        var packageIdForDropdown = checkboxId.split('_')[1];
+        var thisDropdown = document.getElementById('PackageVersion_' + packageIdForDropdown);
+
+        if (thisDropdown.options.length > 2) return;
+
+        var data = {
+            "PackageId": nugetPackageId.toLowerCase()
         }
 
-        if (!checkbox.checked && allVals != '') {
-            allVals = allVals.replace(thisVal + ',', '');
-            allVals = allVals.replace(',' + thisVal, '');
-            allVals = allVals.replace(thisVal, '');
-        }
-        else {
-            if (allVals != '') {
-                allVals += ',' + thisVal;
+        var url = "/api/scriptgeneratorapi/getpackageversions";
+
+        fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+        }).then((response) => {
+            var result = response.text();
+            if (response.ok) {
+                return result;
             }
-            else {
-                allVals = thisVal;
+        }).then((data) => {
+            console.log(data);
+            
+
+            var packageVersions = JSON.parse(data);
+
+            var optionPosition;
+            var lastOptionPosition = thisDropdown.options.length - 1;
+            for (optionPosition = lastOptionPosition; optionPosition > 1; optionPosition--) {
+                thisDropdown.remove(optionPosition);
             }
-        }
-        psw.controls.packages.value = allVals;
+
+            var versionCount = packageVersions.length;
+            for (i = 0; i < versionCount; i++) {
+                var version = packageVersions[i];
+                var opt = document.createElement("option");
+                opt.value = version;
+                opt.innerHTML = version;
+
+                thisDropdown.appendChild(opt);
+            }
+
+        }).catch((error) => {
+            console.log(error);
+        });
     },
     deselectPackage: function (element) {
+        var packageIdForDropdown = element.id.split('_')[1];
+        var thisDropdown = document.getElementById('PackageVersion_' + packageIdForDropdown);
+        thisDropdown.value = '';
+        thisDropdown.setAttribute('disabled', 'disabled');
         element.checked = false;
         element.val
         var card = element.closest('.card');
@@ -216,7 +292,7 @@
     },
     clearAllPackages: function (event) {
         event.preventDefault();
-        var packageListCheckboxes = document.querySelectorAll('#packagelist input[type="checkbox"]');
+        var packageListCheckboxes = document.querySelectorAll('#packagelist input[type="checkbox"]:checked');
         var packageListCheckboxesArr = Array.from(packageListCheckboxes);
         packageListCheckboxesArr.forEach(psw.deselectPackage);
         psw.controls.packages.value = '';
@@ -367,7 +443,7 @@
             history.pushState(null, '', newRelativePathQuery);
         }
     },
-    debounce: function(func, wait, immediate) {
+    debounce: function (func, wait, immediate) {
         var timeout;
         return function () {
             var context = this, args = arguments;

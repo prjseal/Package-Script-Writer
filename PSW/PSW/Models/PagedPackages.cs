@@ -1,4 +1,6 @@
-﻿namespace PSW.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PSW.Models;
 public class PackageFeed
 {
     // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
@@ -374,6 +376,11 @@ public class PackageFeed
                 this.versionRangeField = value;
             }
         }
+
+        public List<string> PackageVersions { get; set; }
+
+        [Display(Name="Version")]
+        public string SelectedVersion { get; set; }
     }
 
     /// <remarks/>

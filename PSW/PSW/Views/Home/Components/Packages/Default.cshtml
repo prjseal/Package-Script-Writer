@@ -42,6 +42,27 @@
         <div class="tab-pane fade show @(hasQueryString ? null : "active")" id="packagestabcontent" role="tabpanel" aria-labelledby="packages-tab">
             @if (Model.AllPackages != null && Model.AllPackages.Any())
             {
+                List<string> pickedPackageIds = new List<string>();
+                List<PackageWithVersion> pickedPackages = new List<PackageWithVersion>();
+                var packages = Model.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                if (packages != null && packages.Any())
+                {
+                    foreach (var package in packages)
+                    {
+                        var packageParts = package.Split('|');
+                        var pwv = new PackageWithVersion()
+                        {
+                            PackageId = packageParts[0]
+                        };
+                        if (packageParts.Length > 1)
+                        {
+                            pwv.PackageVersion = packageParts[1];
+                        }
+                        pickedPackages.Add(pwv);
+                    }
+                    pickedPackageIds = pickedPackages.Select(x => x.PackageId).ToList();
+                }
+
                 var selectedPackages = Model.Packages?.Split(',', StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
                 int packageId = 0;
                 <div class="row m-4">
@@ -55,7 +76,7 @@
                     @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
                     {
                         var downloads = package?.Downloads ?? 0;
-                        var isChecked = selectedPackages != null && selectedPackages.Contains(package.NuGetPackageId);
+                        var isChecked = pickedPackageIds != null && pickedPackageIds.Contains(package.NuGetPackageId);
 
                         <div class="col-md-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
                             <div class="card special-skill-item p-3 @(isChecked ? "selected shadow" : null)">
@@ -69,8 +90,32 @@
                                     </p>
                                     
                                 </div>
-                                <div class="checkbox-outer">
-                                    <input type="checkbox" name="package" id="package_@packageId" value="@(package?.NuGetPackageId ?? "")" checked="@(isChecked ? "checked" : null)" />
+                                <div class="checkbox-outer form-group">
+                                    <label for="package_@packageId" class="w-25 float-left">Add</label>
+                                    <input type="checkbox" class="float-left mt-1" name="package" id="package_@packageId" value="@(package?.NuGetPackageId ?? "")" checked="@(isChecked ? "checked" : null)" />
+                                </div>
+                                <div class="dropdown-outer form-group">
+                                    <label asp-for="@package.SelectedVersion" class="w-25 float-left mt-1"></label>
+                                    @if(package.PackageVersions != null && package.PackageVersions.Any())
+                                    {
+                                        var packageWithVersion = pickedPackages.FirstOrDefault(x => x.PackageId == package.NuGetPackageId);
+
+                                        <select class="form-control w-75 float-left" id="PackageVersion_@packageId" name="PackageVersion_@packageId">
+                                            <option selected="@(package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                                            <option selected="@(package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
+                                            @foreach(var version in package.PackageVersions)
+                                            {
+                                                <option selected="@(package.SelectedVersion == version ? "selected" : null)" value="@version">@version</option>
+                                            }
+                                        </select>
+                                    }
+                                    else
+                                    {
+                                        <select class="form-control w-75 float-left" id="PackageVersion_@packageId" name="PackageVersion_@packageId" disabled="disabled">
+                                            <option selected="@(package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                                            <option selected="@(package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
+                                        </select>
+                                    }
                                 </div>
                             </div>
                         </div>
