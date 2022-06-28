@@ -1,4 +1,5 @@
-﻿using PSW.Models.NuGet;
+﻿using PSW.Models;
+using PSW.Models.NuGet;
 using static PSW.Models.PackageFeed;
 
 namespace PSW.Services;
