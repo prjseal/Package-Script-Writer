@@ -24,6 +24,7 @@ public class QueryStringService : IQueryStringService
         var projectName = request.Query.GetStringValue(nameof(PackagesViewModel.ProjectName), createSolutionFile || installUmbracoTemplate ? DefaultValues.ProjectName : "");
         var solutionName = request.Query.GetStringValue(nameof(PackagesViewModel.SolutionName), DefaultValues.SolutionName);
         var databaseType = request.Query.GetStringValue(nameof(PackagesViewModel.DatabaseType), DefaultValues.DatabaseType);
+        var connectionString = request.Query.GetStringValue(nameof(PackagesViewModel.ConnectionString), DefaultValues.ConnectionString);
         var userFriendlyName = request.Query.GetStringValue(nameof(PackagesViewModel.UserFriendlyName), DefaultValues.UserFriendlyName);
         var userEmail = request.Query.GetStringValue(nameof(PackagesViewModel.UserEmail), DefaultValues.UserEmail);
         var userPassword = request.Query.GetStringValue(nameof(PackagesViewModel.UserPassword), DefaultValues.UserPassword);
@@ -38,6 +39,7 @@ public class QueryStringService : IQueryStringService
             StarterKitPackage = starterKitPackage,
             UseUnattendedInstall = useUnattendedInstall,
             DatabaseType = databaseType,
+            ConnectionString = connectionString,
             UserFriendlyName = userFriendlyName,
             UserPassword = userPassword,
             UserEmail = userEmail,

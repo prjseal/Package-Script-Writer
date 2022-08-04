@@ -113,6 +113,10 @@ public class ScriptGeneratorService : IScriptGeneratorService
                         databasTypeSwitch = " --development-database-type SQLite";
                     }
                     break;
+                case "SQLAzure":
+                case "SQLServer":
+                    connectionString = $" --connection-string \"{model.ConnectionString}\" --connection-string-provider-name \"Microsoft.Data.SqlClient\"";
+                    break;
                 default:
                     break;
             }

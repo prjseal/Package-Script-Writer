@@ -9,6 +9,7 @@
         solutionName: document.getElementById('SolutionName'),
         projectName: document.getElementById('ProjectName'),
         useUnattendedInstall: document.getElementById('UseUnattendedInstall'),
+        connectionString: document.getElementById('ConnectionString'),
         userFriendlyName: document.getElementById('UserFriendlyName'),
         userEmail: document.getElementById('UserEmail'),
         userPassword: document.getElementById('UserPassword'),
@@ -141,6 +142,11 @@
             psw.updateUrl();
         }, 250));
 
+        psw.controls.connectionString.addEventListener('keyup', psw.debounce(function () {
+            psw.updateOutput();
+            psw.updateUrl();
+        }, 250));
+
         psw.controls.userFriendlyName.addEventListener('keyup', psw.debounce(function () {
             psw.updateOutput();
             psw.updateUrl();
@@ -187,6 +193,7 @@
         });
 
         psw.controls.databaseType.addEventListener('change', function () {
+            psw.toggleConnectionString();
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -307,6 +314,7 @@
         psw.controls.solutionName.value = 'MySolution';
         psw.controls.projectName.value = 'MyProject';
         psw.controls.useUnattendedInstall.checked = true;
+        psw.controls.connectionString.value = 'server=.\SQLEXPRESS;database=myDatabase;user id=myUser;password="myPassword"';
         psw.controls.userFriendlyName.value = 'Administrator';
         psw.controls.userEmail.value = 'admin@example.com';
         psw.controls.userPassword.value = '1234567890';
@@ -341,12 +349,15 @@
             psw.controls.userFriendlyName.removeAttribute('disabled');
             psw.controls.userEmail.removeAttribute('disabled');
             psw.controls.userPassword.removeAttribute('disabled');
+            psw.controls.userPassword.removeAttribute('disabled');
+            psw.controls.connectionString.removeAttribute('disabled');
         }
         else {
             psw.controls.databaseType.setAttribute('disabled', 'disabled');
             psw.controls.userFriendlyName.setAttribute('disabled', 'disabled');
             psw.controls.userEmail.setAttribute('disabled', 'disabled');
             psw.controls.userPassword.setAttribute('disabled', 'disabled');
+            psw.controls.connectionString.setAttribute('disabled', 'disabled');
         }
     },
     toggleInstallUmbracoTemplateControls: function () {
@@ -373,6 +384,17 @@
             psw.controls.solutionName.setAttribute('disabled', 'disabled');
         }
     },
+    toggleConnectionString: function () {
+        var dbType = psw.controls.databaseType.value;
+        if (dbType === 'SQLServer' || dbType === 'SQLAzure') {
+            psw.controls.connectionString.parentNode.classList.add('d-block');
+            psw.controls.connectionString.parentNode.classList.remove('d-none');
+        }
+        else {
+            psw.controls.connectionString.parentNode.classList.add('d-none');
+            psw.controls.connectionString.parentNode.classList.remove('d-block');
+        }
+    },
     copyCodeBlock: function (event) {
         event.preventDefault();
         navigator.clipboard.writeText(psw.controls.codeBlock.innerText);
@@ -391,6 +413,7 @@
             "DatabaseType": psw.controls.databaseType.value,
             "UserPassword": psw.controls.userPassword.value,
             "UmbracoTemplateVersion": psw.controls.umbracoTemplateVersion.value,
+            "ConnectionString": psw.controls.connectionString.value,
             "UserFriendlyName": psw.controls.userFriendlyName.value,
             "IncludeStarterKit": psw.controls.includeStarterKit.checked,
             "StarterKitPackage": psw.controls.starterKitPackage.value

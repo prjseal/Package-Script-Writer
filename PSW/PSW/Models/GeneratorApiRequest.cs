@@ -19,6 +19,7 @@ public class GeneratorApiRequest
     public bool CreateSolutionFile { get; set; }
     public string? SolutionName { get; set; }
     public string? ProjectName { get; set; }
+    public string? ConnectionString { get; set; }
     public string? UserFriendlyName { get; set; }
     public string? UserEmail { get; set; }
     public string? UserPassword { get; set; }

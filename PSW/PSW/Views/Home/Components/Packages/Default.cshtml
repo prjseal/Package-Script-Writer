@@ -201,8 +201,14 @@
                             <select class="form-control" id="DatabaseType" name="DatabaseType" disabled="@(Model.UseUnattendedInstall ? null : "disabled")">
                                 <option selected="@(Model.DatabaseType == "SQLite" ? "selected" : null)" value="SQLite">SQLite (v10+ only)</option>
                                 <option selected="@(Model.DatabaseType == "LocalDb" ? "selected" : null)" value="LocalDb">LocalDb</option>
+                                <option selected="@(Model.DatabaseType == "SQLServer" ? "selected" : null)" value="SQLServer">SQL Server</option>
+                                <option selected="@(Model.DatabaseType == "SQLAzure" ? "selected" : null)" value="SQLAzure">SQL Azure</option>
                                 <option selected="@(Model.DatabaseType == "SQLCE" ? "selected" : null)" value="SQLCE">SQLCE (v9 only)</option>
                             </select>
+                        </div>
+                        <div class="form-group @(Model.DatabaseType == "SQLAzure" || Model.DatabaseType == "SQLServer" ? "d-block" : "d-none")">
+                            <label asp-for="@Model.ConnectionString"></label>
+                            <input asp-for="@Model.ConnectionString" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
                         </div>
                         <div class="form-group">
                             <label asp-for="@Model.UserFriendlyName"></label>
