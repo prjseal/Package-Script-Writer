@@ -226,12 +226,10 @@
 
         if (thisCheckbox.checked) {
             card.classList.add('selected');
-            card.classList.add('shadow');
             thisDropdown.removeAttribute('disabled');
         }
         else {
             card.classList.remove('selected');
-            card.classList.remove('shadow');
             thisDropdown.setAttribute('disabled', 'disabled');
         }
     },

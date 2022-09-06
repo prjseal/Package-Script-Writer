@@ -34,14 +34,14 @@ pre:not(.prettyprinted) {
 }
 
 #packagelist .card {
-    //border: 5px solid #f1f1f1;
+    border: 1px solid rgba(0,0,0, 0.125);
     min-height: 380px;
     cursor: pointer;
     transition: box-shadow 0.3s ease-in-out;
 }
 
     #packagelist .card:hover {
-        //border: 5px solid #f1f1f1;
+        border: 1px solid rgba(0,0,0, 0.125);
         box-shadow: 0 .5rem 1rem rgba(0,0,0, .15);
         min-height: 380px;
         cursor: pointer;
@@ -49,7 +49,8 @@ pre:not(.prettyprinted) {
     }
 
     #packagelist .card.selected {
-        //border: 5px solid #3B0084;
+        border: 1px solid var(--indigo);
+        box-shadow: 0 .5rem 1rem rgba(102,16,242, .15);
     }
 
     #packagelist .card input[type="checkbox"] {
