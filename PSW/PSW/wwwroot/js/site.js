@@ -26,12 +26,19 @@
         reset: document.getElementById('reset'),
         copy: document.getElementById('copy'),
         generate: document.getElementById('generate'),
-        update: document.getElementById('update')
+        update: document.getElementById('update'),
+        save: document.getElementById('save')
     },
     init: function () {
         psw.addListeners();
+        psw.setFromLocalStorage();
     },
     addListeners() {
+        psw.buttons.save.addEventListener('click', function (event) {
+            event.preventDefault();
+            window.localStorage.setItem("searchParams", window.location.search);
+        });
+
         psw.buttons.clearpackages.addEventListener('click', function (event) {
             psw.clearAllPackages(event);
             psw.updateOutput();
@@ -325,6 +332,38 @@
         psw.controls.userFriendlyName.removeAttribute('disabled');
         psw.controls.userEmail.removeAttribute('disabled');
         psw.controls.userPassword.removeAttribute('disabled');
+    },
+    setFromLocalStorage: function () {
+        if (window.localStorage.getItem("searchParams") == null) {
+            return reset();
+        }
+
+        var searchParams = new URLSearchParams(window.localStorage.getItem("searchParams"));
+
+        psw.controls.installUmbracoTemplate.checked = searchParams.get("InstallUmbracoTemplate") === "true";
+        psw.controls.umbracoTemplateVersion.value = searchParams.get("UmbracoTemplateVersion");
+        psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
+        psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
+        psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
+        psw.controls.solutionName.value = searchParams.get("SolutioName");
+        psw.controls.projectName.value = searchParams.get("ProjectName");
+        psw.controls.useUnattendedInstall.checked = searchParams.get("UseUnattendedInstall") === "true";
+        psw.controls.connectionString.value = searchParams.get("ConnectionString");
+        psw.controls.userFriendlyName.value = searchParams.get("UserFriendlyName");
+        psw.controls.userEmail.value = searchParams.get("UserEmail");
+        psw.controls.userPassword.value = searchParams.get("UserPassword");
+        psw.controls.databaseType.value = searchParams.get("DatabaseType");
+
+        psw.controls.umbracoTemplateVersion.disabled = !psw.controls.installUmbracoTemplate.checked;
+        psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
+        psw.controls.solutionName.disabled = !psw.controls.createSolutionFile.checked;
+        psw.controls.databaseType.disabled = !psw.controls.useUnattendedInstall.checked;
+        psw.controls.userFriendlyName.disabled = !psw.controls.useUnattendedInstall.checked;
+        psw.controls.userEmail.disabled = !psw.controls.useUnattendedInstall.checked;
+        psw.controls.userPassword.disabled = !psw.controls.useUnattendedInstall.checked;
+
+        psw.updateOutput();
+        psw.updateUrl();
     },
     filterPackages: function () {
         var filter, ul, li, a, i, txtValue;
