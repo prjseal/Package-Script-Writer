@@ -18,7 +18,7 @@ public sealed class SecurityHeadersMiddleware
         context.Response.Headers.Add("Referrer-Policy", "no-referrer");
         context.Response.Headers.Add("X-Permitted-Cross-Domain-Policies", "none");
         context.Response.Headers.Add("X-Powered-By", "");
-        context.Response.Headers.Add("Content-Security-Policy", "default-src 'self';script-src 'self' code.jquery.com;style-src 'self' cdn.rawgit.com cdn.jsdelivr.net;img-src 'self' our.umbraco.com;font-src 'self';connect-src 'self'");
+        //context.Response.Headers.Add("Content-Security-Policy", "default-src 'self';script-src 'self' code.jquery.com;style-src 'self' cdn.rawgit.com cdn.jsdelivr.net;img-src 'self' our.umbraco.com;font-src 'self';connect-src 'self'");
         context.Response.Headers.Add("Permissions-Policy", "fullscreen=(), geolocation=()");
         return _next(context);
     }

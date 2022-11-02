@@ -27,7 +27,8 @@
         copy: document.getElementById('copy'),
         generate: document.getElementById('generate'),
         update: document.getElementById('update'),
-        save: document.getElementById('save')
+        save: document.getElementById('save'),
+        deletesave: document.getElementById('deletesave')
     },
     init: function () {
         psw.addListeners();
@@ -37,6 +38,11 @@
         psw.buttons.save.addEventListener('click', function (event) {
             event.preventDefault();
             window.localStorage.setItem("searchParams", window.location.search);
+        });
+
+        psw.buttons.deletesave.addEventListener('click', function (event) {
+            event.preventDefault();
+            window.localStorage.removeItem("searchParams");
         });
 
         psw.buttons.clearpackages.addEventListener('click', function (event) {
@@ -345,7 +351,7 @@
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
-        psw.controls.solutionName.value = searchParams.get("SolutioName");
+        psw.controls.solutionName.value = searchParams.get("SolutionName");
         psw.controls.projectName.value = searchParams.get("ProjectName");
         psw.controls.useUnattendedInstall.checked = searchParams.get("UseUnattendedInstall") === "true";
         psw.controls.connectionString.value = searchParams.get("ConnectionString");
