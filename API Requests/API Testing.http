@@ -40,5 +40,6 @@ content-type: application/json
 	"UserPassword": null,
 	"UserFriendlyName": null,
 	"IncludeStarterKit": true,
-	"StarterKitPackage": null
+	"StarterKitPackage": null,
+	"OnelinerOutput": true
 }

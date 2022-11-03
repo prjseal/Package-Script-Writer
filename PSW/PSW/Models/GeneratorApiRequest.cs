@@ -27,4 +27,5 @@ public class GeneratorApiRequest
     public string? StarterKitPackage { get; set; }
     public bool UseUnattendedInstall { get; set; }
     public string? DatabaseType { get; set; }
+    public bool OnelinerOutput { get; set; }
 }
