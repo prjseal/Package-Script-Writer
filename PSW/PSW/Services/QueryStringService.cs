@@ -18,6 +18,7 @@ public class QueryStringService : IQueryStringService
             installUmbracoTemplate = true;
             createSolutionFile = true;
             useUnattendedInstall = true;
+            onelinerOutput = false;
         }
 
         var umbracoTemplateVersion = request.Query.GetStringValue(nameof(PackagesViewModel.UmbracoTemplateVersion), "");

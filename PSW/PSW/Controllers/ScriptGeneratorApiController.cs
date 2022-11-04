@@ -30,6 +30,7 @@ public class ScriptGeneratorApiController : ControllerBase
             apiRequest.InstallUmbracoTemplate = true;
             apiRequest.CreateSolutionFile = true;
             apiRequest.UseUnattendedInstall = true;
+            apiRequest.OnelinerOutput = false;
         }
 
         apiRequest.StarterKitPackage = !string.IsNullOrWhiteSpace(apiRequest.StarterKitPackage) ? apiRequest.StarterKitPackage : DefaultValues.StarterKitPackage;

@@ -368,7 +368,7 @@
         psw.controls.userEmail.value = searchParams.get("UserEmail");
         psw.controls.userPassword.value = searchParams.get("UserPassword");
         psw.controls.databaseType.value = searchParams.get("DatabaseType");
-        psw.controls.onelinerOutput.checked = searchParams.get("OnelinerOutput") === "false";
+        psw.controls.onelinerOutput.checked = searchParams.get("OnelinerOutput") === "true";
 
         psw.controls.umbracoTemplateVersion.disabled = !psw.controls.installUmbracoTemplate.checked;
         psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
