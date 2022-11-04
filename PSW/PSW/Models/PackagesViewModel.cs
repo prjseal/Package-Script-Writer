@@ -22,7 +22,9 @@ public class PackagesViewModel
         UseUnattendedInstall = apiRequest.UseUnattendedInstall;
         DatabaseType = apiRequest.DatabaseType;
         Packages = apiRequest.Packages;
+        OnelinerOutput = apiRequest.OnelinerOutput;
     }
+
 
     [Display(Name = "Install an Umbraco Template:")]
     public bool InstallUmbracoTemplate { get; set; }
@@ -68,4 +70,7 @@ public class PackagesViewModel
     [Display(Name = "Database Type")]
     public string? DatabaseType { get; set; }
     public List<string>? UmbracoVersions { get; set; }
+    
+    [Display(Name = "Output to single line command")]
+    public bool OnelinerOutput { get; set; }
 }

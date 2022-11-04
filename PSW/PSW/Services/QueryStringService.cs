@@ -10,6 +10,7 @@ public class QueryStringService : IQueryStringService
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.InstallUmbracoTemplate)], out var installUmbracoTemplate);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.CreateSolutionFile)], out var createSolutionFile);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.UseUnattendedInstall)], out var useUnattendedInstall);
+        _ = bool.TryParse(request.Query[nameof(PackagesViewModel.OnelinerOutput)], out var onelinerOutput);
 
         if (request.Query.Count == 0)
         {
@@ -45,7 +46,8 @@ public class QueryStringService : IQueryStringService
             UserEmail = userEmail,
             ProjectName = projectName,
             CreateSolutionFile = createSolutionFile,
-            SolutionName = solutionName
+            SolutionName = solutionName,
+            OnelinerOutput = onelinerOutput
         };
         return packageOptions;
     }
@@ -67,6 +69,7 @@ public class QueryStringService : IQueryStringService
         queryString = queryString.Add(nameof(model.CreateSolutionFile), model.CreateSolutionFile.ToString());
         queryString = queryString.AddValueIfNotEmpty(nameof(model.SolutionName), model.SolutionName ?? "");
         queryString = queryString.AddValueIfNotEmpty(nameof(model.Packages), model.Packages ?? "");
+        queryString = queryString.Add(nameof(model.OnelinerOutput), model.OnelinerOutput.ToString());
 
         return queryString;
     }

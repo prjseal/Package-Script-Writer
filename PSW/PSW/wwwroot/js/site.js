@@ -19,7 +19,8 @@
         packageCheckboxes: document.querySelectorAll('#packagelist input[type=checkbox]'),
         packageVersionDropdowns: document.querySelectorAll('#packagelist select'),
         packageCards: document.querySelectorAll('#packagelist .card'),
-        codeNavItem: document.getElementById('code-nav-item')
+        codeNavItem: document.getElementById('code-nav-item'),
+        onelinerOutput: document.getElementById('OnelinerOutput'),
     },
     buttons: {
         clearpackages: document.getElementById('clearpackages'),
@@ -65,6 +66,11 @@
             psw.updateUrl();
         });
 
+        psw.controls.onelinerOutput.addEventListener('change', function () {
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+        
         psw.controls.installUmbracoTemplate.addEventListener('change', function () {
             psw.toggleInstallUmbracoTemplateControls();
             psw.updateOutput();
@@ -316,7 +322,9 @@
         psw.controls.packages.value = '';
     },
     reset: function (event) {
-        event.preventDefault();
+        if(event !== undefined) {
+            event.preventDefault();
+        }
         psw.controls.installUmbracoTemplate.checked = true;
         psw.controls.umbracoTemplateVersion.value = '';
         psw.controls.includeStarterKit.checked = true;
@@ -330,7 +338,8 @@
         psw.controls.userEmail.value = 'admin@example.com';
         psw.controls.userPassword.value = '1234567890';
         psw.controls.databaseType.value = 'SQLite';
-
+        psw.controls.onelinerOutput.checked = false;
+        
         psw.controls.umbracoTemplateVersion.removeAttribute('disabled');
         psw.controls.starterKitPackage.removeAttribute('disabled');
         psw.controls.solutionName.removeAttribute('disabled');
@@ -341,7 +350,7 @@
     },
     setFromLocalStorage: function () {
         if (window.localStorage.getItem("searchParams") == null) {
-            return reset();
+            return psw.reset();
         }
 
         var searchParams = new URLSearchParams(window.localStorage.getItem("searchParams"));
@@ -359,6 +368,7 @@
         psw.controls.userEmail.value = searchParams.get("UserEmail");
         psw.controls.userPassword.value = searchParams.get("UserPassword");
         psw.controls.databaseType.value = searchParams.get("DatabaseType");
+        psw.controls.onelinerOutput.checked = searchParams.get("OnelinerOutput") === "false";
 
         psw.controls.umbracoTemplateVersion.disabled = !psw.controls.installUmbracoTemplate.checked;
         psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
@@ -459,7 +469,8 @@
             "ConnectionString": psw.controls.connectionString.value,
             "UserFriendlyName": psw.controls.userFriendlyName.value,
             "IncludeStarterKit": psw.controls.includeStarterKit.checked,
-            "StarterKitPackage": psw.controls.starterKitPackage.value
+            "StarterKitPackage": psw.controls.starterKitPackage.value,
+            "OnelinerOutput": psw.controls.onelinerOutput.checked
         }
 
         var url = "/api/scriptgeneratorapi/generatescript";
@@ -505,6 +516,7 @@
             searchParams.set("UserFriendlyName", psw.controls.userFriendlyName.value);
             searchParams.set("IncludeStarterKit", psw.controls.includeStarterKit.checked);
             searchParams.set("StarterKitPackage", psw.controls.starterKitPackage.value);
+            searchParams.set("OnelinerOutput", psw.controls.onelinerOutput.checked);
             var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
             history.pushState(null, '', newRelativePathQuery);
         }
