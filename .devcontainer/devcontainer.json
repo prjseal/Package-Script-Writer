@@ -1,0 +1,16 @@
+{
+	"name": "C# (.NET)", 
+	"image": "mcr.microsoft.com/devcontainers/dotnet:0-7.0",
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts"
+		}
+	},
+	"portsAttributes": {
+		"7192": {
+			"label": "HTTPS Package Script Writer",
+			"protocol": "https"
+		}
+	},
+	"updateContentCommand": "dotnet dev-certs https --trust"
+}
