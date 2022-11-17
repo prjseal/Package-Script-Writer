@@ -1,0 +1,23 @@
+{
+	"name": "C# (.NET)",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:0-7.0",
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "lts"
+		}
+	},
+	"updateContentCommand": "dotnet dev-certs https --trust",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-dotnettools.csharp"
+			]
+		}
+	},
+	"portsAttributes": {
+		"7192": {
+			"label": "HTTPS",
+			"protocol": "https"
+		}
+	}
+}
