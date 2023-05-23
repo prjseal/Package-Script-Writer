@@ -49,11 +49,11 @@ public class ScriptGeneratorService : IScriptGeneratorService
         
         if (!string.IsNullOrWhiteSpace(model.UmbracoTemplateVersion))
         {
-            outputList.Add($"dotnet new -i Umbraco.Templates::{model.UmbracoTemplateVersion}");
+            outputList.Add($"dotnet new install Umbraco.Templates::{model.UmbracoTemplateVersion}");
         }
         else
         {
-            outputList.Add("dotnet new -i Umbraco.Templates");
+            outputList.Add("dotnet new install Umbraco.Templates");
         }
         
         outputList.Add("");
