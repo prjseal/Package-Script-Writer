@@ -32,4 +32,4 @@ jobs:
             server-username: ${{ secrets.USERNAME }}
             server-password: ${{ secrets.PASSWORD }}
             source-path: '_build'
-            source-fileName: Umbraco.Web.zip
+            source-fileName: PSW.zip
