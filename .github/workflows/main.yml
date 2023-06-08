@@ -22,7 +22,7 @@ jobs:
 
         - name: Build Solution
           run: | 
-            dotnet build ${{env.SolutionName}} /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:DeleteExistingFiles=True /p:SkipInvalidConfigurations=true /p:IncludeSetAclProviderOnDestination=False /p:AutoParameterizationWebConfigConnectionStrings=False /p:platform="${{env.BuildPlatform}}" /p:configuration="${{env.BuildConfiguration}}" /p:PackageLocation="../_build"
+            dotnet build .\PSW\${{env.SolutionName}} /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:DeleteExistingFiles=True /p:SkipInvalidConfigurations=true /p:IncludeSetAclProviderOnDestination=False /p:AutoParameterizationWebConfigConnectionStrings=False /p:platform="${{env.BuildPlatform}}" /p:configuration="${{env.BuildConfiguration}}" /p:PackageLocation="../_build"
             
         - name: Deploy to UmbHost
           uses: UmbHost/umbhost-web-deploy@v1.0.1
