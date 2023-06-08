@@ -95,14 +95,14 @@
 
         psw.buttons.generate.addEventListener('click', function (event) {
             event.preventDefault();
-            $('#code-tab').tab('show');
+            psw.changeTab('#code-tab');
             psw.updateOutput();
             psw.updateUrl();
         });
 
         psw.buttons.update.addEventListener('click', function (event) {
             event.preventDefault();
-            $('#code-tab').tab('show');
+            psw.changeTab('#code-tab');
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -137,12 +137,6 @@
                 psw.updateOutput();
                 psw.updateUrl();
             });
-        });
-
-        var tab = document.querySelector('#myTab a');
-        tab.addEventListener('click', function (event) {
-            event.preventDefault();
-            $(this).tab('show');
         });
 
         psw.controls.search.addEventListener('keypress', function () {
@@ -216,6 +210,10 @@
             psw.updateOutput();
             psw.updateUrl();
         });
+    },
+    changeTab: function (tabSelector) {
+        var tab = document.querySelector(tabSelector)
+        bootstrap.Tab.getOrCreateInstance(tab).show()
     },
     updatePackages: function () {
         var packageListCheckboxes = document.querySelectorAll('#packagelist input[type="checkbox"]:checked');
@@ -333,7 +331,7 @@
         psw.controls.solutionName.value = 'MySolution';
         psw.controls.projectName.value = 'MyProject';
         psw.controls.useUnattendedInstall.checked = true;
-        psw.controls.connectionString.value = "server=.\SQLEXPRESS;database=myDatabase;user id=myUser;password='myPassword'";
+        psw.controls.connectionString.value = "server=(local)\\SQLEXPRESS;database=myDatabase;user id=myUser;password='myPassword';TrustServerCertificate=true;";
         psw.controls.userFriendlyName.value = 'Administrator';
         psw.controls.userEmail.value = 'admin@example.com';
         psw.controls.userPassword.value = '1234567890';
