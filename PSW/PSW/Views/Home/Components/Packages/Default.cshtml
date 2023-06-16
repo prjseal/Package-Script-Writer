@@ -1,4 +1,4 @@
-﻿@model PackagesViewModel
+@model PackagesViewModel
 @using PSW.Models
 @using PSW.Controllers
 
@@ -13,7 +13,7 @@
         <button class="btn btn-danger float-end ms-2" id="clearpackages"><i class="ion-android-delete"></i> Clear All Packages</button>
         <a href="/" class="btn btn-primary float-end ms-2" id="startover"><i class="ion-ios-undo"></i> Start Over</a>
     </div>
-    <div class="heading text-center py-3 mb-5">
+    <div class="heading text-center mb-5">
         <h2 class="text-uppercase">Umbraco Package Script Writer</h2>
         <p>Tick the box under the packages you want to install and configure the options to generate the required script to run.</p>
         <input type="hidden" asp-for="@Model.Packages" />
@@ -65,20 +65,18 @@
 
                 var selectedPackages = Model.Packages?.Split(',', StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
                 int packageId = 0;
-                <div class="row m-4">
-                    <div class="col-12">
-                        <div class="form-group">
-                            <input type="text" id="search" class="form-control" placeholder="Search for packages...">
-                        </div>
-                    </div>
+
+                <div class="my-4">
+                    <input type="text" id="search" class="form-control" placeholder="Search for packages...">
                 </div>
-                <div class="row mt-4" id="packagelist">
+
+                <div class="row" id="packagelist">
                     @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
                     {
                         var downloads = package?.Downloads ?? 0;
                         var isChecked = pickedPackageIds != null && pickedPackageIds.Contains(package.NuGetPackageId);
 
-                        <div class="col-md-4 packageItem p-2" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
+                        <div class="col-md-4 mb-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
                             <div class="card p-3 @(isChecked ? "selected" : null) text-center" style="min-height: 100%;">
                                 <img src="@(package?.Image ?? "")?width=100&height=100&mode=pad&bgcolor=fff" alt="@(package?.Name ?? "uknown")" />
                                 <div class="card-body">
@@ -125,23 +123,13 @@
             }
         </div>
         <div class="tab-pane fade show  @(hasQueryString ? "active" : null)" id="code" role="tabpanel" aria-labelledby="code-tab">
-            <div class="row">
-                <div class="mt-2 ms-5 col-12">
-                    <input asp-for="@Model.OnelinerOutput" class="form-check-input" type="checkbox"/>
-                    <label asp-for="@Model.OnelinerOutput" class="form-check-label"></label>            
-                </div>
+            <div class="mt-3">
+                <input asp-for="@Model.OnelinerOutput" class="form-check-input" type="checkbox"/>
+                <label asp-for="@Model.OnelinerOutput" class="form-check-label"></label>            
             </div>
-              <div class="row">
-                  <div class="col-12">
-                      <pre class="prettyprint ps">@Model.Output</pre>
-                  </div>
-              </div>
-         
-         
-            <div class="row float-end">
-                <div class="col-12 text-right">
-                    <button id="copy" class="btn btn-success"><i class="ion-ios-copy"></i> Copy Script</button>
-                </div>
+            <pre class="prettyprint ps w-100">@Model.Output</pre>
+            <div class="text-end">
+                <button id="copy" class="btn btn-success"><i class="ion-ios-copy"></i> Copy Script</button>
             </div>
         </div>
         <div class="tab-pane fade show " id="options" role="tabpanel" aria-labelledby="options-tab">
@@ -246,24 +234,18 @@
             </div>
         </div>
         <div class="tab-pane fade show" id="help" role="tabpanel" aria-labelledby="help-tab">
-            <div class="row pt-5">
-                <div class="col-12">
-                    <p>You can learn how to use this tool by <a href="https://www.youtube.com/watch?v=ny5wzOSKFFA" target="_blank" rel="noopener">watching this video</a></p>
-                </div>
+            <div class="pt-5">
+                <p>You can learn how to use this tool by <a href="https://www.youtube.com/watch?v=ny5wzOSKFFA" target="_blank" rel="noopener">watching this video</a></p>
             </div>
         </div>
         <div class="tab-pane fade show" id="source" role="tabpanel" aria-labelledby="source-tab">
-            <div class="row pt-5">
-                <div class="col-12">
-                    <p>You can see the source code for this site on <a href="https://github.com/prjseal/Package-Script-Writer"  target="_blank" rel="noopener">GitHub</a>. </p>
-                </div>
+            <div class="pt-5">
+                <p>You can see the source code for this site on <a href="https://github.com/prjseal/Package-Script-Writer"  target="_blank" rel="noopener">GitHub</a>. </p>
             </div>
         </div>
         <div class="tab-pane fade show" id="coffee" role="tabpanel" aria-labelledby="coffee-tab">
-            <div class="row pt-5">
-                <div class="col-12">
-                    <p>This tool is completely free for you to use but, if you want to show your appreciation, you can <a href="https://codeshare.co.uk/coffee" target="_blank" rel="noopener">buy me a coffee</a>.</p>
-                </div>
+            <div class="pt-5">
+                <p>This tool is completely free for you to use but, if you want to show your appreciation, you can <a href="https://codeshare.co.uk/coffee" target="_blank" rel="noopener">buy me a coffee</a>.</p>
             </div>
         </div>
     </div>
