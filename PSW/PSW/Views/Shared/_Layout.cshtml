@@ -17,16 +17,6 @@
     <link rel="stylesheet preload" as="style" href="@Url.Content("~/css/sunburst.css")">
 </head>
 <body>
-    <nav class="navbar navbar-dark navbar-expand-lg fixed-top bg-primary portfolio-navbar">
-        <div class="container">
-            <a class="navbar-brand logo" href="/">Package Script Writer</a><button data-bs-toggle="collapse" class="navbar-toggler" data-bs-target="#navbarNav"><span class="sr-only">Toggle navigation</span><span class="navbar-toggler-icon"></span></button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
     @RenderBody()
 
     <script src="@Url.Content($"~/js/site.js?v={clientBuildVersion}")"></script>

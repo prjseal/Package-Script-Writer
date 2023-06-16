@@ -8,13 +8,14 @@
 
 @using (Html.BeginForm("Index", "Home"))
 {
-    <div id="submit-wrapper" class="p-3 w-100 border-top">
+    <div id="submit-wrapper" class="p-3 w-100 bg-transparent">
         <button class="btn btn-success float-end ms-2" id="generate" name="generate"><i class="ion-checkmark-circled"></i> Update Script</button>
         <button class="btn btn-danger float-end ms-2" id="clearpackages"><i class="ion-android-delete"></i> Clear All Packages</button>
-        <a href="/" class="btn btn-primary float-end ms-2" id="startover"><i class="ion-ios-undo"></i> Start Over</a>
+        <a href="/" class="btn btn-info float-end ms-2" id="startover"><i class="ion-ios-undo"></i> Start Over</a>
     </div>
     <div class="heading text-center mb-5">
-        <h2 class="text-uppercase">Umbraco Package Script Writer</h2>
+        <h2>Package Script Writer</h2>
+        <h4>by Paul Seal</h4>
         <p>Tick the box under the packages you want to install and configure the options to generate the required script to run.</p>
         <input type="hidden" asp-for="@Model.Packages" />
     </div>
