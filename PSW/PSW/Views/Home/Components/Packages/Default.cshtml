@@ -1,4 +1,4 @@
-@model PackagesViewModel
+﻿@model PackagesViewModel
 @using PSW.Models
 @using PSW.Controllers
 
@@ -78,7 +78,7 @@
 
                         <div class="col-md-4 mb-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.OwnerInfo?.Owner @package?.Category">
                             <div class="card p-3 @(isChecked ? "selected" : null) text-center" style="min-height: 100%;">
-                                <img src="@(package?.Image ?? "")?width=100&height=100&mode=pad&bgcolor=fff" alt="@(package?.Name ?? "uknown")" />
+                                <img src="@(package?.Image ?? "")?width=100&height=100&mode=pad&bgcolor=fff" alt="@(package?.Name ?? "uknown")" loading="lazy" />
                                 <div class="card-body">
                                     <h3 class="card-title"><a href="@(package?.Url ?? "#")" target="_blank" rel="noopener">@(package?.Name ?? "unknown")</a></h3>
                                     <p class="card-text">@(package?.Summary ?? "")</p>
