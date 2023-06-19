@@ -28,6 +28,10 @@ pre li.L5, pre li.L6, pre li.L7, pre li.L8 {
     margin-right: 0.8em;
 }
 
+.form-group.invalid input, .form-group.invalid label {
+    color: red;
+}
+
 pre:not(.prettyprinted) {
     background-color: #000;
     color: #fff;

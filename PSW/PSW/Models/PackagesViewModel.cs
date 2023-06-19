@@ -53,7 +53,7 @@ public class PackagesViewModel
     [Display(Name = "Umbraco User Email:")]
     public string? UserEmail { get; set; }
 
-    [Display(Name = "Umbraco User Password:")]
+    [Display(Name = "Umbraco User Password (min 10 characters):")]
     public string? UserPassword { get; set; }
 
     [Display(Name = "Include a Starter Kit:")]

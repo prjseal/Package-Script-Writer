@@ -171,6 +171,7 @@
         }, 250));
 
         psw.controls.userPassword.addEventListener('keyup', psw.debounce(function () {
+            psw.validateUmbracoUserPassword();
             psw.updateOutput();
             psw.updateUrl();
         }, 250));
@@ -210,6 +211,16 @@
             psw.updateOutput();
             psw.updateUrl();
         });
+    },
+    validateUmbracoUserPassword: function () {
+        if (psw.controls.userPassword.value === ''
+            || psw.controls.userPassword.value === undefined
+            || psw.controls.userPassword.value.length < 10) {
+            psw.controls.userPassword.parentNode.classList.add('invalid');
+        }
+        else {
+            psw.controls.userPassword.parentNode.classList.remove('invalid');
+        }
     },
     changeTab: function (tabSelector) {
         var tab = document.querySelector(tabSelector)
