@@ -1,4 +1,4 @@
-﻿using PSW.Models;
+using PSW.Models;
 using PSW.Models.NuGet;
 using System.Text.Json;
 using System.Xml;
@@ -58,16 +58,16 @@ namespace PSW.Services
 
         public List<PagedPackagesPackage> GetAllPackagesFromUmbraco()
         {
-            int pageIndex = 0;
+            int pageIndex = 1;
             var pageSize = 50;
             var carryOn = true;
             var allPackages = new List<PagedPackagesPackage>();
             var total = 0;
             var totalSoFar = 0;
             var isTail = false;
-            while (pageIndex == 0 || totalSoFar < total || !isTail)
+            while (pageIndex == 1 || totalSoFar < total)
             {
-                isTail = pageSize > total - totalSoFar && pageIndex != 0;
+                isTail = pageIndex > 1 && (pageSize > total - totalSoFar);
                 if (isTail)
                 {
                     pageSize = total - totalSoFar;
@@ -83,7 +83,7 @@ namespace PSW.Services
                     if (packages!= null && carryOn)
                     {
                         
-                        if (pageIndex == 0)
+                        if (pageIndex == 1)
                         {
                             total = packages.TotalResults;
                         }
