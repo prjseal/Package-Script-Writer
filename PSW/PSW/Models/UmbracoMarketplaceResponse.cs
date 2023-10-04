@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace PSW.Models
@@ -40,5 +41,13 @@ namespace PSW.Models
         public List<string> PackageVersions { get; set; }
         [Display(Name = "Version")]
         public string SelectedVersion { get; set; }
+        public Category Category { get; set; }
+    }
+
+    public class Category
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
     }
 }
+

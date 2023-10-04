@@ -64,28 +64,41 @@ namespace PSW.Services
             var allPackages = new List<PagedPackagesPackage>();
             var total = 0;
             var totalSoFar = 0;
-            while (carryOn && (pageIndex == 0 || totalSoFar < total))
+            var isTail = false;
+            while (pageIndex == 0 || totalSoFar < total || !isTail)
             {
-                totalSoFar = (pageIndex + 1) * pageSize;
-                var url = $"https://api.marketplace.umbraco.com/api/v1.0/packages?orderBy=MostDownloads&fields=numberOfNuGetDownloads,authors,packageType,licenseTypes,iconUrl,minimumUmbracoVersionNumber,maximumUmbracoVersionNumber,isCertifiedToWorkOnUmbracoCloud,isPromoted,isPartner,isHQ,isHQSupported,id,title,description,packageId,tags,umbracoMajorVersionsSupported,iconDominantColor&pageSize={pageSize}&pageNumber={pageIndex}";
+                isTail = pageSize > total - totalSoFar && pageIndex != 0;
+                if (isTail)
+                {
+                    pageSize = total - totalSoFar;
+                }
+
+                var url = $"https://api.marketplace.umbraco.com/api/v1.0/packages?orderBy=MostDownloads&fields=numberOfNuGetDownloads,authors,packageType,licenseTypes,iconUrl,minimumUmbracoVersionNumber,maximumUmbracoVersionNumber,isCertifiedToWorkOnUmbracoCloud,isPromoted,isPartner,isHQ,isHQSupported,id,title,description,packageId,tags,umbracoMajorVersionsSupported,iconDominantColor,Category&pageSize={pageSize}&pageNumber={pageIndex}";
 
                 try
                 {
                     var httpClient = clientFactory.CreateClient();
                     var response = httpClient.GetAsync(url).Result;
                     var packages = response.Content.ReadFromJsonAsync<UmbracoMarketplaceResponse>().Result;
-                    if (packages!= null)
+                    if (packages!= null && carryOn)
                     {
+                        
                         if (pageIndex == 0)
                         {
                             total = packages.TotalResults;
                         }
+
                         allPackages.AddRange(packages.Results.Where(x => x != null));
-                        carryOn = true;
+                        totalSoFar = allPackages.Count();
+                        if (isTail)
+                        {
+                            break;
+                        }
                     }
                     else
                     {
                         carryOn = false;
+
                     }
                 }
                 catch
