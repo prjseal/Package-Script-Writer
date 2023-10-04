@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
-builder.Services.AddScoped<IPackageService, PackageService>();
+builder.Services.AddScoped<IPackageService, MarketplacePackageService>();
 builder.Services.AddScoped<IQueryStringService, QueryStringService>();
 
 var app = builder.Build();
