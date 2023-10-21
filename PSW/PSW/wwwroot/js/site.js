@@ -3,6 +3,7 @@
         packages: document.getElementById('Packages'),
         installUmbracoTemplate: document.getElementById('InstallUmbracoTemplate'),
         umbracoTemplateVersion: document.getElementById('UmbracoTemplateVersion'),
+        forceTemplateInstall: document.getElementById('ForceTemplateInstall'),
         includeStarterKit: document.getElementById('IncludeStarterKit'),
         starterKitPackage: document.getElementById('StarterKitPackage'),
         createSolutionFile: document.getElementById('CreateSolutionFile'),
@@ -79,6 +80,11 @@
 
         psw.controls.includeStarterKit.addEventListener('change', function () {
             psw.toggleIncludeStarterKitControls();
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+
+        psw.controls.forceTemplateInstall.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -182,6 +188,11 @@
         });
 
         psw.controls.includeStarterKit.addEventListener('change', function () {
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+
+        psw.controls.forceTemplateInstall.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -336,6 +347,7 @@
         }
         psw.controls.installUmbracoTemplate.checked = true;
         psw.controls.umbracoTemplateVersion.value = '';
+        psw.controls.forceTemplateInstall.checked = true;
         psw.controls.includeStarterKit.checked = true;
         psw.controls.starterKitPackage.value = 'clean';
         psw.controls.createSolutionFile.checked = true;
@@ -366,6 +378,7 @@
 
         psw.controls.installUmbracoTemplate.checked = searchParams.get("InstallUmbracoTemplate") === "true";
         psw.controls.umbracoTemplateVersion.value = searchParams.get("UmbracoTemplateVersion");
+        psw.controls.forceTemplateInstall.checked = searchParams.get("ForceTemplateInstall") === "true";
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
@@ -381,6 +394,7 @@
 
         psw.controls.umbracoTemplateVersion.disabled = !psw.controls.installUmbracoTemplate.checked;
         psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
+        psw.controls.forceTemplateInstall.disabled = !psw.controls.forceTemplateInstall.checked;
         psw.controls.solutionName.disabled = !psw.controls.createSolutionFile.checked;
         psw.controls.databaseType.disabled = !psw.controls.useUnattendedInstall.checked;
         psw.controls.userFriendlyName.disabled = !psw.controls.useUnattendedInstall.checked;
@@ -466,6 +480,7 @@
         var data = {
             "InstallUmbracoTemplate": psw.controls.installUmbracoTemplate.checked,
             "UmbracoTemplateVersion": psw.controls.umbracoTemplateVersion.value,
+            "ForceTemplateInstall": psw.controls.forceTemplateInstall.checked,
             "Packages": psw.controls.packages.value,
             "UserEmail": psw.controls.userEmail.value,
             "ProjectName": psw.controls.projectName.value,
@@ -513,6 +528,7 @@
             var searchParams = new URLSearchParams(window.location.search);
             searchParams.set("InstallUmbracoTemplate", psw.controls.installUmbracoTemplate.checked);
             searchParams.set("UmbracoTemplateVersion", psw.controls.umbracoTemplateVersion.value);
+            searchParams.set("ForceTemplateInstall", psw.controls.forceTemplateInstall.checked);
             searchParams.set("Packages", psw.controls.packages.value);
             searchParams.set("UserEmail", psw.controls.userEmail.value);
             searchParams.set("ProjectName", psw.controls.projectName.value);

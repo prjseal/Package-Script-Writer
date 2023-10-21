@@ -41,6 +41,8 @@ public class ScriptGeneratorService : IScriptGeneratorService
     {
         
         var outputList = new List<string>();
+        var forceTemplateInstallCommand = model.ForceTemplateInstall ? " --force" : "";
+        var installCommand = model.UmbracoTemplateVersion?.StartsWith("9.") == true || model.UmbracoTemplateVersion?.StartsWith("10.") == true ? "-i" : "install";
 
         if (!model.OnelinerOutput)
         {
@@ -49,13 +51,14 @@ public class ScriptGeneratorService : IScriptGeneratorService
         
         if (!string.IsNullOrWhiteSpace(model.UmbracoTemplateVersion))
         {
-            outputList.Add($"dotnet new -i Umbraco.Templates::{model.UmbracoTemplateVersion}");
+            outputList.Add($"dotnet new {installCommand} Umbraco.Templates::{model.UmbracoTemplateVersion}{forceTemplateInstallCommand}");
         }
         else
         {
-            outputList.Add("dotnet new -i Umbraco.Templates");
+            outputList.Add($"dotnet new {installCommand} Umbraco.Templates{forceTemplateInstallCommand}");
         }
-        
+
+
         outputList.Add("");
 
         return outputList;

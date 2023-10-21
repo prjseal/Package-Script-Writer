@@ -15,6 +15,7 @@ public class GeneratorApiRequest
     }
     public bool InstallUmbracoTemplate { get; set; }
     public string? UmbracoTemplateVersion { get; set; }
+    public bool ForceTemplateInstall { get; set; }
     public string? Packages { get; set; }
     public bool CreateSolutionFile { get; set; }
     public string? SolutionName { get; set; }

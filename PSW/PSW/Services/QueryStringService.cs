@@ -8,6 +8,7 @@ public class QueryStringService : IQueryStringService
     {
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.IncludeStarterKit)], out var includeStarterKit);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.InstallUmbracoTemplate)], out var installUmbracoTemplate);
+        _ = bool.TryParse(request.Query[nameof(PackagesViewModel.ForceTemplateInstall)], out var forceTemplateInstall);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.CreateSolutionFile)], out var createSolutionFile);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.UseUnattendedInstall)], out var useUnattendedInstall);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.OnelinerOutput)], out var onelinerOutput);
@@ -16,6 +17,7 @@ public class QueryStringService : IQueryStringService
         {
             includeStarterKit = true;
             installUmbracoTemplate = true;
+            forceTemplateInstall = true;
             createSolutionFile = true;
             useUnattendedInstall = true;
             onelinerOutput = false;
@@ -37,6 +39,7 @@ public class QueryStringService : IQueryStringService
             Packages = packages,
             InstallUmbracoTemplate = installUmbracoTemplate,
             UmbracoTemplateVersion = umbracoTemplateVersion,
+            ForceTemplateInstall = forceTemplateInstall,
             IncludeStarterKit = includeStarterKit,
             StarterKitPackage = starterKitPackage,
             UseUnattendedInstall = useUnattendedInstall,
@@ -59,6 +62,7 @@ public class QueryStringService : IQueryStringService
 
         queryString = queryString.Add(nameof(model.InstallUmbracoTemplate), model.InstallUmbracoTemplate.ToString());
         queryString = queryString.AddValueIfNotEmpty(nameof(model.UmbracoTemplateVersion), model.UmbracoTemplateVersion ?? "");
+        queryString = queryString.Add(nameof(model.ForceTemplateInstall), model.ForceTemplateInstall.ToString());
         queryString = queryString.Add(nameof(model.IncludeStarterKit), model.IncludeStarterKit.ToString());
         queryString = queryString.AddValueIfNotEmpty(nameof(model.StarterKitPackage), model.StarterKitPackage ?? "");
         queryString = queryString.Add(nameof(model.UseUnattendedInstall), model.UseUnattendedInstall.ToString());
