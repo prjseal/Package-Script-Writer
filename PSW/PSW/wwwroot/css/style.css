@@ -76,3 +76,14 @@ div.tab-pane p a {
     text-decoration: underline;
     font-weight: bold;
 }
+
+#umbraco-template-version {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+
+    #umbraco-template-version select {
+        flex: 1;
+    }

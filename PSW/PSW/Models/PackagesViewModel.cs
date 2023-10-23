@@ -10,6 +10,7 @@ public class PackagesViewModel
     {
         InstallUmbracoTemplate = apiRequest.InstallUmbracoTemplate;
         UmbracoTemplateVersion = apiRequest.UmbracoTemplateVersion;
+        ForceTemplateInstall = apiRequest.ForceTemplateInstall;
         CreateSolutionFile = apiRequest.CreateSolutionFile;
         SolutionName = apiRequest.SolutionName;
         ProjectName = apiRequest.ProjectName;
@@ -31,6 +32,9 @@ public class PackagesViewModel
 
     [Display(Name = "Umbraco Template Version:")]
     public string? UmbracoTemplateVersion { get; set; }
+
+    [Display(Name = "--force")]
+    public bool ForceTemplateInstall { get; set; }
 
     public List<PagedPackagesPackage>? AllPackages { get; set; }
     public string? Packages { get; set; }
