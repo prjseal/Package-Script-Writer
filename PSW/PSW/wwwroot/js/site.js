@@ -1,9 +1,8 @@
 ﻿var psw = psw || {
     controls: {
         packages: document.getElementById('Packages'),
-        installUmbracoTemplate: document.getElementById('InstallUmbracoTemplate'),
-        umbracoTemplateVersion: document.getElementById('UmbracoTemplateVersion'),
-        forceTemplateInstall: document.getElementById('ForceTemplateInstall'),
+        templateName: document.getElementById('TemplateName'),
+        templateVersion: document.getElementById('TemplateVersion'),
         includeStarterKit: document.getElementById('IncludeStarterKit'),
         starterKitPackage: document.getElementById('StarterKitPackage'),
         createSolutionFile: document.getElementById('CreateSolutionFile'),
@@ -72,19 +71,14 @@
             psw.updateUrl();
         });
         
-        psw.controls.installUmbracoTemplate.addEventListener('change', function () {
-            psw.toggleInstallUmbracoTemplateControls();
+        psw.controls.templateName.addEventListener('change', function () {
+            psw.toggleTemplateNameControls();
             psw.updateOutput();
             psw.updateUrl();
         });
 
         psw.controls.includeStarterKit.addEventListener('change', function () {
             psw.toggleIncludeStarterKitControls();
-            psw.updateOutput();
-            psw.updateUrl();
-        });
-
-        psw.controls.forceTemplateInstall.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -182,17 +176,12 @@
             psw.updateUrl();
         }, 250));
 
-        psw.controls.installUmbracoTemplate.addEventListener('change', function () {
+        psw.controls.templateName.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
 
         psw.controls.includeStarterKit.addEventListener('change', function () {
-            psw.updateOutput();
-            psw.updateUrl();
-        });
-
-        psw.controls.forceTemplateInstall.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -207,7 +196,7 @@
             psw.updateUrl();
         });
 
-        psw.controls.umbracoTemplateVersion.addEventListener('change', function () {
+        psw.controls.templateVersion.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -299,7 +288,7 @@
                 return result;
             }
         }).then((data) => {
-            console.log(data);
+            // console.log(data);
             
 
             var packageVersions = JSON.parse(data);
@@ -319,6 +308,67 @@
 
                 thisDropdown.appendChild(opt);
             }
+
+        }).catch((error) => {
+            console.log(error);
+        });
+    },
+    loadTemplateVersionDropdown: function () {
+        var templateName = psw.controls.templateName;
+        var templateVersion = psw.controls.templateVersion;
+        var nugetPackageId = templateName.value;
+
+        var data = {
+            "PackageId": nugetPackageId.toLowerCase()
+        }
+
+        var url = "/api/scriptgeneratorapi/getpackageversions";
+
+        fetch(url, {
+            method: 'POST', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data) // body data type must match "Content-Type" header
+        }).then((response) => {
+            var result = response.text();
+            if (response.ok) {
+                return result;
+            }
+        }).then((data) => {
+            // console.log(data);
+
+            var packageVersions = JSON.parse(data);
+
+            templateVersion.innerHTML = '';
+
+            var latestStableOption = document.createElement('option');
+            latestStableOption.value = '';
+            latestStableOption.text = 'Latest Stable';
+            templateVersion.add(latestStableOption);
+
+            packageVersions.forEach(function (version) {
+                var option = document.createElement('option');
+                option.value = version;
+                option.text = version;
+                templateVersion.add(option);
+            });
+            //var optionPosition;
+            //var lastOptionPosition = thisDropdown.options.length - 1;
+            //for (optionPosition = lastOptionPosition; optionPosition > 1; optionPosition--) {
+            //    thisDropdown.remove(optionPosition);
+            //}
+
+            //var versionCount = packageVersions.length;
+            //for (i = 0; i < versionCount; i++) {
+            //    var version = packageVersions[i];
+            //    var opt = document.createElement("option");
+            //    opt.value = version;
+            //    opt.innerHTML = version;
+
+            //    thisDropdown.appendChild(opt);
+            //}
 
         }).catch((error) => {
             console.log(error);
@@ -345,9 +395,10 @@
         if(event !== undefined) {
             event.preventDefault();
         }
-        psw.controls.installUmbracoTemplate.checked = true;
-        psw.controls.umbracoTemplateVersion.value = '';
-        psw.controls.forceTemplateInstall.checked = true;
+
+        // console.log('reset');
+        psw.controls.templateName.value = 'Umbraco.Templates';
+        psw.controls.templateVersion.value = '';
         psw.controls.includeStarterKit.checked = true;
         psw.controls.starterKitPackage.value = 'clean';
         psw.controls.createSolutionFile.checked = true;
@@ -361,7 +412,7 @@
         psw.controls.databaseType.value = 'SQLite';
         psw.controls.onelinerOutput.checked = false;
         
-        psw.controls.umbracoTemplateVersion.removeAttribute('disabled');
+        psw.controls.templateVersion.removeAttribute('disabled');
         psw.controls.starterKitPackage.removeAttribute('disabled');
         psw.controls.solutionName.removeAttribute('disabled');
         psw.controls.databaseType.removeAttribute('disabled');
@@ -370,15 +421,23 @@
         psw.controls.userPassword.removeAttribute('disabled');
     },
     setFromLocalStorage: function () {
+
+        if ('URLSearchParams' in window) {
+            var urlQuery = new URLSearchParams(window.location.search);
+            var hasQueryStrings = (urlQuery.size > 0);
+            if (hasQueryStrings) {
+                return psw.setFromQueryString();
+            }
+        }
+
         if (window.localStorage.getItem("searchParams") == null) {
             return psw.reset();
         }
 
         var searchParams = new URLSearchParams(window.localStorage.getItem("searchParams"));
 
-        psw.controls.installUmbracoTemplate.checked = searchParams.get("InstallUmbracoTemplate") === "true";
-        psw.controls.umbracoTemplateVersion.value = searchParams.get("UmbracoTemplateVersion");
-        psw.controls.forceTemplateInstall.checked = searchParams.get("ForceTemplateInstall") === "true";
+        psw.controls.templateName.value = searchParams.get("TemplateName");
+        psw.controls.templateVersion.value = searchParams.get("TemplateVersion");
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
@@ -392,9 +451,8 @@
         psw.controls.databaseType.value = searchParams.get("DatabaseType");
         psw.controls.onelinerOutput.checked = searchParams.get("OnelinerOutput") === "true";
 
-        psw.controls.umbracoTemplateVersion.disabled = !psw.controls.installUmbracoTemplate.checked;
+        psw.controls.templateVersion.disabled = psw.controls.templateName.value === "";
         psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
-        psw.controls.forceTemplateInstall.disabled = !psw.controls.forceTemplateInstall.checked;
         psw.controls.solutionName.disabled = !psw.controls.createSolutionFile.checked;
         psw.controls.databaseType.disabled = !psw.controls.useUnattendedInstall.checked;
         psw.controls.userFriendlyName.disabled = !psw.controls.useUnattendedInstall.checked;
@@ -403,6 +461,43 @@
 
         psw.updateOutput();
         psw.updateUrl();
+    },
+    setFromQueryString: function () {
+        var hasQueryStrings = false;
+        var searchParams = new URLSearchParams(window.location.search);
+
+        if ('URLSearchParams' in window) {
+            hasQueryStrings = (searchParams.size > 0);
+        }
+
+        if (!hasQueryStrings) {
+            return psw.reset();
+        }
+
+        psw.controls.templateName.value = searchParams.get("TemplateName");
+        psw.controls.templateVersion.value = searchParams.get("TemplateVersion");
+        psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
+        psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
+        psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
+        psw.controls.solutionName.value = searchParams.get("SolutionName");
+        psw.controls.projectName.value = searchParams.get("ProjectName");
+        psw.controls.useUnattendedInstall.checked = searchParams.get("UseUnattendedInstall") === "true";
+        psw.controls.connectionString.value = searchParams.get("ConnectionString");
+        psw.controls.userFriendlyName.value = searchParams.get("UserFriendlyName");
+        psw.controls.userEmail.value = searchParams.get("UserEmail");
+        psw.controls.userPassword.value = searchParams.get("UserPassword");
+        psw.controls.databaseType.value = searchParams.get("DatabaseType");
+        psw.controls.onelinerOutput.checked = searchParams.get("OnelinerOutput") === "true";
+
+        psw.controls.templateVersion.disabled = psw.controls.templateName.value === "";
+        psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
+        psw.controls.solutionName.disabled = !psw.controls.createSolutionFile.checked;
+        psw.controls.databaseType.disabled = !psw.controls.useUnattendedInstall.checked;
+        psw.controls.userFriendlyName.disabled = !psw.controls.useUnattendedInstall.checked;
+        psw.controls.userEmail.disabled = !psw.controls.useUnattendedInstall.checked;
+        psw.controls.userPassword.disabled = !psw.controls.useUnattendedInstall.checked;
+
+        psw.updateOutput();
     },
     filterPackages: function () {
         var filter, ul, li, a, i, txtValue;
@@ -436,12 +531,13 @@
             psw.controls.connectionString.setAttribute('disabled', 'disabled');
         }
     },
-    toggleInstallUmbracoTemplateControls: function () {
-        if (psw.controls.installUmbracoTemplate.checked) {
-            psw.controls.umbracoTemplateVersion.removeAttribute('disabled');
+    toggleTemplateNameControls: function () {
+        if (psw.controls.templateName.value !== '') {
+            psw.controls.templateVersion.removeAttribute('disabled');
+            psw.loadTemplateVersionDropdown();
         }
         else {
-            psw.controls.umbracoTemplateVersion.setAttribute('disabled', 'disabled');
+            psw.controls.templateVersion.setAttribute('disabled', 'disabled');
         }
     },
     toggleIncludeStarterKitControls: function () {
@@ -476,11 +572,11 @@
         navigator.clipboard.writeText(psw.controls.codeBlock.innerText);
     },
     updateOutput: function () {
+        psw.setFieldState();
 
         var data = {
-            "InstallUmbracoTemplate": psw.controls.installUmbracoTemplate.checked,
-            "UmbracoTemplateVersion": psw.controls.umbracoTemplateVersion.value,
-            "ForceTemplateInstall": psw.controls.forceTemplateInstall.checked,
+            "TemplateName": psw.controls.templateName.value,
+            "TemplateVersion": psw.controls.templateVersion.value,
             "Packages": psw.controls.packages.value,
             "UserEmail": psw.controls.userEmail.value,
             "ProjectName": psw.controls.projectName.value,
@@ -489,7 +585,6 @@
             "UseUnattendedInstall": psw.controls.useUnattendedInstall.checked,
             "DatabaseType": psw.controls.databaseType.value,
             "UserPassword": psw.controls.userPassword.value,
-            "UmbracoTemplateVersion": psw.controls.umbracoTemplateVersion.value,
             "ConnectionString": psw.controls.connectionString.value,
             "UserFriendlyName": psw.controls.userFriendlyName.value,
             "IncludeStarterKit": psw.controls.includeStarterKit.checked,
@@ -526,9 +621,8 @@
     updateUrl: function () {
         if ('URLSearchParams' in window) {
             var searchParams = new URLSearchParams(window.location.search);
-            searchParams.set("InstallUmbracoTemplate", psw.controls.installUmbracoTemplate.checked);
-            searchParams.set("UmbracoTemplateVersion", psw.controls.umbracoTemplateVersion.value);
-            searchParams.set("ForceTemplateInstall", psw.controls.forceTemplateInstall.checked);
+            searchParams.set("TemplateName", psw.controls.templateName.value);
+            searchParams.set("TemplateVersion", psw.controls.templateVersion.value);
             searchParams.set("Packages", psw.controls.packages.value);
             searchParams.set("UserEmail", psw.controls.userEmail.value);
             searchParams.set("ProjectName", psw.controls.projectName.value);
@@ -537,13 +631,37 @@
             searchParams.set("UseUnattendedInstall", psw.controls.useUnattendedInstall.checked);
             searchParams.set("DatabaseType", psw.controls.databaseType.value);
             searchParams.set("UserPassword", psw.controls.userPassword.value);
-            searchParams.set("UmbracoTemplateVersion", psw.controls.umbracoTemplateVersion.value);
             searchParams.set("UserFriendlyName", psw.controls.userFriendlyName.value);
             searchParams.set("IncludeStarterKit", psw.controls.includeStarterKit.checked);
             searchParams.set("StarterKitPackage", psw.controls.starterKitPackage.value);
             searchParams.set("OnelinerOutput", psw.controls.onelinerOutput.checked);
             var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
             history.pushState(null, '', newRelativePathQuery);
+        }
+    },
+    setFieldState: function () {
+        psw.controls.templateVersion.removeAttribute('disabled');
+        psw.controls.starterKitPackage.removeAttribute('disabled');
+        psw.controls.solutionName.removeAttribute('disabled');
+        psw.controls.databaseType.removeAttribute('disabled');
+        psw.controls.userFriendlyName.removeAttribute('disabled');
+        psw.controls.userEmail.removeAttribute('disabled');
+        psw.controls.userPassword.removeAttribute('disabled');
+
+        if (psw.controls.templateName.value === '') {
+            psw.controls.templateVersion.setAttribute('disabled', 'disabled');
+            psw.controls.starterKitPackage.setAttribute('disabled', 'disabled');
+            psw.controls.solutionName.setAttribute('disabled', 'disabled');
+            psw.controls.databaseType.setAttribute('disabled', 'disabled');
+            psw.controls.userFriendlyName.setAttribute('disabled', 'disabled');
+            psw.controls.userEmail.setAttribute('disabled', 'disabled');
+            psw.controls.userPassword.setAttribute('disabled', 'disabled');
+        } else if (psw.controls.templateName.value !== 'Umbraco.Templates') {
+            psw.controls.starterKitPackage.setAttribute('disabled', 'disabled');
+            psw.controls.databaseType.setAttribute('disabled', 'disabled');
+            psw.controls.userFriendlyName.setAttribute('disabled', 'disabled');
+            psw.controls.userEmail.setAttribute('disabled', 'disabled');
+            psw.controls.userPassword.setAttribute('disabled', 'disabled');
         }
     },
     debounce: function (func, wait, immediate) {

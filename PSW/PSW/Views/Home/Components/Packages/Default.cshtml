@@ -2,6 +2,7 @@
 @using PSW.Extensions;
 @using PSW.Models
 @using PSW.Controllers
+@using System.ComponentModel.DataAnnotations;
 
 @{
     var hasQueryString = Context.Request.Query.Count > 0;
@@ -139,32 +140,26 @@
                 <div class="row">
                     <div class="col-6">
                         <div class="form-group pt-2">
-                            <div class="form-check">
-                                <label asp-for="@Model.InstallUmbracoTemplate" class="form-check-label"></label>
-                                <input asp-for="@Model.InstallUmbracoTemplate" class="form-check-input" type="checkbox" />
+                            <div style="display: flex; flex-wrap: wrap; column-gap: 30px;">
+                                <label asp-for="@Model.TemplateName" class="form-check-label" style="width: 100%;"></label>
+                                <select class="form-control" asp-for="@Model.TemplateName" asp-items="Model.TemplateNames"></select>
                             </div>
                         </div>
                         <div class="form-group py-2">
-                            <label asp-for="@Model.UmbracoTemplateVersion"></label>
+                            <label asp-for="@Model.TemplateVersion"></label>
                             @if(Model.UmbracoVersions != null && Model.UmbracoVersions.Any())
                             {
-                                <div id="umbraco-template-version">
-                                    <select class="form-control" id="UmbracoTemplateVersion" name="UmbracoTemplateVersion" disabled="@(Model.InstallUmbracoTemplate ? null : "disabled")">
-                                        <option selected="@(Model.UmbracoTemplateVersion == "" ? "selected" : null)" value="">Latest Stable</option>
-                                        @foreach(var version in Model.UmbracoVersions)
-                                        {
-                                            <option selected="@(Model.UmbracoTemplateVersion == version ? "selected" : null)" value="@version">@version</option>
-                                        }
-                                    </select>
-                                    <div class="form-check">
-                                        <label asp-for="@Model.ForceTemplateInstall" class="form-check-label"></label>
-                                        <input asp-for="@Model.ForceTemplateInstall" class="form-check-input" type="checkbox" />
-                                    </div>
-                                </div>
+                                <select class="form-control" id="@nameof(Model.TemplateVersion)" name="@nameof(Model.TemplateVersion)" disabled="@(string.IsNullOrWhiteSpace(Model.TemplateName) ? "disabled" : null)">
+                                    <option selected="@(Model.TemplateVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                                    @foreach(var version in Model.UmbracoVersions)
+                                    {
+                                        <option selected="@(Model.TemplateVersion == version ? "selected" : null)" value="@version">@version</option>
+                                    }
+                                </select>
                             }
                             else
                             {
-                                <input asp-for="@Model.UmbracoTemplateVersion" class="form-control" disabled="@(Model.InstallUmbracoTemplate ? null : "disabled")" />                                
+                                <input asp-for="@Model.TemplateVersion" class="form-control" disabled="@(Model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) ? null : "disabled")" />
                             }
                         </div>
                         <div class="form-group pt-3">

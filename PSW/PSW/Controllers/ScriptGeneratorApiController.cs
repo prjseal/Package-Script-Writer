@@ -1,6 +1,7 @@
 ﻿using PSW.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace PSW.Controllers;
 
@@ -27,14 +28,13 @@ public class ScriptGeneratorApiController : ControllerBase
         if (apiRequest.IsEmpty)
         {
             apiRequest.IncludeStarterKit = true;
-            apiRequest.InstallUmbracoTemplate = true;
             apiRequest.CreateSolutionFile = true;
             apiRequest.UseUnattendedInstall = true;
             apiRequest.OnelinerOutput = false;
         }
 
         apiRequest.StarterKitPackage = !string.IsNullOrWhiteSpace(apiRequest.StarterKitPackage) ? apiRequest.StarterKitPackage : DefaultValues.StarterKitPackage;
-        apiRequest.ProjectName = !string.IsNullOrWhiteSpace(apiRequest.ProjectName) ? apiRequest.ProjectName : (apiRequest.CreateSolutionFile || apiRequest.InstallUmbracoTemplate ? PSW.Constants.DefaultValues.ProjectName : "");
+        apiRequest.ProjectName = !string.IsNullOrWhiteSpace(apiRequest.ProjectName) ? apiRequest.ProjectName : (apiRequest.CreateSolutionFile || apiRequest.TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true ? PSW.Constants.DefaultValues.ProjectName : "");
         apiRequest.SolutionName = !string.IsNullOrWhiteSpace(apiRequest.SolutionName) ? apiRequest.SolutionName : DefaultValues.SolutionName;
         apiRequest.DatabaseType = !string.IsNullOrWhiteSpace(apiRequest.DatabaseType) ? apiRequest.DatabaseType : DefaultValues.DatabaseType;
         apiRequest.ConnectionString = !string.IsNullOrWhiteSpace(apiRequest.ConnectionString) ? apiRequest.ConnectionString : DefaultValues.ConnectionString;
@@ -43,6 +43,7 @@ public class ScriptGeneratorApiController : ControllerBase
         apiRequest.UserPassword = !string.IsNullOrWhiteSpace(apiRequest.UserPassword) ? apiRequest.UserPassword : DefaultValues.UserPassword;
 
         var model = new PackagesViewModel(apiRequest);
+
         return Ok(_scriptGeneratorService.GenerateScript(model));
     }
 

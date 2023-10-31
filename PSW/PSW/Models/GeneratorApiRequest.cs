@@ -1,21 +1,23 @@
 ﻿namespace PSW.Models;
-
 public class GeneratorApiRequest
 {
     public bool IsEmpty
     {
         get
         {
-            return !InstallUmbracoTemplate && !CreateSolutionFile
+            return string.IsNullOrWhiteSpace(TemplateName) && !CreateSolutionFile
                 && !IncludeStarterKit && !UseUnattendedInstall
-                && string.IsNullOrWhiteSpace(UmbracoTemplateVersion + Packages
+                && TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true && string.IsNullOrWhiteSpace(TemplateVersion + Packages
                 + SolutionName + ProjectName + UserFriendlyName + UserEmail
-                + UserPassword + StarterKitPackage + DatabaseType);
+                + UserPassword + StarterKitPackage + DatabaseType)
+                && !string.IsNullOrWhiteSpace(TemplateName) && !TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) &&
+                string.IsNullOrWhiteSpace(TemplateVersion + Packages
+                + SolutionName + ProjectName + UserFriendlyName + UserEmail
+                + UserPassword + DatabaseType);
         }
     }
-    public bool InstallUmbracoTemplate { get; set; }
-    public string? UmbracoTemplateVersion { get; set; }
-    public bool ForceTemplateInstall { get; set; }
+    public string? TemplateName { get; set; }
+    public string? TemplateVersion { get; set; }
     public string? Packages { get; set; }
     public bool CreateSolutionFile { get; set; }
     public string? SolutionName { get; set; }

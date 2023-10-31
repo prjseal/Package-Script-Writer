@@ -1,4 +1,5 @@
-﻿using PSW.Models;
+﻿using PSW.Dictionaries;
+using PSW.Models;
 
 namespace PSW.Services;
 public class ScriptGeneratorService : IScriptGeneratorService
@@ -9,7 +10,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         var renderPackageName = !string.IsNullOrWhiteSpace(model.ProjectName);
 
-        if (model.InstallUmbracoTemplate)
+        if (!string.IsNullOrWhiteSpace(model.TemplateName))
         {
             outputList.AddRange(GenerateUmbracoTemplatesSectionScript(model));
 
@@ -22,7 +23,10 @@ public class ScriptGeneratorService : IScriptGeneratorService
             outputList.Add("");
         }
 
-        outputList.AddRange(GenerateAddStarterKitScript(model, renderPackageName));
+        if (model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO))
+        {
+            outputList.AddRange(GenerateAddStarterKitScript(model, renderPackageName));
+        }
 
         outputList.AddRange(GenerateAddPackagesScript(model, renderPackageName));
 
@@ -32,32 +36,38 @@ public class ScriptGeneratorService : IScriptGeneratorService
         {
             return string.Join(Environment.NewLine, outputList);
         }
-        
+
         outputList.RemoveAll(string.IsNullOrWhiteSpace);
         return string.Join(" && ", outputList);
     }
 
     public List<string> GenerateUmbracoTemplatesSectionScript(PackagesViewModel model)
     {
-        
         var outputList = new List<string>();
-        var forceTemplateInstallCommand = model.ForceTemplateInstall ? " --force" : "";
-        var installCommand = model.UmbracoTemplateVersion?.StartsWith("9.") == true || model.UmbracoTemplateVersion?.StartsWith("10.") == true ? "-i" : "install";
+        var templateName = model.TemplateName;
 
-        if (!model.OnelinerOutput)
+        if (!string.IsNullOrEmpty(templateName))
         {
-            outputList.Add("# Ensure we have the latest Umbraco templates");
-        }
-        
-        if (!string.IsNullOrWhiteSpace(model.UmbracoTemplateVersion))
-        {
-            outputList.Add($"dotnet new {installCommand} Umbraco.Templates::{model.UmbracoTemplateVersion}{forceTemplateInstallCommand}");
-        }
-        else
-        {
-            outputList.Add($"dotnet new {installCommand} Umbraco.Templates{forceTemplateInstallCommand}");
-        }
 
+            if (!string.IsNullOrWhiteSpace(model.TemplateVersion))
+            {
+                if (!model.OnelinerOutput)
+                {
+                    outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) ? "# Ensure we have the version specific Umbraco templates" : "# Ensure we have the version specific Community templates");
+                }
+
+                outputList.Add($"dotnet new -i {templateName}::{model.TemplateVersion} --force");
+            }
+            else
+            {
+                if (!model.OnelinerOutput)
+                {
+                    outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) ? "# Ensure we have the latest Umbraco templates" : "# Ensure we have the latest Community templates");
+                }
+
+                outputList.Add($"dotnet new -i {templateName} --force");
+            }
+        }
 
         outputList.Add("");
 
@@ -86,7 +96,8 @@ public class ScriptGeneratorService : IScriptGeneratorService
     {
         var outputList = new List<string>();
 
-        var majorVersionNumberAsString = model.UmbracoTemplateVersion.Split('.').FirstOrDefault();
+        var installUmbracoTemplate = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO);
+        var majorVersionNumberAsString = model.TemplateVersion?.Split('.').FirstOrDefault();
         var majorVersionNumber = 10;
 
         if (!string.IsNullOrWhiteSpace(majorVersionNumberAsString))
@@ -94,63 +105,68 @@ public class ScriptGeneratorService : IScriptGeneratorService
             _ = int.TryParse(majorVersionNumberAsString, out majorVersionNumber);
         }
 
-        var isOldv10RCVersion = model.UmbracoTemplateVersion == "10.0.0-rc1" || model.UmbracoTemplateVersion == "10.0.0-rc2" || model.UmbracoTemplateVersion == "10.0.0-rc3";
-        var isV10OrAbove = majorVersionNumber >= 10;
+        var isOldv10RCVersion = installUmbracoTemplate && (model.TemplateVersion == "10.0.0-rc1" || model.TemplateVersion == "10.0.0-rc2" || model.TemplateVersion == "10.0.0-rc3");
+        var isV10OrAbove = installUmbracoTemplate && majorVersionNumber >= 10;
 
-        if (model.UseUnattendedInstall)
+        if (installUmbracoTemplate)
         {
-            var connectionString = "";
-            var databasTypeSwitch = "";
-            switch (model.DatabaseType)
+            if (model.UseUnattendedInstall)
             {
-                case "SQLCE":
-                    if (majorVersionNumber == 9)
-                    {
-                        connectionString = "--connection-string \"Data Source=|DataDirectory|\\Umbraco.sdf;Flush Interval=1\" -ce";
-                    }
-                    break;
-                case "LocalDb":
-                    if (!isV10OrAbove || isOldv10RCVersion)
-                    {
-                        connectionString = " --connection-string \"Data Source = (localdb)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Umbraco.mdf;Integrated Security=True\"";
-                    }
-                    else if (isV10OrAbove && !isOldv10RCVersion)
-                    {
-                        databasTypeSwitch = " --development-database-type LocalDB";
-                    }
-                    break;
-                case "SQLite":
-                    if (!isV10OrAbove || isOldv10RCVersion)
-                    {
-                        connectionString = " --connection-string \"Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True\"";
-                    }
-                    else if (isV10OrAbove && !isOldv10RCVersion)
-                    {
-                        databasTypeSwitch = " --development-database-type SQLite";
-                    }
-                    break;
-                case "SQLAzure":
-                case "SQLServer":
-                    connectionString = $" --connection-string \"{model.ConnectionString}\" --connection-string-provider-name \"Microsoft.Data.SqlClient\"";
-                    break;
-                default:
-                    break;
+                var connectionString = "";
+                var databasTypeSwitch = "";
+                switch (model.DatabaseType)
+                {
+                    case "SQLCE":
+                        if (majorVersionNumber == 9)
+                        {
+                            connectionString = "--connection-string \"Data Source=|DataDirectory|\\Umbraco.sdf;Flush Interval=1\" -ce";
+                        }
+                        break;
+                    case "LocalDb":
+                        if (!isV10OrAbove || isOldv10RCVersion)
+                        {
+                            connectionString = " --connection-string \"Data Source = (localdb)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Umbraco.mdf;Integrated Security=True\"";
+                        }
+                        else if (isV10OrAbove && !isOldv10RCVersion)
+                        {
+                            databasTypeSwitch = " --development-database-type LocalDB";
+                        }
+                        break;
+                    case "SQLite":
+                        if (!isV10OrAbove || isOldv10RCVersion)
+                        {
+                            connectionString = " --connection-string \"Data Source=|DataDirectory|/Umbraco.sqlite.db;Cache=Shared;Foreign Keys=True;Pooling=True\"";
+                        }
+                        else if (isV10OrAbove && !isOldv10RCVersion)
+                        {
+                            databasTypeSwitch = " --development-database-type SQLite";
+                        }
+                        break;
+                    case "SQLAzure":
+                    case "SQLServer":
+                        connectionString = $" --connection-string \"{model.ConnectionString}\" --connection-string-provider-name \"Microsoft.Data.SqlClient\"";
+                        break;
+                    default:
+                        break;
+                }
+
+                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
+
+                if (model.DatabaseType == "SQLite" && isOldv10RCVersion)
+                {
+                    outputList.Add("$env:Umbraco__CMS__Global__InstallMissingDatabase=\"true\"");
+                    outputList.Add("$env:ConnectionStrings__umbracoDbDSN_ProviderName=\"Microsoft.Data.SQLite\"");
+                }
             }
-
-            outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
-
-            if (model.DatabaseType == "SQLite" && isOldv10RCVersion)
+            else
             {
-                outputList.Add("$env:Umbraco__CMS__Global__InstallMissingDatabase=\"true\"");
-                outputList.Add("$env:ConnectionStrings__umbracoDbDSN_ProviderName=\"Microsoft.Data.SQLite\"");
+                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\"");
             }
         }
         else
         {
-            outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\"");
+            outputList.Add($"dotnet new {new TemplateDictionary().GetShortName(model.TemplateName)} --force -n \"{model.ProjectName}\"");
         }
-
-
 
         return outputList;
     }
@@ -172,7 +188,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
         var outputList = new List<string>();
 
         if (!model.IncludeStarterKit) return outputList;
-        
+
         if (!model.OnelinerOutput)
         {
             outputList.Add("#Add starter kit");
@@ -186,7 +202,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
         {
             outputList.Add($"dotnet add package {model.StarterKitPackage}");
         }
-        
+
         outputList.Add("");
 
         return outputList;
@@ -197,7 +213,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
         var outputList = new List<string>();
 
         if (string.IsNullOrWhiteSpace(model.Packages)) return outputList;
-        
+
         var packages = model.Packages.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
 
         if (packages.Length > 0)
