@@ -3,6 +3,7 @@ using PSW.Models.NuGet;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Serialization;
+using static PSW.Enums.GlobalEnums;
 
 namespace PSW.Services
 {
@@ -58,6 +59,16 @@ namespace PSW.Services
 
         public List<PagedPackagesPackage> GetAllPackagesFromUmbraco()
         {
+            return GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType.Packages);
+        }
+
+        public List<PagedPackagesPackage> GetAllTemplatesFromUmbraco()
+        {
+            return GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType.Templates);
+        }
+
+        public List<PagedPackagesPackage> GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType umbracoMarketplaceQueryType)
+        {
             int pageIndex = 1;
             var pageSize = 50;
             var carryOn = true;
@@ -72,8 +83,13 @@ namespace PSW.Services
                 {
                     pageSize = total - totalSoFar;
                 }
-
-                var url = $"https://api.marketplace.umbraco.com/api/v1.0/packages?orderBy=MostDownloads&fields=numberOfNuGetDownloads,authors,packageType,licenseTypes,iconUrl,minimumUmbracoVersionNumber,maximumUmbracoVersionNumber,isCertifiedToWorkOnUmbracoCloud,isPromoted,isPartner,isHQ,isHQSupported,id,title,description,packageId,tags,umbracoMajorVersionsSupported,iconDominantColor,Category&pageSize={pageSize}&pageNumber={pageIndex}";
+                
+                string url = umbracoMarketplaceQueryType switch
+                {
+                    UmbracoMarketplaceQueryType.Packages => $"https://api.marketplace.umbraco.com/api/v1.0/packages?orderBy=MostDownloads&fields=numberOfNuGetDownloads,authors,packageType,licenseTypes,iconUrl,minimumUmbracoVersionNumber,maximumUmbracoVersionNumber,isCertifiedToWorkOnUmbracoCloud,isPromoted,isPartner,isHQ,isHQSupported,id,title,description,packageId,tags,umbracoMajorVersionsSupported,iconDominantColor,Category&pageSize={pageSize}&pageNumber={pageIndex}",
+                    UmbracoMarketplaceQueryType.Templates => $"https://api.marketplace.umbraco.com/api/v1.0/packages?packageType=Template&categoryId=b239f1b7-31f6-4665-bf03-2ab985c64ac0&fields=title,packageId&pageSize={pageSize}&pageNumber={pageIndex}",
+                    _ => throw new Exception("Unable to match to a marketplace query type")
+                };
 
                 try
                 {

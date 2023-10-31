@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 using PSW.Models;
 using System.Diagnostics;
@@ -41,18 +42,36 @@ public class HomeController : Controller
             });
 
         var umbracoVersions = new List<string>();
-        umbracoVersions = _memoryCache.GetOrCreate(
-            "umbracoVersions",
-            cacheEntry =>
-            {
-                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                return _packageService.GetNugetPackageVersions("https://api.nuget.org/v3-flatcontainer/umbraco.templates/index.json");
-            });
+        if (!string.IsNullOrWhiteSpace(packageOptions.TemplateName))
+        {
+            umbracoVersions = _memoryCache.GetOrCreate(
+                $"{packageOptions.TemplateName}_Versions",
+                cacheEntry =>
+                {
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
+                    return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{packageOptions.TemplateName.ToLower()}/index.json");
+                });
+        }
 
         PopulatePackageVersions(packageOptions, allPackages, cacheTime);
 
+        var umbracoTemplates = new List<SelectListItem>()
+        {
+            new SelectListItem("(none)", ""),
+            new SelectListItem(GlobalConstants.TEMPLATE_NAME_UMBRACO, GlobalConstants.TEMPLATE_NAME_UMBRACO, packageOptions.TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true),
+        };
+
+        umbracoTemplates.AddRange(_memoryCache.GetOrCreate(
+            "allTemplates",
+            cacheEntry =>
+            {
+                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
+                return _packageService.GetAllTemplatesFromUmbraco().Select(x => new SelectListItem(x.NuGetPackageId, x.NuGetPackageId, packageOptions.TemplateName?.Equals(x.NuGetPackageId) == true));
+            }));
+
         packageOptions.AllPackages = allPackages;
         packageOptions.UmbracoVersions = umbracoVersions;
+        packageOptions.TemplateNames = umbracoTemplates;
 
         var output = _scriptGeneratorService.GenerateScript(packageOptions);
 

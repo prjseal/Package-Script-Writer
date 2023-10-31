@@ -14,4 +14,17 @@ public static class QueryCollectionExtensions
 
         return returnValue;
     }
+
+    public static int GetIntValue(this IQueryCollection query, string keyName, int fallbackValue)
+    {
+        var rawValue = query[keyName];
+
+        if (!string.IsNullOrWhiteSpace(rawValue) && int.TryParse(rawValue, out var parsedValue))
+        {
+            return parsedValue;
+        }
+
+        return fallbackValue;
+    }
+
 }

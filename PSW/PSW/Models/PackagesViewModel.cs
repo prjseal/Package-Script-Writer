@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using static PSW.Models.PackageFeed;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace PSW.Models;
 public class PackagesViewModel
@@ -8,8 +9,8 @@ public class PackagesViewModel
 
     public PackagesViewModel(GeneratorApiRequest apiRequest)
     {
-        InstallUmbracoTemplate = apiRequest.InstallUmbracoTemplate;
-        UmbracoTemplateVersion = apiRequest.UmbracoTemplateVersion;
+        TemplateName = apiRequest.TemplateName;
+        TemplateVersion = apiRequest.TemplateVersion;
         CreateSolutionFile = apiRequest.CreateSolutionFile;
         SolutionName = apiRequest.SolutionName;
         ProjectName = apiRequest.ProjectName;
@@ -25,12 +26,13 @@ public class PackagesViewModel
         OnelinerOutput = apiRequest.OnelinerOutput;
     }
 
+    public List<SelectListItem> TemplateNames { get; set; }
 
-    [Display(Name = "Install an Umbraco Template:")]
-    public bool InstallUmbracoTemplate { get; set; }
+    [Display(Name = "Template Name:")]
+    public string TemplateName { get; set; }
 
-    [Display(Name = "Umbraco Template Version:")]
-    public string? UmbracoTemplateVersion { get; set; }
+    [Display(Name = "Template Version:")]
+    public string? TemplateVersion { get; set; }
 
     public List<PagedPackagesPackage>? AllPackages { get; set; }
     public string? Packages { get; set; }

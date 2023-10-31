@@ -1,6 +1,7 @@
 ﻿namespace PSW.Constants;
 public static class DefaultValues
 {
+    public const string TemplateName = GlobalConstants.TEMPLATE_NAME_UMBRACO;
     public const string StarterKitPackage = "clean";
     public const string ProjectName = "MyProject";
     public const string SolutionName = "MySolution";
