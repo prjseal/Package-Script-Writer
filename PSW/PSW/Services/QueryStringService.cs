@@ -7,7 +7,7 @@ public class QueryStringService : IQueryStringService
     public PackagesViewModel LoadModelFromQueryString(HttpRequest request)
     {
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.IncludeStarterKit)], out var includeStarterKit);
-        _ = bool.TryParse(request.Query["InstallUmbracoTemplate"], out var installUmbracoTemplate); // Fallback
+        _ = bool.TryParse(request.Query["InstallUmbracoTemplate"], out var installUmbracoTemplate); // Fallback from older property
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.CreateSolutionFile)], out var createSolutionFile);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.UseUnattendedInstall)], out var useUnattendedInstall);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.OnelinerOutput)], out var onelinerOutput);
@@ -21,7 +21,7 @@ public class QueryStringService : IQueryStringService
         }
 
         var templateName = installUmbracoTemplate ? GlobalConstants.TEMPLATE_NAME_UMBRACO : request.Query.GetStringValue("TemplateName", DefaultValues.TemplateName);
-        var umbracoTemplateVersion = request.Query.GetStringValue("UmbracoTemplateVersion", ""); // Fallback
+        var umbracoTemplateVersion = request.Query.GetStringValue("UmbracoTemplateVersion", ""); // Fallback from older property
         var templateVersion = string.IsNullOrEmpty(umbracoTemplateVersion) ? request.Query.GetStringValue(nameof(PackagesViewModel.TemplateVersion), "") : "";
         var starterKitPackage = request.Query.GetStringValue(nameof(PackagesViewModel.StarterKitPackage), DefaultValues.StarterKitPackage);
         var projectName = request.Query.GetStringValue(nameof(PackagesViewModel.ProjectName), createSolutionFile || installUmbracoTemplate ? DefaultValues.ProjectName : "");

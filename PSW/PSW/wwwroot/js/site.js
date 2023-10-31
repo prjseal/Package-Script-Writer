@@ -474,8 +474,10 @@
             return psw.reset();
         }
 
-        psw.controls.templateName.value = searchParams.get("TemplateName");
-        psw.controls.templateVersion.value = searchParams.get("TemplateVersion");
+        var installUmbracoTemplate = searchParams.get("InstallUmbracoTemplate") === "true"; // Fallback from older property
+        var umbracoTemplateVersion = searchParams.get("UmbracoTemplateVersion"); // Fallback from older property
+        psw.controls.templateName.value = installUmbracoTemplate ? "Umbraco.Templates" : (searchParams.get("TemplateName") || "Umbraco.Templates");
+        psw.controls.templateVersion.value = (umbracoTemplateVersion ? umbracoTemplateVersion : searchParams.get("TemplateVersion")) || "";
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
