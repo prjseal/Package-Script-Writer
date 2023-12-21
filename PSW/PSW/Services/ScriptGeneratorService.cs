@@ -45,7 +45,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
     {
         var outputList = new List<string>();
         var templateName = model.TemplateName;
-        var installCommand = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) && !(model.TemplateVersion?.StartsWith("9.") == true || model.TemplateVersion?.StartsWith("10.") == true) ? "install" : "-i";
+        var installCommand = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) && (model.TemplateVersion?.StartsWith("9.") == true || model.TemplateVersion?.StartsWith("10.") == true) ? "-i" : "install";
 
         if (!string.IsNullOrEmpty(templateName))
         {
