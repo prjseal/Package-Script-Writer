@@ -45,6 +45,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
     {
         var outputList = new List<string>();
         var templateName = model.TemplateName;
+        var installCommand = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) && (model.TemplateVersion?.StartsWith("9.") == true || model.TemplateVersion?.StartsWith("10.") == true) ? "-i" : "install";
 
         if (!string.IsNullOrEmpty(templateName))
         {
@@ -53,19 +54,19 @@ public class ScriptGeneratorService : IScriptGeneratorService
             {
                 if (!model.OnelinerOutput)
                 {
-                    outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) ? "# Ensure we have the version specific Umbraco templates" : "# Ensure we have the version specific Community templates");
+                    outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) ? "# Ensure we have the version specific Umbraco templates" : "# Ensure we have the version specific Community templates");
                 }
 
-                outputList.Add($"dotnet new -i {templateName}::{model.TemplateVersion} --force");
+                outputList.Add($"dotnet new {installCommand} {templateName}::{model.TemplateVersion} --force");
             }
             else
             {
                 if (!model.OnelinerOutput)
                 {
-                    outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) ? "# Ensure we have the latest Umbraco templates" : "# Ensure we have the latest Community templates");
+                    outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) ? "# Ensure we have the latest Umbraco templates" : "# Ensure we have the latest Community templates");
                 }
 
-                outputList.Add($"dotnet new -i {templateName} --force");
+                outputList.Add($"dotnet new {installCommand} {templateName} --force");
             }
         }
 
