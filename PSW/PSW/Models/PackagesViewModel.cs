@@ -24,6 +24,7 @@ public class PackagesViewModel
         DatabaseType = apiRequest.DatabaseType;
         Packages = apiRequest.Packages;
         OnelinerOutput = apiRequest.OnelinerOutput;
+        RemoveComments = apiRequest.RemoveComments;
     }
 
     public List<SelectListItem> TemplateNames { get; set; }
@@ -75,4 +76,6 @@ public class PackagesViewModel
     
     [Display(Name = "Output to single line command")]
     public bool OnelinerOutput { get; set; }
+    [Display(Name = "Remove comments")]
+    public bool RemoveComments { get; set; }
 }

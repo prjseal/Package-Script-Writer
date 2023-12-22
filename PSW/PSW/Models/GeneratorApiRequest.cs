@@ -31,4 +31,5 @@ public class GeneratorApiRequest
     public bool UseUnattendedInstall { get; set; }
     public string? DatabaseType { get; set; }
     public bool OnelinerOutput { get; set; }
+    public bool RemoveComments { get; set; }
 }

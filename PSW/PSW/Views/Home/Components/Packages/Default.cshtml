@@ -129,6 +129,8 @@
             <div class="mt-3">
                 <input asp-for="@Model.OnelinerOutput" class="form-check-input" type="checkbox"/>
                 <label asp-for="@Model.OnelinerOutput" class="form-check-label"></label>            
+                <input asp-for="@Model.RemoveComments" class="form-check-input ms-3" type="checkbox" />
+                <label asp-for="@Model.RemoveComments" class="form-check-label"></label>
             </div>
             <pre class="prettyprint ps w-100">@Model.Output</pre>
             <div class="text-end">

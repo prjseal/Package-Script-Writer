@@ -21,7 +21,8 @@ content-type: application/json
 	"StarterKitPackage": "clean",
 	"UseUnattendedInstall": true,
 	"DatabaseType": "SQLite",
-	"OnelinerOutput": true
+	"OnelinerOutput": false,
+	"RemoveComments": false
 }
 
 
@@ -53,7 +54,7 @@ POST https://localhost:7192/api/ScriptGeneratorApi/generatescript/ HTTP/1.1
 content-type: application/json
 
 {
-	"TemplateName": "",
+	"TemplateName": "Umbraco.Templates",
 	"TemplateVersion": "",
 	"Packages": "uSync,uSync.Complete",
 	"CreateSolutionFile": true,

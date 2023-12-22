@@ -32,6 +32,11 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         outputList.AddRange(GenerateRunProjectScript(model, renderPackageName));
 
+        if (model.RemoveComments)
+        {
+            outputList = outputList.Where(x => !x.StartsWith(@"#")).ToList();
+        }
+
         if (!model.OnelinerOutput)
         {
             return string.Join(Environment.NewLine, outputList);

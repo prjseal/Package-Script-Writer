@@ -21,6 +21,7 @@
         packageCards: document.querySelectorAll('#packagelist .card'),
         codeNavItem: document.getElementById('code-nav-item'),
         onelinerOutput: document.getElementById('OnelinerOutput'),
+        removeComments: document.getElementById('RemoveComments'),
     },
     buttons: {
         clearpackages: document.getElementById('clearpackages'),
@@ -67,6 +68,11 @@
         });
 
         psw.controls.onelinerOutput.addEventListener('change', function () {
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+
+        psw.controls.removeComments.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -411,6 +417,7 @@
         psw.controls.userPassword.value = '1234567890';
         psw.controls.databaseType.value = 'SQLite';
         psw.controls.onelinerOutput.checked = false;
+        psw.controls.removeComments.checked = false;
         
         psw.controls.templateVersion.removeAttribute('disabled');
         psw.controls.starterKitPackage.removeAttribute('disabled');
@@ -450,6 +457,7 @@
         psw.controls.userPassword.value = searchParams.get("UserPassword");
         psw.controls.databaseType.value = searchParams.get("DatabaseType");
         psw.controls.onelinerOutput.checked = searchParams.get("OnelinerOutput") === "true";
+        psw.controls.removeComments.checked = searchParams.get("RemoveComments") === "true";
 
         psw.controls.templateVersion.disabled = psw.controls.templateName.value === "";
         psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
@@ -490,6 +498,7 @@
         psw.controls.userPassword.value = searchParams.get("UserPassword");
         psw.controls.databaseType.value = searchParams.get("DatabaseType");
         psw.controls.onelinerOutput.checked = searchParams.get("OnelinerOutput") === "true";
+        psw.controls.removeComments.checked = searchParams.get("RemoveComments") === "true";
 
         psw.controls.templateVersion.disabled = psw.controls.templateName.value === "";
         psw.controls.starterKitPackage.disabled = !psw.controls.includeStarterKit.checked;
@@ -591,7 +600,8 @@
             "UserFriendlyName": psw.controls.userFriendlyName.value,
             "IncludeStarterKit": psw.controls.includeStarterKit.checked,
             "StarterKitPackage": psw.controls.starterKitPackage.value,
-            "OnelinerOutput": psw.controls.onelinerOutput.checked
+            "OnelinerOutput": psw.controls.onelinerOutput.checked,
+            "RemoveComments": psw.controls.removeComments.checked
         }
 
         var url = "/api/scriptgeneratorapi/generatescript";
@@ -637,6 +647,7 @@
             searchParams.set("IncludeStarterKit", psw.controls.includeStarterKit.checked);
             searchParams.set("StarterKitPackage", psw.controls.starterKitPackage.value);
             searchParams.set("OnelinerOutput", psw.controls.onelinerOutput.checked);
+            searchParams.set("RemoveComments", psw.controls.removeComments.checked);
             var newRelativePathQuery = window.location.pathname + '?' + searchParams.toString();
             history.pushState(null, '', newRelativePathQuery);
         }
