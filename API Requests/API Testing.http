@@ -2,24 +2,49 @@
 GET https://localhost:7192/api/ScriptGeneratorApi/test/ HTTP/1.1 
 
 
+### Test with Default Data
+POST https://localhost:7192/api/ScriptGeneratorApi/generatescript/ HTTP/1.1
+content-type: application/json
+
+{
+	"TemplateName": "Umbraco.Templates",
+	"TemplateVersion": "",
+	"Packages": "",
+	"CreateSolutionFile": false,
+	"SolutionName": "MySolution",
+	"ProjectName": "MyProject",
+	"ConnectionString": "",
+	"UserFriendlyName": "Administrator",
+	"UserEmail": "admin@example.com",
+	"UserPassword": "1234567890",
+	"IncludeStarterKit": true,
+	"StarterKitPackage": "clean",
+	"UseUnattendedInstall": true,
+	"DatabaseType": "SQLite",
+	"OnelinerOutput": true
+}
+
+
 ### Test with Empty Data
 POST https://localhost:7192/api/ScriptGeneratorApi/generatescript/ HTTP/1.1
 content-type: application/json
 
 {
-	"InstallUmbracoTemplate": false,
-	"UmbracoTemplateVersion": "",
+	"TemplateName": "",
+	"TemplateVersion": "",
 	"Packages": "",
-	"UserEmail": "",
-	"ProjectName": "",
 	"CreateSolutionFile": false,
 	"SolutionName": "",
+	"ProjectName": "",
+	"ConnectionString": "",
+	"UserFriendlyName": "",
+	"UserEmail": "",
+	"UserPassword": "",
+	"IncludeStarterKit": false,
+	"StarterKitPackage": "",
 	"UseUnattendedInstall": false,
 	"DatabaseType": "",
-	"UserPassword": "",
-	"UserFriendlyName": "",
-	"IncludeStarterKit": false,
-	"StarterKitPackage": ""
+	"OnelinerOutput": false
 }
 
 
@@ -28,18 +53,19 @@ POST https://localhost:7192/api/ScriptGeneratorApi/generatescript/ HTTP/1.1
 content-type: application/json
 
 {
-	"InstallUmbracoTemplate": true,
-	"UmbracoTemplateVersion": "",
+	"TemplateName": "",
+	"TemplateVersion": "",
 	"Packages": "uSync,uSync.Complete",
-	"UserEmail": "admin@example.com",
-	"ProjectName": "MyProject",
 	"CreateSolutionFile": true,
 	"SolutionName": "MySolution",
-	"UseUnattendedInstall": true,
-	"DatabaseType": "SQLite",	
-	"UserPassword": null,
-	"UserFriendlyName": null,
+	"ProjectName": "MyProject",
+	"ConnectionString": "",
+	"UserFriendlyName": "",
+	"UserEmail": "admin@example.com",
+	"UserPassword": "1234567890",
 	"IncludeStarterKit": true,
 	"StarterKitPackage": null,
-	"OnelinerOutput": true
+	"UseUnattendedInstall": true,
+	"DatabaseType": "SQLite",
+	"OnelinerOutput": false
 }
