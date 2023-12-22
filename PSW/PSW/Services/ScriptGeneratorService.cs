@@ -156,7 +156,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
                         break;
                 }
 
-                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
+                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password '{model.UserPassword}'{connectionString}{databasTypeSwitch}");
 
                 if (model.DatabaseType == "SQLite" && isOldv10RCVersion)
                 {
