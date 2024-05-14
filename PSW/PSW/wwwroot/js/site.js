@@ -33,8 +33,20 @@
         deletesave: document.getElementById('deletesave')
     },
     init: function () {
+        psw.onPageLoad();
         psw.addListeners();
         psw.setFromLocalStorage();
+    },
+    onPageLoad() {
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.location.hash) {
+                var hash = window.location.hash.substring(1);
+                var tabLink = document.querySelector('a[href="#' + hash + '"]');
+                if (tabLink) {
+                    tabLink.dispatchEvent(new Event('click'));
+                }
+            }
+        });
     },
     addListeners() {
         psw.buttons.save.addEventListener('click', function (event) {
@@ -76,7 +88,7 @@
             psw.updateOutput();
             psw.updateUrl();
         });
-        
+
         psw.controls.templateName.addEventListener('change', function () {
             psw.toggleTemplateNameControls();
             psw.updateOutput();
@@ -295,7 +307,7 @@
             }
         }).then((data) => {
             // console.log(data);
-            
+
 
             var packageVersions = JSON.parse(data);
 
@@ -398,7 +410,7 @@
         psw.controls.packages.value = '';
     },
     reset: function (event) {
-        if(event !== undefined) {
+        if (event !== undefined) {
             event.preventDefault();
         }
 
@@ -418,7 +430,7 @@
         psw.controls.databaseType.value = 'SQLite';
         psw.controls.onelinerOutput.checked = false;
         psw.controls.removeComments.checked = false;
-        
+
         psw.controls.templateVersion.removeAttribute('disabled');
         psw.controls.starterKitPackage.removeAttribute('disabled');
         psw.controls.solutionName.removeAttribute('disabled');
