@@ -1,4 +1,5 @@
-﻿using PSW.Middleware;
+﻿using PSW.Configuration;
+using PSW.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,9 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
 builder.Services.AddScoped<IPackageService, MarketplacePackageService>();
 builder.Services.AddScoped<IQueryStringService, QueryStringService>();
+
+builder.Services.Configure<PSWConfig>(
+    builder.Configuration.GetSection(PSWConfig.SectionName));
 
 var app = builder.Build();
 

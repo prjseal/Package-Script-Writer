@@ -1,11 +1,15 @@
 @model PackagesViewModel
+@using Microsoft.Extensions.Options
+@using PSW.Configuration
 @using PSW.Extensions;
 @using PSW.Models
 @using PSW.Controllers
 @using System.ComponentModel.DataAnnotations;
+@inject IOptions<PSWConfig> PSWConfig;
 
 @{
     var hasQueryString = Context.Request.Query.Count > 0;
+    var umbracoVersions = PSWConfig?.Value?.UmbracoVersions;
 }
 
 @using (Html.BeginForm("Index", "Home"))
@@ -41,7 +45,10 @@
             <a class="nav-link" id="coffee-tab" data-bs-toggle="tab" href="#coffee" role="tab" aria-controls="coffee" aria-selected="false"><i class="ion-coffee"></i> Buy me a coffee</a>
         </li>
         <li class="nav-item pr-1" role="presentation">
-            <a class="nav-link" id="hosting-tab" data-bs-toggle="tab" href="#hosting" role="tab" aria-controls="hosting" aria-selected="false"><i class="ion-android-globe"></i> Hosted on UmbHost</a>
+            <a class="nav-link" id="hosting-tab" data-bs-toggle="tab" href="#hosting" role="tab" aria-controls="hosting" aria-selected="false"><i class="ion-android-globe"></i> Hosting</a>
+        </li>
+        <li class="nav-item pr-1" role="presentation">
+            <a class="nav-link" id="umbraco-versions-tab" data-bs-toggle="tab" href="#umbraco-versions" role="tab" aria-controls="umbraco-versions" aria-selected="false"><i class="ion-checkmark"></i> Umbraco Versions</a>
         </li>
     </ul>
     <div class="tab-content">
@@ -259,7 +266,80 @@
         </div>
         <div class="tab-pane fade show" id="hosting" role="tabpanel" aria-labelledby="hosting-tab">
             <div class="pt-5">
-                <p>This tool has been sponsored by UmbHost's Free Umbraco Community Hosting scheme, you can <a href="https://my.umbhost.net/aff.php?aff=1534" target="_blank">find out more about UmbHost here</a></p>
+                <p>This tool has been sponsored by UmbHost's Free Umbraco Community Hosting scheme, you can <a href="https://umbhost.net/" target="_blank">find out more about UmbHost here</a></p>
+            </div>
+        </div>
+        <div class="tab-pane fade show" id="umbraco-versions" role="tabpanel" aria-labelledby="umbraco-versions-tab">
+            <div class="pt-5">
+                <p>This is a handy table to help you work out which version of Umbraco to use. <a href="https://umbraco.com/products/knowledge-center/long-term-support-and-end-of-life/" target="_blank">Find out more here</a></p>
+                @if (umbracoVersions != null && umbracoVersions.Any())
+                {
+                    var oneYearFromNow = DateTime.UtcNow.AddYears(1);
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <th>Version</th>
+                            <th>Release Date</th>
+                            <th>Release Type</th>
+                            <th>Support Phase</th>
+                            <th>Security Phase</th>
+                            <th>End of Life</th>
+                        </thead>
+                        @foreach(var version in umbracoVersions)
+                        {
+                            var isLTS = version.ReleaseType == "LTS";
+                            var isEndOfLife = DateTime.UtcNow >= version.EndOfLife;
+                            var isSTS = !isLTS;
+                            var willEOLInLessThanAYear = !isEndOfLife && oneYearFromNow > version.EndOfLife;
+                            var isFutureRelease = version.ReleaseDate > DateTime.UtcNow;
+                            var classesToApply = new List<string>();
+                            if(isEndOfLife)
+                            {
+                                classesToApply.Add("bg-danger");
+                                classesToApply.Add("text-white");
+                            }
+                            else if((isSTS && !isFutureRelease) || willEOLInLessThanAYear)
+                            {
+                                classesToApply.Add("bg-warning");
+                                classesToApply.Add("text-white");
+                            }
+                            else if(isFutureRelease)
+                            {
+                                classesToApply.Add("future-release");
+                                classesToApply.Add("text-black");
+                            }
+                            else
+                            {
+                                classesToApply.Add("text-white");
+                                classesToApply.Add("bg-success");
+                            }
+
+                            var classValue = string.Join(' ', classesToApply);
+
+                            <tr>
+                                <td>@version.Version</td>
+                                <td>@version.ReleaseDate.ToShortDateString()</td>
+                                <td>@version.ReleaseType</td>
+                                <td>@version.SupportPhase?.ToShortDateString()</td>
+                                <td>@version.SecurityPhase?.ToShortDateString()</td>
+                                <td class="@(classValue)">@version.EndOfLife.ToShortDateString()</td>
+                            </tr>
+                        }
+                    </table>
+                }
+
+                <table class="table w-25">
+                    <thead>
+                        <th>Key:</th>
+                    </thead>
+                    <tr>
+                        <td class="text-white bg-danger w-50 p-1">End of Life.</td>
+                    <tr>
+                    <tr>
+                        <td class="text-white bg-warning w-50 p-1">Short Term Support (STS) or End of Life within 1 year from today.</td>
+                    <tr>
+                        <td class="text-white bg-success w-50 p-1">Long Term Support (LTS) and more than 1 year before end of life.</td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
