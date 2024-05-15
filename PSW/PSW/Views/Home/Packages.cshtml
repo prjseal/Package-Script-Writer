@@ -3,7 +3,37 @@
 <div class="tab-pane fade show @(Model.HasQueryString ? null : "active")" id="packagestabcontent" role="tabpanel" aria-labelledby="packages-tab">
     @if (Model.AllPackages != null && Model.AllPackages.Any())
     {
-        List<string> pickedPackageIds = new List<string>();
+        var pickedPackages = GetPickedPackages();
+        var pickedPackageIds = GetPickedPackageIds(pickedPackages);
+
+        var selectedPackages = Model.Packages?.Split(',', StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+        int packageId = 0;
+
+        <div class="my-4">
+            <input type="text" id="search" class="form-control" placeholder="Search for packages...">
+        </div>
+
+        <div class="row" id="packagelist">
+            @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
+            {
+                var downloads = package?.Downloads ?? 0;
+                var isChecked = pickedPackageIds != null && pickedPackageIds.Contains(package.NuGetPackageId);
+
+                @await Component.InvokeAsync("Package", 
+                    new { 
+                        package = package, 
+                        pickedPackageIds = pickedPackageIds,
+                        packageId = packageId 
+                    })
+                packageId++;
+            }
+        </div>
+    }
+</div>
+
+@{
+    List<PackageWithVersion> GetPickedPackages()
+    {
         List<PackageWithVersion> pickedPackages = new List<PackageWithVersion>();
         var packages = Model.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
         if (packages != null && packages.Any())
@@ -21,65 +51,13 @@
                 }
                 pickedPackages.Add(pwv);
             }
-            pickedPackageIds = pickedPackages.Select(x => x.PackageId).ToList();
         }
-
-        var selectedPackages = Model.Packages?.Split(',', StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
-        int packageId = 0;
-
-        <div class="my-4">
-            <input type="text" id="search" class="form-control" placeholder="Search for packages...">
-        </div>
-
-        <div class="row" id="packagelist">
-            @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
-            {
-                var downloads = package?.Downloads ?? 0;
-                var isChecked = pickedPackageIds != null && pickedPackageIds.Contains(package.NuGetPackageId);
-
-                <div class="col-md-4 mb-4 packageItem" data-packageid="@package.NuGetPackageId @package.Name @package?.Authors @package?.Category?.Name">
-                    <div class="card p-3 @(isChecked ? "selected" : null) text-center" style="min-height: 100%;">
-                        <img src="@(package?.Image ?? "")?width=100" alt="@(package?.Name ?? "uknown")" loading="lazy" />
-                        <div class="card-body">
-                            <h3 class="card-title"><a href="@(package?.Url ?? "#")" target="_blank" rel="noopener">@(package?.Name ?? "unknown")</a></h3>
-                            <p class="card-text">@(package?.Summary.Truncate(127) ?? "")</p>
-                            <p>
-                                <small>By: <strong>@(package?.Authors ?? "unknown")</strong></small><br />
-                                <small>Downloads: <strong>@string.Format("{0:n0}", downloads)</strong></small>
-                            </p>
-
-                        </div>
-                        <div class="checkbox-outer form-group mb-3">
-                            <label for="package_@packageId" class="w-25 float-start">Add</label>
-                            <input type="checkbox" class="float-start mt-1" name="package" id="package_@packageId" value="@(package?.NuGetPackageId ?? "")" checked="@(isChecked ? "checked" : null)" />
-                        </div>
-                        <div class="dropdown-outer form-group">
-                            <label asp-for="@package.SelectedVersion" class="w-25 float-start mt-1"></label>
-                            @if (package.PackageVersions != null && package.PackageVersions.Any())
-                            {
-                                var packageWithVersion = pickedPackages.FirstOrDefault(x => x.PackageId == package.NuGetPackageId);
-
-                                <select class="form-control w-75 float-start" id="PackageVersion_@packageId" name="PackageVersion_@packageId">
-                                    <option selected="@(package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
-                                    <option selected="@(package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
-                                    @foreach (var version in package.PackageVersions)
-                                    {
-                                        <option selected="@(package.SelectedVersion == version ? "selected" : null)" value="@version">@version</option>
-                                    }
-                                </select>
-                            }
-                            else
-                            {
-                                <select class="form-control w-75 float-start" id="PackageVersion_@packageId" name="PackageVersion_@packageId" disabled="disabled">
-                                    <option selected="@(package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
-                                    <option selected="@(package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
-                                </select>
-                            }
-                        </div>
-                    </div>
-                </div>
-                packageId++;
-            }
-        </div>
+        return pickedPackages;
     }
-</div>
+
+    List<string>? GetPickedPackageIds(List<PackageWithVersion> pickedPackages)
+    {
+        List<string> pickedPackageIds = new List<string>();
+        return pickedPackages?.Select(x => x.PackageId).ToList();
+    }
+}
