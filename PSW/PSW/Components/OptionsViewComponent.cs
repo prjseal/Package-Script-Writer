@@ -3,8 +3,8 @@ using PSW.Models;
 
 namespace PSW.Components;
 
-[ViewComponent(Name = "Packages")]
-public class PackagesViewComponent : ViewComponent
+[ViewComponent(Name = "Options")]
+public class OptionsViewComponent : ViewComponent
 {
     public IViewComponentResult Invoke(PackagesViewModel viewModel)
     {

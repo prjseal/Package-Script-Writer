@@ -4,7 +4,11 @@ using PSW.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddRazorOptions(options =>
+    {
+        options.ViewLocationFormats.Add("/{0}.cshtml");
+    });
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
 builder.Services.AddScoped<IPackageService, MarketplacePackageService>();

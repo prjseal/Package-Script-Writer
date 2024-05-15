@@ -1,0 +1,63 @@
+@model PackagesViewModel
+
+<div class="tab-pane fade show @(Model.HasQueryString ? null : "active")" id="packagestabcontent" role="tabpanel" aria-labelledby="packages-tab">
+    @if (Model.AllPackages != null && Model.AllPackages.Any())
+    {
+        var pickedPackages = GetPickedPackages();
+        var pickedPackageIds = GetPickedPackageIds(pickedPackages);
+
+        var selectedPackages = Model.Packages?.Split(',', StringSplitOptions.RemoveEmptyEntries)?.ToList() ?? new List<string>();
+        int packageId = 0;
+
+        <div class="my-4">
+            <input type="text" id="search" class="form-control" placeholder="Search for packages...">
+        </div>
+
+        <div class="row" id="packagelist">
+            @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
+            {
+                var downloads = package?.Downloads ?? 0;
+                var isChecked = pickedPackageIds != null && pickedPackageIds.Contains(package.NuGetPackageId);
+
+                @await Component.InvokeAsync("Package", 
+                    new { 
+                        package = package, 
+                        pickedPackageIds = pickedPackageIds,
+                        packageId = packageId 
+                    })
+                packageId++;
+            }
+        </div>
+    }
+</div>
+
+@{
+    List<PackageWithVersion> GetPickedPackages()
+    {
+        List<PackageWithVersion> pickedPackages = new List<PackageWithVersion>();
+        var packages = Model.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        if (packages != null && packages.Any())
+        {
+            foreach (var package in packages)
+            {
+                var packageParts = package.Split('|');
+                var pwv = new PackageWithVersion()
+                        {
+                            PackageId = packageParts[0]
+                        };
+                if (packageParts.Length > 1)
+                {
+                    pwv.PackageVersion = packageParts[1];
+                }
+                pickedPackages.Add(pwv);
+            }
+        }
+        return pickedPackages;
+    }
+
+    List<string>? GetPickedPackageIds(List<PackageWithVersion> pickedPackages)
+    {
+        List<string> pickedPackageIds = new List<string>();
+        return pickedPackages?.Select(x => x.PackageId).ToList();
+    }
+}

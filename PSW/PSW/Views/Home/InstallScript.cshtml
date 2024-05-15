@@ -1,0 +1,14 @@
+@model InstallScriptViewModel
+
+<div class="tab-pane fade show  @(Model.HasQueryString ? "active" : null)" id="code" role="tabpanel" aria-labelledby="code-tab">
+    <div class="mt-3">
+        <input asp-for="@Model.OnelinerOutput" class="form-check-input" type="checkbox" />
+        <label asp-for="@Model.OnelinerOutput" class="form-check-label"></label>
+        <input asp-for="@Model.RemoveComments" class="form-check-input ms-3" type="checkbox" />
+        <label asp-for="@Model.RemoveComments" class="form-check-label"></label>
+    </div>
+    <pre class="prettyprint ps w-100">@Model.Output</pre>
+    <div class="text-end">
+        <button id="copy" class="btn btn-success"><i class="ion-ios-copy"></i> Copy Script</button>
+    </div>
+</div>
