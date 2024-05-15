@@ -18,6 +18,6 @@ public class UmbracoVersionsViewComponent : ViewComponent
     public IViewComponentResult Invoke()
     {
         var model = new UmbracoVersionsViewModel(_pswConfig.UmbracoVersions);
-        return View(model);
+        return View($"{ViewComponentContext.ViewComponentDescriptor.FullName}.cshtml", model);
     }
 }

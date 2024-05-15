@@ -9,6 +9,6 @@ public class TabNavigationViewComponent : ViewComponent
     public IViewComponentResult Invoke(bool hasQueryString, int numberOfPackages)
     {
         var model = new TabNavigationViewModel(hasQueryString, numberOfPackages);
-        return View(model);
+        return View($"{ViewComponentContext.ViewComponentDescriptor.FullName}.cshtml", model);
     }
 }

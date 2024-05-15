@@ -7,6 +7,6 @@ public class HostingViewComponent : ViewComponent
 {
     public IViewComponentResult Invoke()
     {
-        return View();
+        return View($"{ViewComponentContext.ViewComponentDescriptor.FullName}.cshtml");
     }
 }

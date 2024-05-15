@@ -1,17 +1,6 @@
 @model PackagesViewModel
-@using Microsoft.Extensions.Options
-@using PSW.Configuration
-@using PSW.Extensions;
-@using PSW.Models
-@using PSW.Controllers
-@using System.ComponentModel.DataAnnotations;
-@inject IOptions<PSWConfig> PSWConfig;
 
-@{
-    var hasQueryString = Context.Request.Query.Count > 0;
-    var umbracoVersions = PSWConfig?.Value?.UmbracoVersions;
-}
-<div class="tab-pane fade show @(hasQueryString ? null : "active")" id="packagestabcontent" role="tabpanel" aria-labelledby="packages-tab">
+<div class="tab-pane fade show @(Model.HasQueryString ? null : "active")" id="packagestabcontent" role="tabpanel" aria-labelledby="packages-tab">
     @if (Model.AllPackages != null && Model.AllPackages.Any())
     {
         List<string> pickedPackageIds = new List<string>();

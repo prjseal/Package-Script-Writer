@@ -8,6 +8,6 @@ public class PackagesViewComponent : ViewComponent
 {
     public IViewComponentResult Invoke(PackagesViewModel viewModel)
     {
-        return View(viewModel);
+        return View($"{ViewComponentContext.ViewComponentDescriptor.FullName}.cshtml", viewModel);
     }
 }
