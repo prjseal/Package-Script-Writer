@@ -1,0 +1,76 @@
+@model UmbracoVersionsViewModel
+@using PSW.Models
+
+<div class="tab-pane fade show" id="umbraco-versions" role="tabpanel" aria-labelledby="umbraco-versions-tab">
+    <div class="pt-5">
+        <p>This is a handy table to help you work out which version of Umbraco to use. <a href="https://umbraco.com/products/knowledge-center/long-term-support-and-end-of-life/" target="_blank">Find out more here</a></p>
+        @if (Model.UmbracoVersions != null && Model.UmbracoVersions.Any())
+        {
+            var oneYearFromNow = DateTime.UtcNow.AddYears(1);
+            <table class="table table-striped table-bordered">
+                <thead>
+                <th>Version</th>
+                <th>Release Date</th>
+                <th>Release Type</th>
+                <th>Support Phase</th>
+                <th>Security Phase</th>
+                <th>End of Life</th>
+                </thead>
+                @foreach (var version in Model.UmbracoVersions)
+                {
+                    var isLTS = version.ReleaseType == "LTS";
+                    var isEndOfLife = DateTime.UtcNow >= version.EndOfLife;
+                    var isSTS = !isLTS;
+                    var willEOLInLessThanAYear = !isEndOfLife && oneYearFromNow > version.EndOfLife;
+                    var isFutureRelease = version.ReleaseDate > DateTime.UtcNow;
+                    var classesToApply = new List<string>();
+                    if (isEndOfLife)
+                    {
+                        classesToApply.Add("bg-danger");
+                        classesToApply.Add("text-white");
+                    }
+                    else if ((isSTS && !isFutureRelease) || willEOLInLessThanAYear)
+                    {
+                        classesToApply.Add("bg-warning");
+                        classesToApply.Add("text-white");
+                    }
+                    else if (isFutureRelease)
+                    {
+                        classesToApply.Add("future-release");
+                        classesToApply.Add("text-black");
+                    }
+                    else
+                    {
+                        classesToApply.Add("text-white");
+                        classesToApply.Add("bg-success");
+                    }
+
+                    var classValue = string.Join(' ', classesToApply);
+
+                    <tr>
+                        <td>@version.Version</td>
+                        <td>@version.ReleaseDate.ToShortDateString()</td>
+                        <td>@version.ReleaseType</td>
+                        <td>@version.SupportPhase?.ToShortDateString()</td>
+                        <td>@version.SecurityPhase?.ToShortDateString()</td>
+                        <td class="@(classValue)">@version.EndOfLife.ToShortDateString()</td>
+                    </tr>
+                }
+            </table>
+        }
+
+        <table class="table w-25">
+            <thead>
+            <th>Key:</th>
+            </thead>
+            <tr>
+                <td class="text-white bg-danger w-50 p-1">End of Life.</td>
+            <tr>
+            <tr>
+                <td class="text-white bg-warning w-50 p-1">Short Term Support (STS) or End of Life within 1 year from today.</td>
+            <tr>
+                <td class="text-white bg-success w-50 p-1">Long Term Support (LTS) and more than 1 year before end of life.</td>
+            </tr>
+        </table>
+    </div>
+</div>

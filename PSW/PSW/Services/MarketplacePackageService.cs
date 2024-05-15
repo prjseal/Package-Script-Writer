@@ -17,20 +17,27 @@ namespace PSW.Services
         }
         public List<string> GetNugetPackageVersions(string packageUrl)
         {
-            var client = clientFactory.CreateClient();
-            var result = client.GetAsync(packageUrl).Result;
-            if (result.IsSuccessStatusCode)
+            try
             {
-                var data = result.Content.ReadAsStringAsync().Result;
-                var packageVersions = JsonSerializer.Deserialize<PackageVersions>(data);
-
-                if (packageVersions is { Versions: { } })
+                var client = clientFactory.CreateClient();
+                var result = client.GetAsync(packageUrl).Result;
+                if (result.IsSuccessStatusCode)
                 {
-                    return packageVersions.Versions.Reverse().ToList();
-                }
-            }
+                    var data = result.Content.ReadAsStringAsync().Result;
+                    var packageVersions = JsonSerializer.Deserialize<PackageVersions>(data);
 
-            return new List<string>();
+                    if (packageVersions is { Versions: { } })
+                    {
+                        return packageVersions.Versions.Reverse().ToList();
+                    }
+                }
+
+                return new List<string>();
+            }
+            catch (Exception)
+            {
+                return new List<string>();
+            }
         }
 
         public List<string> GetPackageVersions(string packageUrl)

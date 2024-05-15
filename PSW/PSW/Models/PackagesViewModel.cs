@@ -78,4 +78,5 @@ public class PackagesViewModel
     public bool OnelinerOutput { get; set; }
     [Display(Name = "Remove comments")]
     public bool RemoveComments { get; set; }
+    public bool HasQueryString { get; set; }
 }

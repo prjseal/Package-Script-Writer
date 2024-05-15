@@ -29,6 +29,8 @@ public class HomeController : Controller
     {
         PackagesViewModel packageOptions = _queryStringService.LoadModelFromQueryString(Request);
 
+        packageOptions.HasQueryString = HttpContext.Request.Query.Count > 0;
+
         var allPackages = new List<PagedPackagesPackage>();
 
         int cacheTime = 60;

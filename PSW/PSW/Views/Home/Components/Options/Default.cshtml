@@ -1,0 +1,110 @@
+@model PackagesViewModel
+@using Microsoft.Extensions.Options
+@using PSW.Configuration
+@using PSW.Extensions;
+@using PSW.Models
+@using PSW.Controllers
+@using System.ComponentModel.DataAnnotations;
+
+<div class="tab-pane fade show " id="options" role="tabpanel" aria-labelledby="options-tab">
+    <div class="container clearfix mt-4 bg-light p-3">
+        <div class="row">
+            <div class="col-6">
+                <div class="form-group pt-2">
+                    <div style="display: flex; flex-wrap: wrap; column-gap: 30px;">
+                        <label asp-for="@Model.TemplateName" class="form-check-label" style="width: 100%;"></label>
+                        <select class="form-control" asp-for="@Model.TemplateName" asp-items="Model.TemplateNames"></select>
+                    </div>
+                </div>
+                <div class="form-group py-2">
+                    <label asp-for="@Model.TemplateVersion"></label>
+                    @if (Model.UmbracoVersions != null && Model.UmbracoVersions.Any())
+                    {
+                        <select class="form-control" id="@nameof(Model.TemplateVersion)" name="@nameof(Model.TemplateVersion)" disabled="@(string.IsNullOrWhiteSpace(Model.TemplateName) ? "disabled" : null)">
+                            <option selected="@(Model.TemplateVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                            @foreach (var version in Model.UmbracoVersions)
+                            {
+                                <option selected="@(Model.TemplateVersion == version ? "selected" : null)" value="@version">@version</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <input asp-for="@Model.TemplateVersion" class="form-control" disabled="@(Model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) ? null : "disabled")" />
+                    }
+                </div>
+                <div class="form-group pt-3">
+                    <div class="form-check">
+                        <label asp-for="@Model.IncludeStarterKit" class="form-check-label"></label>
+                        <input asp-for="@Model.IncludeStarterKit" class="form-check-input" type="checkbox" />
+                    </div>
+                </div>
+                <div class="form-group py-2">
+                    <select class="form-control" id="StarterKitPackage" name="StarterKitPackage" disabled="@(Model.IncludeStarterKit ? null : "disabled")">
+                        <option selected="@(Model.StarterKitPackage == "clean" ? "selected" : null)" value="clean">Clean Starter Kit</option>
+                        <option selected="@(Model.StarterKitPackage == "Articulate" ? "selected" : null)" value="Articulate">Articulate</option>
+                        <option selected="@(Model.StarterKitPackage == "Portfolio" ? "selected" : null)" value="Portfolio">Portfolio Starter Kit</option>
+                        <option selected="@(Model.StarterKitPackage == "LittleNorth.Igloo" ? "selected" : null)" value="LittleNorth.Igloo">Igloo</option>
+                        <option selected="@(Model.StarterKitPackage == "Umbraco.BlockGrid.Example.Website" ? "selected" : null)" value="Umbraco.BlockGrid.Example.Website">Umbraco BlockGrid Example Website (v11+)</option>
+                        <option selected="@(Model.StarterKitPackage == "Umbraco.TheStarterKit" ? "selected" : null)" value="Umbraco.TheStarterKit">The Starter Kit</option>
+                        <option selected="@(Model.StarterKitPackage == "uSkinnedSiteBuilder" ? "selected" : null)" value="uSkinnedSiteBuilder">uSkinned Site Builder</option>
+                    </select>
+                </div>
+                <div class="form-group pt-4">
+                    <div class="form-check">
+                        <label asp-for="@Model.CreateSolutionFile" class="form-check-label"></label>
+                        <input asp-for="@Model.CreateSolutionFile" class="form-check-input" type="checkbox" />
+                    </div>
+                </div>
+                <div class="form-group py-2">
+                    <label asp-for="@Model.SolutionName"></label>
+                    <input asp-for="@Model.SolutionName" class="form-control" disabled="@(Model.CreateSolutionFile ? null : "disabled")" />
+                </div>
+                <div class="form-group py-2">
+                    <label asp-for="@Model.ProjectName"></label>
+                    <input asp-for="@Model.ProjectName" class="form-control" />
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-group py-2">
+                    <div class="form-check">
+                        <label asp-for="@Model.UseUnattendedInstall" class="form-check-label"></label>
+                        <input asp-for="@Model.UseUnattendedInstall" class="form-check-input" type="checkbox" />
+                    </div>
+                </div>
+                <div class="form-group py-2">
+                    <label asp-for="@Model.DatabaseType"></label>
+                    <select class="form-control" id="DatabaseType" name="DatabaseType" disabled="@(Model.UseUnattendedInstall ? null : "disabled")">
+                        <option selected="@(Model.DatabaseType == "SQLite" ? "selected" : null)" value="SQLite">SQLite (v10+ only)</option>
+                        <option selected="@(Model.DatabaseType == "LocalDb" ? "selected" : null)" value="LocalDb">LocalDb</option>
+                        <option selected="@(Model.DatabaseType == "SQLServer" ? "selected" : null)" value="SQLServer">SQL Server</option>
+                        <option selected="@(Model.DatabaseType == "SQLAzure" ? "selected" : null)" value="SQLAzure">SQL Azure</option>
+                        <option selected="@(Model.DatabaseType == "SQLCE" ? "selected" : null)" value="SQLCE">SQLCE (v9 only)</option>
+                    </select>
+                </div>
+                <div class="form-group py-2 @(Model.DatabaseType == "SQLAzure" || Model.DatabaseType == "SQLServer" ? "d-block" : "d-none")">
+                    <label asp-for="@Model.ConnectionString"></label>
+                    <input asp-for="@Model.ConnectionString" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
+                </div>
+                <div class="form-group py-3">
+                    <label asp-for="@Model.UserFriendlyName"></label>
+                    <input asp-for="@Model.UserFriendlyName" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
+                </div>
+                <div class="form-group py-2">
+                    <label asp-for="@Model.UserEmail"></label>
+                    <input asp-for="@Model.UserEmail" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
+                </div>
+                <div class="form-group py-2">
+                    <label asp-for="@Model.UserPassword"></label>
+                    <input asp-for="@Model.UserPassword" class="form-control" disabled="@(Model.UseUnattendedInstall ? null : "disabled")" />
+                </div>
+                <div class="form-group py-2 text-right">
+                    <a href="/" class="btn btn-warning" id="reset"><i class="ion-ios-arrow-start"></i> Reset to Defaults</a>
+                    <button class="btn btn-primary ml-2" id="save" name="save" title="Saves current settings to your local browser storage"><i class="ion-save"></i> Save</button>
+                    <button class="btn btn-danger ml-2" id="deletesave" name="deletesave" title="Deletes the saved setting from your local browser storage"><i class="ion-android-delete"></i> Delete Save</button>
+                    <button class="btn btn-success ml-2" id="update" name="update"><i class="ion-checkmark-circled"></i> Update Script</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

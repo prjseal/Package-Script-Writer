@@ -1,14 +1,25 @@
-﻿@using PSW.Models
-@model PackagesViewModel
-@{
-    ViewData["Title"] = "Home page";
-}
+﻿@model PackagesViewModel
 
 <main class="page lanidng-page">
-
     <section class="portfolio-block skills bg-primary p-3">
         <div class="container my-5 p-5 shadow bg-light">
-            @await Component.InvokeAsync("Packages", Model)
+            @using (Html.BeginForm("Index", "Home"))
+            {
+                <input type="hidden" asp-for="@Model.Packages" />
+                @await Component.InvokeAsync("SubmitButtons")
+                @await Component.InvokeAsync("SiteHeader")
+                @await Component.InvokeAsync("TabNavigation", new { hasQueryString = Model.HasQueryString, numberOfPackages = Model.AllPackages?.Count ?? 0})
+                <div class="tab-content">
+                    @await Component.InvokeAsync("Packages", Model)
+                    @await Component.InvokeAsync("InstallScript", new { hasQueryString = Model.HasQueryString, packagesViewModel = Model })
+                    @await Component.InvokeAsync("Options", Model)
+                    @await Component.InvokeAsync("Help")
+                    @await Component.InvokeAsync("SourceCode")
+                    @await Component.InvokeAsync("Coffee")
+                    @await Component.InvokeAsync("Hosting")
+                    @await Component.InvokeAsync("UmbracoVersions")
+                </div>
+            }
         </div>
     </section>
 </main>
