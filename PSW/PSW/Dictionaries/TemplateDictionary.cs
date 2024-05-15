@@ -1,29 +1,28 @@
-﻿namespace PSW.Dictionaries
-{
-    public class TemplateDictionary
-    {
-        public Dictionary<string, string> ShortNames
-        {
-            get
-            {
-                return new Dictionary<string, string>
-                {
-                    { "Umbraco.Community.Templates.UmBootstrap", "umbootstrap" },
-                    { "UmbCheckout.StarterKit.Stripe", "umbcheckout.starterkit.stripe" }
-                };
-            }
-        }
+﻿namespace PSW.Dictionaries;
 
-        public string GetShortName(string key)
+public class TemplateDictionary
+{
+    public Dictionary<string, string> ShortNames
+    {
+        get
         {
-            if (ShortNames.ContainsKey(key))
+            return new Dictionary<string, string>
             {
-                return ShortNames[key];
-            }
-            else
-            {
-                return key.ToLower();
-            }
+                { "Umbraco.Community.Templates.UmBootstrap", "umbootstrap" },
+                { "UmbCheckout.StarterKit.Stripe", "umbcheckout.starterkit.stripe" }
+            };
+        }
+    }
+
+    public string GetShortName(string key)
+    {
+        if (ShortNames.ContainsKey(key))
+        {
+            return ShortNames[key];
+        }
+        else
+        {
+            return key.ToLower();
         }
     }
 }

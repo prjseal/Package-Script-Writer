@@ -1,7 +1,8 @@
-﻿using PSW.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Caching.Memory;
+
+using PSW.Models;
 
 namespace PSW.Controllers;
 

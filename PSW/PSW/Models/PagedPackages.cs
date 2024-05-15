@@ -379,7 +379,7 @@ public class PackageFeed
 
         public List<string> PackageVersions { get; set; }
 
-        [Display(Name="Version")]
+        [Display(Name = "Version")]
         public string SelectedVersion { get; set; }
     }
 

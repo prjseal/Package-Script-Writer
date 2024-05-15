@@ -1,11 +1,10 @@
-﻿namespace PSW.Enums
+﻿namespace PSW.Enums;
+
+public class GlobalEnums
 {
-    public class GlobalEnums
+    public enum UmbracoMarketplaceQueryType
     {
-        public enum UmbracoMarketplaceQueryType
-        {
-            Packages,
-            Templates,
-        }
+        Packages,
+        Templates,
     }
 }

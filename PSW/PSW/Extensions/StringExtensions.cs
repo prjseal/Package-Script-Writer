@@ -6,7 +6,7 @@ public static class StringExtensions
     {
         if (string.IsNullOrEmpty(value)) { return value; }
 
-        if(value.Length > maxLength) { return value.Substring(0, maxLength) + "..."; }
+        if (value.Length > maxLength) { return value.Substring(0, maxLength) + "..."; }
 
         return value.Substring(0, value.Length);
     }

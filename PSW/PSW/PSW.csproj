@@ -7,4 +7,8 @@
 	  <LangVersion>10</LangVersion>
   </PropertyGroup>
 
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="dotnet format --severity warn --verbosity diagnostic" />
+  </Target>
 </Project>

@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using static PSW.Models.PackageFeed;
+
 using Microsoft.AspNetCore.Mvc.Rendering;
+
+using static PSW.Models.PackageFeed;
 
 namespace PSW.Models;
 public class PackagesViewModel
@@ -73,7 +75,7 @@ public class PackagesViewModel
     [Display(Name = "Database Type")]
     public string? DatabaseType { get; set; }
     public List<string>? UmbracoVersions { get; set; }
-    
+
     [Display(Name = "Output to single line command")]
     public bool OnelinerOutput { get; set; }
     [Display(Name = "Remove comments")]
