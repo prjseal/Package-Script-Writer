@@ -1,4 +1,8 @@
 @model PackagesViewModel
+@using Microsoft.Extensions.Options
+@using PSW.Configuration
+
+@inject IOptions<PSWConfig> _pswConfig
 
 <div class="tab-pane fade show " id="options" role="tabpanel" aria-labelledby="options-tab">
     <div class="container clearfix mt-4 bg-light p-3">
@@ -18,7 +22,7 @@
                             <option selected="@(Model.TemplateVersion == "" ? "selected" : null)" value="">Latest Stable</option>
                             @foreach (var version in Model.UmbracoVersions)
                             {
-                                <option selected="@(Model.TemplateVersion == version ? "selected" : null)" value="@version">@version</option>
+                                <option selected="@(Model.TemplateVersion == version ? "selected" : null)" value="@version">@version.GetVersionText(Model.TemplateName, _pswConfig.Value)</option>
                             }
                         </select>
                     }
