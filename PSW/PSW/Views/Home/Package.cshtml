@@ -4,7 +4,7 @@
     if (Model?.Package == null) return;
 }
 
-<div class="col-md-4 mb-4 Model.PackageItem" data-Model.Packageid="@Model.Package.NuGetPackageId @Model.Package.Name @Model.Package?.Authors @Model.Package?.Category?.Name">
+<div class="col-md-4 mb-4 packageItem" data-packageid="@Model.Package.NuGetPackageId @Model.Package.Name @Model.Package?.Authors @Model.Package?.Category?.Name">
     <div class="card p-3 @(Model.IsChecked ? "selected" : null) text-center" style="min-height: 100%;">
         <img src="@(Model.Package?.Image ?? "")?width=100" alt="@(Model.Package?.Name ?? "uknown")" loading="lazy" />
         <div class="card-body">
@@ -17,8 +17,8 @@
 
         </div>
         <div class="checkbox-outer form-group mb-3">
-            <label for="Model.Package_@Model.PackageId" class="w-25 float-start">Add</label>
-            <input type="checkbox" class="float-start mt-1" name="Model.Package" id="Model.Package_@Model.PackageId" value="@(Model.Package?.NuGetPackageId ?? "")" checked="@(Model.IsChecked ? "checked" : null)" />
+            <label for="package_@Model.PackageId" class="w-25 float-start">Add</label>
+            <input type="checkbox" class="float-start mt-1" name="package" id="package_@Model.PackageId" value="@(Model.Package?.NuGetPackageId ?? "")" checked="@(Model.IsChecked ? "checked" : null)" />
         </div>
             @if(Model.Package != null)
             {
