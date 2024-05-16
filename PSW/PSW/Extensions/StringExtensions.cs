@@ -59,6 +59,6 @@ public static class StringExtensions
             suffix = "✅";
         }
 
-        return version + " " + suffix;
+        return suffix + " " + version;
     }
 }
