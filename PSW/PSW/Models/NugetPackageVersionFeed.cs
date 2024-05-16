@@ -1,5 +1,7 @@
 ﻿namespace PSW.Models;
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
 public class NugetPackageVersionFeed
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
 {
     // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
     /// <remarks/>
@@ -8,35 +10,39 @@ public class NugetPackageVersionFeed
     [System.Xml.Serialization.XmlTypeAttribute(AnonymousType = true, Namespace = "http://www.w3.org/2005/Atom")]
     [System.Xml.Serialization.XmlRootAttribute(Namespace = "http://www.w3.org/2005/Atom", IsNullable = false)]
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
     public partial class feed
+#pragma warning restore CS8981 // The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private feedTitle titleField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private feedSubtitle subtitleField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string idField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
+#pragma warning disable IDE1006 // Naming Styles
         private System.DateTime updatedField;
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string logoField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private feedLink[] linkField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         public feedEntry[] entryField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
 #pragma warning disable IDE1006 // Naming Styles
@@ -155,13 +161,13 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string typeField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string valueField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -203,13 +209,13 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string typeField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string valueField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -251,17 +257,17 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string relField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string typeField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string hrefField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -321,29 +327,33 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string idField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private feedEntryTitle titleField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
+#pragma warning disable IDE1006 // Naming Styles
         private System.DateTime publishedField;
+#pragma warning restore IDE1006 // Naming Styles
 
+#pragma warning disable IDE1006 // Naming Styles
         private System.DateTime updatedField;
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private feedEntryAuthor authorField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private feedEntryLink linkField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private feedEntryContent contentField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
 #pragma warning disable IDE1006 // Naming Styles
@@ -460,13 +470,13 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string typeField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string valueField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -508,13 +518,13 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string nameField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string uriField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
 #pragma warning disable IDE1006 // Naming Styles
@@ -533,7 +543,9 @@ public class NugetPackageVersionFeed
 
         /// <remarks/>
 #pragma warning disable IDE1006 // Naming Styles
+#pragma warning disable CA1056 // URI-like properties should not be strings
         public string uri
+#pragma warning restore CA1056 // URI-like properties should not be strings
 #pragma warning restore IDE1006 // Naming Styles
         {
             get
@@ -556,13 +568,13 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string relField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string hrefField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
@@ -606,13 +618,13 @@ public class NugetPackageVersionFeed
 #pragma warning restore IDE1006 // Naming Styles
     {
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string typeField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning disable IDE1006 // Naming Styles
         private string valueField;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]

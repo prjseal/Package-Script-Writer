@@ -17,7 +17,7 @@
             @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
             {
                 var downloads = package?.Downloads ?? 0;
-                var isChecked = pickedPackageIds != null && pickedPackageIds.Contains(package.NuGetPackageId);
+                var isChecked = pickedPackageIds != null && package != null && pickedPackageIds.Contains(package.NuGetPackageId);
 
                 @await Component.InvokeAsync("Package", 
                     new { 
@@ -35,7 +35,7 @@
     List<PackageWithVersion> GetPickedPackages()
     {
         List<PackageWithVersion> pickedPackages = new List<PackageWithVersion>();
-        var packages = Model.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
+        var packages = Model?.Packages?.Split(',', StringSplitOptions.RemoveEmptyEntries);
         if (packages != null && packages.Any())
         {
             foreach (var package in packages)

@@ -63,8 +63,8 @@ public class HomeController : Controller
 
         var umbracoTemplates = new List<SelectListItem>()
         {
-            new SelectListItem("(none)", ""),
-            new SelectListItem(GlobalConstants.TEMPLATE_NAME_UMBRACO, GlobalConstants.TEMPLATE_NAME_UMBRACO, packageOptions.TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true),
+            new("(none)", ""),
+            new(GlobalConstants.TEMPLATE_NAME_UMBRACO, GlobalConstants.TEMPLATE_NAME_UMBRACO, packageOptions.TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true),
         };
 
         umbracoTemplates.AddRange(_memoryCache.GetOrCreate(
@@ -88,8 +88,8 @@ public class HomeController : Controller
 
     private void PopulatePackageVersions(PackagesViewModel packageOptions, List<PagedPackagesPackage> allPackages, int cacheTime)
     {
-        List<string> pickedPackageIds = new List<string>();
-        List<PackageWithVersion> pickedPackages = new List<PackageWithVersion>();
+        List<string> pickedPackageIds = new();
+        List<PackageWithVersion> pickedPackages = new();
         var packages = packageOptions.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
         if (packages != null && packages.Any())
         {

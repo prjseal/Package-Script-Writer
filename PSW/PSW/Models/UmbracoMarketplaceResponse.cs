@@ -17,12 +17,16 @@ public class PagedPackagesPackage
     [JsonPropertyName("Description")]
     public string Summary { get; set; }
     public string IconDominatorColor { get; set; }
+#pragma warning disable CA1056 // URI-like properties should not be strings
     public string IconUrl { get; set; }
+#pragma warning restore CA1056 // URI-like properties should not be strings
     [JsonPropertyName("FullIconUrl")]
     public string Image => $"https://marketplace.umbraco.com/{IconUrl}";
     public Guid Id { get; set; }
     [JsonPropertyName("PackageUrl")]
+#pragma warning disable CA1056 // URI-like properties should not be strings
     public string Url => $"https://marketplace.umbraco.com/package/{NuGetPackageId}";
+#pragma warning restore CA1056 // URI-like properties should not be strings
     public bool IsHQ { get; set; }
     public bool IsHQSupported { get; set; }
     public bool IsPromoted { get; set; }

@@ -1,5 +1,9 @@
 @model PackageViewModel
 
+@{
+    if (Model?.Package == null) return;
+}
+
 <div class="col-md-4 mb-4 Model.PackageItem" data-Model.Packageid="@Model.Package.NuGetPackageId @Model.Package.Name @Model.Package?.Authors @Model.Package?.Category?.Name">
     <div class="card p-3 @(Model.IsChecked ? "selected" : null) text-center" style="min-height: 100%;">
         <img src="@(Model.Package?.Image ?? "")?width=100" alt="@(Model.Package?.Name ?? "uknown")" loading="lazy" />
@@ -16,26 +20,29 @@
             <label for="Model.Package_@Model.PackageId" class="w-25 float-start">Add</label>
             <input type="checkbox" class="float-start mt-1" name="Model.Package" id="Model.Package_@Model.PackageId" value="@(Model.Package?.NuGetPackageId ?? "")" checked="@(Model.IsChecked ? "checked" : null)" />
         </div>
-        <div class="dropdown-outer form-group">
-            <label asp-for="@Model.Package.SelectedVersion" class="w-25 float-start mt-1"></label>
-            @if (Model.Package.PackageVersions != null && Model.Package.PackageVersions.Any())
+            @if(Model.Package != null)
             {
-                <select class="form-control w-75 float-start" id="PackageVersion_@Model.PackageId" name="PackageVersion_@Model.PackageId">
-                    <option selected="@(Model.Package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
-                    <option selected="@(Model.Package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
-                    @foreach (var version in Model.Package.PackageVersions)
+                <div class="dropdown-outer form-group">
+                    <label asp-for="@Model.Package.SelectedVersion" class="w-25 float-start mt-1"></label>
+                    @if (Model.Package.PackageVersions != null && Model.Package.PackageVersions.Any())
                     {
-                        <option selected="@(Model.Package.SelectedVersion == version ? "selected" : null)" value="@version">@version</option>
+                        <select class="form-control w-75 float-start" id="PackageVersion_@Model.PackageId" name="PackageVersion_@Model.PackageId">
+                            <option selected="@(Model.Package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                            <option selected="@(Model.Package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
+                            @foreach (var version in Model.Package.PackageVersions)
+                            {
+                                <option selected="@(Model.Package.SelectedVersion == version ? "selected" : null)" value="@version">@version</option>
+                            }
+                        </select>
                     }
-                </select>
+                    else
+                    {
+                        <select class="form-control w-75 float-start" id="PackageVersion_@Model.PackageId" name="PackageVersion_@Model.PackageId" disabled="disabled">
+                            <option selected="@(Model?.Package?.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                            <option selected="@(Model?.Package?.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
+                        </select>
+                    }
+                </div>
             }
-            else
-            {
-                <select class="form-control w-75 float-start" id="PackageVersion_@Model.PackageId" name="PackageVersion_@Model.PackageId" disabled="disabled">
-                    <option selected="@(Model.Package.SelectedVersion == "" ? "selected" : null)" value="">Latest Stable</option>
-                    <option selected="@(Model.Package.SelectedVersion == "--prerelease" ? "selected" : null)" value="--prerelease">Pre-release</option>
-                </select>
-            }
-        </div>
     </div>
 </div>
