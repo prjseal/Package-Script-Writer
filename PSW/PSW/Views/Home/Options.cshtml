@@ -39,7 +39,8 @@
                 </div>
                 <div class="form-group py-2">
                     <select class="form-control" id="StarterKitPackage" name="StarterKitPackage" disabled="@(Model.IncludeStarterKit ? null : "disabled")">
-                        <option selected="@(Model.StarterKitPackage == "clean" ? "selected" : null)" value="clean">Clean Starter Kit</option>
+                        <option selected="@(Model.StarterKitPackage == "clean" ? "selected" : null)" value="clean">Clean Starter Kit (Umbraco 13)</option>
+                        <option selected="@(Model.StarterKitPackage == "clean" ? "selected" : null)" value="clean --version 3.1.4">Clean Starter Kit (Umbraco 9 to 12)</option>
                         <option selected="@(Model.StarterKitPackage == "Articulate" ? "selected" : null)" value="Articulate">Articulate</option>
                         <option selected="@(Model.StarterKitPackage == "Portfolio" ? "selected" : null)" value="Portfolio">Portfolio Starter Kit</option>
                         <option selected="@(Model.StarterKitPackage == "LittleNorth.Igloo" ? "selected" : null)" value="LittleNorth.Igloo">Igloo</option>
