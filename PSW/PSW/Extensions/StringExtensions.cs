@@ -40,25 +40,25 @@ public static class StringExtensions
         var willEOLInLessThanAYear = !isEndOfLife && oneYearFromNow > versionInUse.EndOfLife;
         var isFutureRelease = versionInUse.ReleaseDate > DateTime.UtcNow;
 
-        var suffix = "";
+        var emoji = "";
 
         if (isEndOfLife)
         {
-            suffix = "💀";
+            emoji = "💀";
         }
         else if ((isSTS && !isFutureRelease) || willEOLInLessThanAYear)
         {
-            suffix = "⚠️";
+            emoji = "✔️";
         }
         else if (isFutureRelease)
         {
-            suffix = "🔮";
+            emoji = "🔮";
         }
         else
         {
-            suffix = "✅";
+            emoji = "✅";
         }
 
-        return suffix + " " + version;
+        return emoji + " " + version;
     }
 }
