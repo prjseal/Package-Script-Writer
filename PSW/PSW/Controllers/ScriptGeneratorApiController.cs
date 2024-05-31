@@ -78,7 +78,7 @@ public class ScriptGeneratorApiController : ControllerBase
     public ActionResult ClearCache()
     {
         _memoryCache.Remove("allPackages");
-        _memoryCache.Remove("umbracoVersions");
+        _memoryCache.Remove($"{GlobalConstants.TEMPLATE_NAME_UMBRACO}_Versions");
         var message = "Cache Cleared at " + DateTime.Now.ToString();
         return Ok(message);
     }
