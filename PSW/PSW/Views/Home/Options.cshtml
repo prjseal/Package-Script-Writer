@@ -1,4 +1,4 @@
-@model PackagesViewModel
+﻿@model PackagesViewModel
 @using Microsoft.Extensions.Options
 @using PSW.Configuration
 
@@ -20,6 +20,10 @@
                     {
                         <select class="form-control" id="@nameof(Model.TemplateVersion)" name="@nameof(Model.TemplateVersion)" disabled="@(string.IsNullOrWhiteSpace(Model.TemplateName) ? "disabled" : null)">
                             <option selected="@(Model.TemplateVersion == "" ? "selected" : null)" value="">Latest Stable</option>
+                            @if(Model.LatestLTSUmbracoVersion != null)
+                            {
+                                <option value="LTS">✅ Latest LTS @(Model.LatestLTSUmbracoVersion)</option>
+                            }
                             @foreach (var version in Model.UmbracoVersions)
                             {
                                 <option selected="@(Model.TemplateVersion == version ? "selected" : null)" value="@version">@version.GetVersionText(Model.TemplateName, _pswConfig.Value)</option>

@@ -3,7 +3,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
+using PSW.Configuration;
 using PSW.Models;
 
 using static PSW.Models.PackageFeed;
@@ -17,15 +19,17 @@ public class HomeController : Controller
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly IPackageService _packageService;
     private readonly IQueryStringService _queryStringService;
+    private readonly PSWConfig _pswConfig;
 
     public HomeController(IMemoryCache memoryCache,
         IScriptGeneratorService scriptGeneratorService, IPackageService packageService,
-        IQueryStringService queryStringService)
+        IQueryStringService queryStringService, IOptions<PSWConfig> pswConfig)
     {
         _memoryCache = memoryCache;
         _scriptGeneratorService = scriptGeneratorService;
         _packageService = packageService;
         _queryStringService = queryStringService;
+        _pswConfig = pswConfig.Value;
     }
 
     [HttpGet]
@@ -75,6 +79,9 @@ public class HomeController : Controller
                 return _packageService.GetAllTemplatesFromUmbraco().Select(x => new SelectListItem(x.NuGetPackageId, x.NuGetPackageId, packageOptions.TemplateName?.Equals(x.NuGetPackageId) == true));
             }));
 
+        var LatestLTSVersion = GetLatestLTSVersion(umbracoVersions, _pswConfig);
+
+        packageOptions.LatestLTSUmbracoVersion = LatestLTSVersion;
         packageOptions.AllPackages = allPackages;
         packageOptions.UmbracoVersions = umbracoVersions;
         packageOptions.TemplateNames = umbracoTemplates;
@@ -139,5 +146,18 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    public string? GetLatestLTSVersion(List<string> umbracoVersions, PSWConfig _pswConfig)
+    {
+        var midnightTonight = DateTime.Now.AddDays(1).Date;
+
+        if (_pswConfig?.UmbracoVersions == null || !_pswConfig.UmbracoVersions.Any()) return null;
+
+        var latestLTSMajor = _pswConfig.UmbracoVersions.LastOrDefault(
+                x => x.ReleaseType == "LTS" && x.ReleaseDate < midnightTonight
+                && x.SecurityPhase >= midnightTonight);
+
+        return umbracoVersions.FirstOrDefault(x => x.StartsWith(latestLTSMajor.Version.ToString()) && !x.Contains("-"));
     }
 }

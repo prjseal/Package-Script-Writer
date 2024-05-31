@@ -1,9 +1,24 @@
-﻿using PSW.Dictionaries;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+
+using PSW.Configuration;
+using PSW.Dictionaries;
 using PSW.Models;
 
 namespace PSW.Services;
 public class ScriptGeneratorService : IScriptGeneratorService
 {
+    private readonly IMemoryCache _memoryCache;
+    private readonly IPackageService _packageService;
+    private readonly PSWConfig _pswConfig;
+
+    public ScriptGeneratorService(IMemoryCache memoryCache, IPackageService packageService, IOptions<PSWConfig> pswConfig)
+    {
+        _memoryCache = memoryCache;
+        _packageService = packageService;
+        _pswConfig = pswConfig.Value;
+    }
+
     public string GenerateScript(PackagesViewModel model)
     {
         var outputList = new List<string>();
@@ -51,6 +66,27 @@ public class ScriptGeneratorService : IScriptGeneratorService
         var outputList = new List<string>();
         var templateName = model.TemplateName;
         var installCommand = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) && (model.TemplateVersion?.StartsWith("9.") == true || model.TemplateVersion?.StartsWith("10.") == true) ? "-i" : "install";
+
+
+        int cacheTime = 60;
+        var umbracoVersions = new List<string>();
+        if (!string.IsNullOrWhiteSpace(GlobalConstants.TEMPLATE_NAME_UMBRACO))
+        {
+            umbracoVersions = _memoryCache.GetOrCreate(
+                $"{GlobalConstants.TEMPLATE_NAME_UMBRACO}_Versions",
+                cacheEntry =>
+                {
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
+                    return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{GlobalConstants.TEMPLATE_NAME_UMBRACO.ToLower()}/index.json");
+                });
+        }
+
+        var latestLTSVersion = GetLatestLTSVersion(umbracoVersions, _pswConfig);
+
+        if (model.TemplateVersion == "LTS")
+        {
+            model.TemplateVersion = latestLTSVersion;
+        }
 
         if (!string.IsNullOrEmpty(templateName))
         {
@@ -266,5 +302,18 @@ public class ScriptGeneratorService : IScriptGeneratorService
         }
 
         return outputList;
+    }
+
+    public string? GetLatestLTSVersion(List<string> umbracoVersions, PSWConfig _pswConfig)
+    {
+        var midnightTonight = DateTime.Now.AddDays(1).Date;
+
+        if (_pswConfig?.UmbracoVersions == null || !_pswConfig.UmbracoVersions.Any()) return null;
+
+        var latestLTSMajor = _pswConfig.UmbracoVersions.LastOrDefault(
+                x => x.ReleaseType == "LTS" && x.ReleaseDate < midnightTonight
+                && x.SecurityPhase >= midnightTonight);
+
+        return umbracoVersions.FirstOrDefault(x => x.StartsWith(latestLTSMajor.Version.ToString()) && !x.Contains("-"));
     }
 }

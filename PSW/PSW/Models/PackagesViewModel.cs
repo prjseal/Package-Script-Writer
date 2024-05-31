@@ -75,6 +75,7 @@ public class PackagesViewModel
     [Display(Name = "Database Type")]
     public string? DatabaseType { get; set; }
     public List<string>? UmbracoVersions { get; set; }
+    public string? LatestLTSUmbracoVersion { get; set; }
 
     [Display(Name = "Output to single line command")]
     public bool OnelinerOutput { get; set; }
