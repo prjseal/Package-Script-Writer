@@ -20,16 +20,18 @@ public class HomeController : Controller
     private readonly IPackageService _packageService;
     private readonly IQueryStringService _queryStringService;
     private readonly PSWConfig _pswConfig;
+    private readonly IUmbracoVersionService _umbracoVersionService;
 
     public HomeController(IMemoryCache memoryCache,
         IScriptGeneratorService scriptGeneratorService, IPackageService packageService,
-        IQueryStringService queryStringService, IOptions<PSWConfig> pswConfig)
+        IQueryStringService queryStringService, IOptions<PSWConfig> pswConfig, IUmbracoVersionService umbracoVersionService)
     {
         _memoryCache = memoryCache;
         _scriptGeneratorService = scriptGeneratorService;
         _packageService = packageService;
         _queryStringService = queryStringService;
         _pswConfig = pswConfig.Value;
+        _umbracoVersionService = umbracoVersionService;
     }
 
     [HttpGet]
@@ -41,7 +43,7 @@ public class HomeController : Controller
 
         var allPackages = new List<PagedPackagesPackage>();
 
-        int cacheTime = 60;
+        int cacheTime = _pswConfig.CachingTimeInMins;
 
         allPackages = _memoryCache.GetOrCreate(
             "allPackages",
@@ -51,17 +53,7 @@ public class HomeController : Controller
                 return _packageService.GetAllPackagesFromUmbraco();
             });
 
-        var umbracoVersions = new List<string>();
-        if (!string.IsNullOrWhiteSpace(packageOptions.TemplateName))
-        {
-            umbracoVersions = _memoryCache.GetOrCreate(
-                $"{packageOptions.TemplateName}_Versions",
-                cacheEntry =>
-                {
-                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                    return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{packageOptions.TemplateName.ToLower()}/index.json");
-                });
-        }
+        var umbracoVersions = _umbracoVersionService.GetUmbracoVersionsFromCache(_pswConfig);
 
         PopulatePackageVersions(packageOptions, allPackages, cacheTime);
 
@@ -79,9 +71,9 @@ public class HomeController : Controller
                 return _packageService.GetAllTemplatesFromUmbraco().Select(x => new SelectListItem(x.NuGetPackageId, x.NuGetPackageId, packageOptions.TemplateName?.Equals(x.NuGetPackageId) == true));
             }));
 
-        var LatestLTSVersion = GetLatestLTSVersion(umbracoVersions, _pswConfig);
+        var latestLTSVersion = _umbracoVersionService.GetLatestLTSVersion(_pswConfig);
 
-        packageOptions.LatestLTSUmbracoVersion = LatestLTSVersion;
+        packageOptions.LatestLTSUmbracoVersion = latestLTSVersion;
         packageOptions.AllPackages = allPackages;
         packageOptions.UmbracoVersions = umbracoVersions;
         packageOptions.TemplateNames = umbracoTemplates;
@@ -146,18 +138,5 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-    }
-
-    public string? GetLatestLTSVersion(List<string> umbracoVersions, PSWConfig _pswConfig)
-    {
-        var midnightTonight = DateTime.Now.AddDays(1).Date;
-
-        if (_pswConfig?.UmbracoVersions == null || !_pswConfig.UmbracoVersions.Any()) return null;
-
-        var latestLTSMajor = _pswConfig.UmbracoVersions.LastOrDefault(
-                x => x.ReleaseType == "LTS" && x.ReleaseDate < midnightTonight
-                && x.SecurityPhase >= midnightTonight);
-
-        return umbracoVersions.FirstOrDefault(x => x.StartsWith(latestLTSMajor.Version.ToString()) && !x.Contains("-"));
     }
 }

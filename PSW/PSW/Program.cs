@@ -5,14 +5,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews()
-    .AddRazorOptions(options =>
-    {
-        options.ViewLocationFormats.Add("/{0}.cshtml");
-    });
+    .AddRazorOptions(options => options.ViewLocationFormats.Add("/{0}.cshtml"));
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
 builder.Services.AddScoped<IPackageService, MarketplacePackageService>();
 builder.Services.AddScoped<IQueryStringService, QueryStringService>();
+builder.Services.AddScoped<IUmbracoVersionService, UmbracoVersionService>();
 
 builder.Services.Configure<PSWConfig>(
     builder.Configuration.GetSection(PSWConfig.SectionName));

@@ -6,6 +6,7 @@ namespace PSW.Extensions;
 
 public static class StringExtensions
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0046:Convert to conditional expression", Justification = "<Pending>")]
     public static string Truncate(this string value, int maxLength)
     {
         if (string.IsNullOrEmpty(value)) { return value; }
@@ -15,6 +16,7 @@ public static class StringExtensions
         return value.Substring(0, value.Length);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Style", "IDE0045:Convert to conditional expression", Justification = "<Pending>")]
     public static string GetVersionText(this string version, string templateName, PSWConfig pswConfig)
     {
         if (string.IsNullOrWhiteSpace(version)) { return version; }
@@ -50,13 +52,9 @@ public static class StringExtensions
         {
             emoji = "✔️";
         }
-        else if (isFutureRelease)
-        {
-            emoji = "🔮";
-        }
         else
         {
-            emoji = "✅";
+            emoji = isFutureRelease ? "🔮" : "✅";
         }
 
         return emoji + " " + version;

@@ -11,17 +11,18 @@ namespace PSW.Services;
 
 public class MarketplacePackageService : IPackageService
 {
-    private readonly IHttpClientFactory clientFactory;
+    private readonly IHttpClientFactory _clientFactory;
 
     public MarketplacePackageService(IHttpClientFactory httpClientFactory)
     {
-        clientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        _clientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     }
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     public List<string> GetNugetPackageVersions(string packageUrl)
     {
         try
         {
-            var client = clientFactory.CreateClient();
+            var client = _clientFactory.CreateClient();
             var result = client.GetAsync(packageUrl).Result;
             if (result.IsSuccessStatusCode)
             {
@@ -48,11 +49,11 @@ public class MarketplacePackageService : IPackageService
 
         var url = $"{packageUrl}/atom.xml";
 
-        var XmlReader = new XmlTextReader(url);
+        var xmlReader = new XmlTextReader(url);
 
         var serializer = new XmlSerializer(typeof(NugetPackageVersionFeed.feed));
 
-        if (serializer.Deserialize(XmlReader) is NugetPackageVersionFeed.feed packageFeed)
+        if (serializer.Deserialize(xmlReader) is NugetPackageVersionFeed.feed packageFeed)
         {
             foreach (var entry in packageFeed.entryField)
             {
@@ -76,6 +77,7 @@ public class MarketplacePackageService : IPackageService
         return GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType.Templates);
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
     public List<PagedPackagesPackage> GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType umbracoMarketplaceQueryType)
     {
         int pageIndex = 1;
@@ -102,7 +104,7 @@ public class MarketplacePackageService : IPackageService
 
             try
             {
-                var httpClient = clientFactory.CreateClient();
+                var httpClient = _clientFactory.CreateClient();
                 var response = httpClient.GetAsync(url).Result;
                 var packages = response.Content.ReadFromJsonAsync<UmbracoMarketplaceResponse>().Result;
                 if (packages != null && carryOn)
@@ -114,7 +116,7 @@ public class MarketplacePackageService : IPackageService
                     }
 
                     allPackages.AddRange(packages.Results.Where(x => x != null));
-                    totalSoFar = allPackages.Count();
+                    totalSoFar = allPackages.Count;
                     if (isTail)
                     {
                         break;

@@ -8,15 +8,13 @@ using PSW.Models;
 namespace PSW.Services;
 public class ScriptGeneratorService : IScriptGeneratorService
 {
-    private readonly IMemoryCache _memoryCache;
-    private readonly IPackageService _packageService;
     private readonly PSWConfig _pswConfig;
+    private readonly IUmbracoVersionService _umbracoVersionService;
 
-    public ScriptGeneratorService(IMemoryCache memoryCache, IPackageService packageService, IOptions<PSWConfig> pswConfig)
+    public ScriptGeneratorService(IOptions<PSWConfig> pswConfig, IUmbracoVersionService umbracoVersionService)
     {
-        _memoryCache = memoryCache;
-        _packageService = packageService;
         _pswConfig = pswConfig.Value;
+        _umbracoVersionService = umbracoVersionService;
     }
 
     public string GenerateScript(PackagesViewModel model)
@@ -49,7 +47,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         if (model.RemoveComments)
         {
-            outputList = outputList.Where(x => !x.StartsWith(@"#")).ToList();
+            outputList = outputList.Where(x => !x.StartsWith('#')).ToList();
         }
 
         if (!model.OnelinerOutput)
@@ -67,21 +65,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
         var templateName = model.TemplateName;
         var installCommand = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) && (model.TemplateVersion?.StartsWith("9.") == true || model.TemplateVersion?.StartsWith("10.") == true) ? "-i" : "install";
 
-
-        int cacheTime = 60;
-        var umbracoVersions = new List<string>();
-        if (!string.IsNullOrWhiteSpace(GlobalConstants.TEMPLATE_NAME_UMBRACO))
-        {
-            umbracoVersions = _memoryCache.GetOrCreate(
-                $"{GlobalConstants.TEMPLATE_NAME_UMBRACO}_Versions",
-                cacheEntry =>
-                {
-                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                    return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{GlobalConstants.TEMPLATE_NAME_UMBRACO.ToLower()}/index.json");
-                });
-        }
-
-        var latestLTSVersion = GetLatestLTSVersion(umbracoVersions, _pswConfig);
+        var latestLTSVersion = _umbracoVersionService.GetLatestLTSVersion(_pswConfig);
 
         if (model.TemplateVersion == "LTS")
         {
@@ -302,18 +286,5 @@ public class ScriptGeneratorService : IScriptGeneratorService
         }
 
         return outputList;
-    }
-
-    public string? GetLatestLTSVersion(List<string> umbracoVersions, PSWConfig _pswConfig)
-    {
-        var midnightTonight = DateTime.Now.AddDays(1).Date;
-
-        if (_pswConfig?.UmbracoVersions == null || !_pswConfig.UmbracoVersions.Any()) return null;
-
-        var latestLTSMajor = _pswConfig.UmbracoVersions.LastOrDefault(
-                x => x.ReleaseType == "LTS" && x.ReleaseDate < midnightTonight
-                && x.SecurityPhase >= midnightTonight);
-
-        return umbracoVersions.FirstOrDefault(x => x.StartsWith(latestLTSMajor.Version.ToString()) && !x.Contains("-"));
     }
 }

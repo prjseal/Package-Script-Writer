@@ -67,7 +67,7 @@ public class ScriptGeneratorApiController : ControllerBase
 
     [Route("test")]
     [HttpGet]
-    public ActionResult test()
+    public ActionResult Test()
     {
         var model = "Hello, world!. The time is " + DateTime.Now.ToString();
         return Ok(model);

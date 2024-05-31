@@ -116,7 +116,7 @@ csharp_style_deconstructed_variable_declaration = true:suggestion
 csharp_style_inlined_variable_declaration = true:suggestion
 csharp_style_pattern_local_over_anonymous_function = true:suggestion
 csharp_style_prefer_index_operator = true:suggestion
-csharp_style_prefer_range_operator = true:suggestion
+csharp_style_prefer_range_operator = true:none
 csharp_style_throw_expression = true:suggestion
 csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 csharp_style_unused_value_expression_statement_preference = discard_variable:silent
@@ -213,6 +213,13 @@ dotnet_diagnostic.CS8604.severity = none
 
 # SYSLIB0051: Type or member is obsolete
 dotnet_diagnostic.SYSLIB0051.severity = none
+csharp_style_prefer_primary_constructors = true:suggestion
+
+# CA1845: Use span-based 'string.Concat'
+dotnet_diagnostic.CA1845.severity = none
+
+# IDE0057: Use range operator
+dotnet_diagnostic.IDE0057.severity = none
 
 [*.{cs,vb}]
 
@@ -452,4 +459,5 @@ dotnet_diagnostic.CA1417.severity = suggestion
 dotnet_diagnostic.CA1418.severity = suggestion
 dotnet_diagnostic.CA1420.severity = suggestion
 dotnet_diagnostic.CA1422.severity = suggestion
+dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
 
