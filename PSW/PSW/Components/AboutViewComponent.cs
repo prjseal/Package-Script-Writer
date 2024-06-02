@@ -2,8 +2,8 @@
 
 namespace PSW.Components;
 
-[ViewComponent(Name = "SourceCode")]
-public class SourceCodeViewComponent : ViewComponent
+[ViewComponent(Name = "About")]
+public class AboutViewComponent : ViewComponent
 {
     public IViewComponentResult Invoke()
     {
