@@ -240,6 +240,8 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         if (string.IsNullOrWhiteSpace(model.Packages)) return outputList;
 
+        var starterKitName = model.IncludeStarterKit ? model.StarterKitPackage.Split(' ').FirstOrDefault() : "";
+
         var packages = model.Packages.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
 
         if (packages.Length > 0)
@@ -251,6 +253,13 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
             foreach (var package in packages)
             {
+                var packageName = package.Split('|').FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(starterKitName) && starterKitName.Equals(packageName, StringComparison.OrdinalIgnoreCase))
+                {
+                    outputList.Add($"#Ignored {packageName} as it was added as a starter kit");
+                    continue;
+                }
+
                 var packageIdAndVersion = package.TrimEnd('|').Replace("|--prerelease", " --prerelease ").Replace("|", " --version ");
                 if (renderPackageName)
                 {
