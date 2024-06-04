@@ -11,3 +11,15 @@
 /PSW/PSW/Properties/PublishProfiles/psw.codeshare.co.uk - Web Deploy.pubxml.user
 /.vs
 /PSW/.vs/ProjectEvaluation
+
+# JetBrains Rider IDE
+*.sln.iml
+.idea
+
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
