@@ -41,5 +41,15 @@
     <script src="@Url.Content("~/js/run_prettify.js?autoload=true&skin=sunburst")" defer></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3DVZWNLT7F"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-3DVZWNLT7F');
+    </script>
 </body>
 </html>
