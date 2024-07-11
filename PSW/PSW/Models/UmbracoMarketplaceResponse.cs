@@ -25,7 +25,7 @@ public class PagedPackagesPackage
     public Guid Id { get; set; }
     [JsonPropertyName("PackageUrl")]
 #pragma warning disable CA1056 // URI-like properties should not be strings
-    public string Url => $"https://marketplace.umbraco.com/package/{NuGetPackageId}";
+    public string Url => $"https://marketplace.umbraco.com/package/{NuGetPackageId.ToLower()}";
 #pragma warning restore CA1056 // URI-like properties should not be strings
     public bool IsHQ { get; set; }
     public bool IsHQSupported { get; set; }
