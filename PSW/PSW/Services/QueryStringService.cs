@@ -14,7 +14,7 @@ public class QueryStringService : IQueryStringService
 
         if (request.Query.Count == 0)
         {
-            includeStarterKit = true;
+            includeStarterKit = false;
             createSolutionFile = true;
             useUnattendedInstall = true;
             onelinerOutput = false;
