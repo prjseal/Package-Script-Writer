@@ -28,7 +28,7 @@ public class ScriptGeneratorApiController : ControllerBase
     {
         if (apiRequest.IsEmpty)
         {
-            apiRequest.IncludeStarterKit = true;
+            apiRequest.IncludeStarterKit = false;
             apiRequest.CreateSolutionFile = true;
             apiRequest.UseUnattendedInstall = true;
             apiRequest.OnelinerOutput = false;
