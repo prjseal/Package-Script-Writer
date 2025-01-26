@@ -6,7 +6,7 @@ public class GeneratorApiRequest
         get
         {
             return string.IsNullOrWhiteSpace(TemplateName) && !CreateSolutionFile
-                && !IncludeStarterKit && !UseUnattendedInstall
+                && !IncludeStarterKit && !IncludeDockerfile && !UseUnattendedInstall
                 && TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true && string.IsNullOrWhiteSpace(TemplateVersion + Packages
                 + SolutionName + ProjectName + UserFriendlyName + UserEmail
                 + UserPassword + StarterKitPackage + DatabaseType)
@@ -27,6 +27,7 @@ public class GeneratorApiRequest
     public string? UserEmail { get; set; }
     public string? UserPassword { get; set; }
     public bool IncludeStarterKit { get; set; }
+    public bool IncludeDockerfile { get; set; }
     public string? StarterKitPackage { get; set; }
     public bool UseUnattendedInstall { get; set; }
     public string? DatabaseType { get; set; }

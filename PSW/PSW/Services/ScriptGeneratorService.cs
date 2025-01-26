@@ -121,6 +121,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
     public List<string> GenerateCreateProjectScript(PackagesViewModel model)
     {
         var outputList = new List<string>();
+        var dockerfileString = "";
 
         var installUmbracoTemplate = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO);
         var majorVersionNumberAsString = model.TemplateVersion?.Split('.').FirstOrDefault();
@@ -133,6 +134,12 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         var isOldv10RCVersion = installUmbracoTemplate && (model.TemplateVersion == "10.0.0-rc1" || model.TemplateVersion == "10.0.0-rc2" || model.TemplateVersion == "10.0.0-rc3");
         var isV10OrAbove = installUmbracoTemplate && majorVersionNumber >= 10;
+        var isV15OrAbove = installUmbracoTemplate && majorVersionNumber >= 15;
+
+        if (model.IncludeDockerfile && isV15OrAbove)
+        {
+            dockerfileString = "--add-docker";
+        }
 
         if (installUmbracoTemplate)
         {
@@ -176,7 +183,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
                         break;
                 }
 
-                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
+                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" {dockerfileString} --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
 
                 if (model.DatabaseType == "SQLite" && isOldv10RCVersion)
                 {
@@ -186,12 +193,12 @@ public class ScriptGeneratorService : IScriptGeneratorService
             }
             else
             {
-                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\"");
+                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" {dockerfileString}");
             }
         }
         else
         {
-            outputList.Add($"dotnet new {new TemplateDictionary().GetShortName(model.TemplateName)} --force -n \"{model.ProjectName}\"");
+            outputList.Add($"dotnet new {new TemplateDictionary().GetShortName(model.TemplateName)} --force -n \"{model.ProjectName}\" {dockerfileString}");
         }
 
         return outputList;

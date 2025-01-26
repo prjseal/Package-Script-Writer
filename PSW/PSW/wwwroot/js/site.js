@@ -4,6 +4,7 @@
         templateName: document.getElementById('TemplateName'),
         templateVersion: document.getElementById('TemplateVersion'),
         includeStarterKit: document.getElementById('IncludeStarterKit'),
+        includeDockerfile: document.getElementById('IncludeDockerfile'),
         starterKitPackage: document.getElementById('StarterKitPackage'),
         createSolutionFile: document.getElementById('CreateSolutionFile'),
         solutionName: document.getElementById('SolutionName'),
@@ -97,6 +98,11 @@
 
         psw.controls.includeStarterKit.addEventListener('change', function () {
             psw.toggleIncludeStarterKitControls();
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+
+        psw.controls.includeDockerfile.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -200,6 +206,11 @@
         });
 
         psw.controls.includeStarterKit.addEventListener('change', function () {
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+        
+        psw.controls.includeDockerfile.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -418,6 +429,7 @@
         psw.controls.templateName.value = 'Umbraco.Templates';
         psw.controls.templateVersion.value = '';
         psw.controls.includeStarterKit.checked = true;
+        psw.controls.includeDockerfile.checked = false;
         psw.controls.starterKitPackage.value = 'clean';
         psw.controls.createSolutionFile.checked = true;
         psw.controls.solutionName.value = 'MySolution';
@@ -458,6 +470,7 @@
         psw.controls.templateName.value = searchParams.get("TemplateName");
         psw.controls.templateVersion.value = searchParams.get("TemplateVersion");
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
+        psw.controls.includeDockerfile.checked = searchParams.get("IncludeDockerfile") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
         psw.controls.solutionName.value = searchParams.get("SolutionName");
@@ -499,6 +512,7 @@
         psw.controls.templateName.value = installUmbracoTemplate ? "Umbraco.Templates" : (searchParams.get("TemplateName") || "Umbraco.Templates");
         psw.controls.templateVersion.value = (umbracoTemplateVersion ? umbracoTemplateVersion : searchParams.get("TemplateVersion")) || "";
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
+        psw.controls.includeDockerfile.checked = searchParams.get("IncludeDockerfile") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
         psw.controls.solutionName.value = searchParams.get("SolutionName");
@@ -570,7 +584,7 @@
         else {
             psw.controls.starterKitPackage.setAttribute('disabled', 'disabled');
         }
-    },
+    }, 
     toggleCreateSolutionFileControls: function () {
         if (psw.controls.createSolutionFile.checked) {
             psw.controls.solutionName.removeAttribute('disabled');
@@ -611,6 +625,7 @@
             "ConnectionString": psw.controls.connectionString.value,
             "UserFriendlyName": psw.controls.userFriendlyName.value,
             "IncludeStarterKit": psw.controls.includeStarterKit.checked,
+            "IncludeDockerfile": psw.controls.includeDockerfile.checked,
             "StarterKitPackage": psw.controls.starterKitPackage.value,
             "OnelinerOutput": psw.controls.onelinerOutput.checked,
             "RemoveComments": psw.controls.removeComments.checked
@@ -657,6 +672,7 @@
             searchParams.set("UserPassword", psw.controls.userPassword.value);
             searchParams.set("UserFriendlyName", psw.controls.userFriendlyName.value);
             searchParams.set("IncludeStarterKit", psw.controls.includeStarterKit.checked);
+            searchParams.set("IncludeDockerfile", psw.controls.includeDockerfile.checked);
             searchParams.set("StarterKitPackage", psw.controls.starterKitPackage.value);
             searchParams.set("OnelinerOutput", psw.controls.onelinerOutput.checked);
             searchParams.set("RemoveComments", psw.controls.removeComments.checked);

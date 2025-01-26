@@ -29,6 +29,7 @@ public class ScriptGeneratorApiController : ControllerBase
         if (apiRequest.IsEmpty)
         {
             apiRequest.IncludeStarterKit = true;
+            apiRequest.IncludeDockerfile = false;
             apiRequest.CreateSolutionFile = true;
             apiRequest.UseUnattendedInstall = true;
             apiRequest.OnelinerOutput = false;

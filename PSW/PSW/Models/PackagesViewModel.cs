@@ -21,6 +21,7 @@ public class PackagesViewModel
         UserEmail = apiRequest.UserEmail;
         UserPassword = apiRequest.UserPassword;
         IncludeStarterKit = apiRequest.IncludeStarterKit;
+        IncludeDockerfile = apiRequest.IncludeDockerfile;
         StarterKitPackage = apiRequest.StarterKitPackage;
         UseUnattendedInstall = apiRequest.UseUnattendedInstall;
         DatabaseType = apiRequest.DatabaseType;
@@ -63,6 +64,9 @@ public class PackagesViewModel
 
     [Display(Name = "Include a Starter Kit:")]
     public bool IncludeStarterKit { get; set; }
+
+    [Display(Name = "Include Dockerfile:")]
+    public bool IncludeDockerfile { get; set; }
 
     [Display(Name = "Starter Kit Package Id:")]
     public string? StarterKitPackage { get; set; }
