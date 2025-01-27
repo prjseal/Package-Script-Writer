@@ -4,6 +4,7 @@
         templateName: document.getElementById('TemplateName'),
         templateVersion: document.getElementById('TemplateVersion'),
         includeStarterKit: document.getElementById('IncludeStarterKit'),
+        canIncludeDockerfile: document.getElementById('CanIncludeDockerfile'),
         includeDockerfile: document.getElementById('IncludeDockerfile'),
         starterKitPackage: document.getElementById('StarterKitPackage'),
         createSolutionFile: document.getElementById('CreateSolutionFile'),
@@ -92,6 +93,7 @@
 
         psw.controls.templateName.addEventListener('change', function () {
             psw.toggleTemplateNameControls();
+            psw.toggleDockerControls();
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -575,6 +577,14 @@
         }
         else {
             psw.controls.templateVersion.setAttribute('disabled', 'disabled');
+        }
+    },
+    toggleDockerControls: function () {
+        if (psw.controls.canIncludeDockerfile.value === 'true') {
+            psw.controls.includeDockerfile.removeAttribute('disabled');
+        } 
+        else {
+            psw.controls.includeDockerfile.setAttribute('disabled', 'disabled');
         }
     },
     toggleIncludeStarterKitControls: function () {

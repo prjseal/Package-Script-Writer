@@ -136,7 +136,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
         var isV10OrAbove = installUmbracoTemplate && majorVersionNumber >= 10;
         var isV15OrAbove = installUmbracoTemplate && majorVersionNumber >= 15;
 
-        if (model.IncludeDockerfile && isV15OrAbove)
+        if (model.IncludeDockerfile && (isV15OrAbove || majorVersionNumberAsString == ""))
         {
             dockerfileString = "--add-docker";
         }

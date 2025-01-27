@@ -68,6 +68,37 @@ public class PackagesViewModel
     [Display(Name = "Include Dockerfile:")]
     public bool IncludeDockerfile { get; set; }
 
+    // Computed property for enabling/disabling Docker support checkbox on the view. 
+    // The bulk of the logic is done here to keep the view clean, and is communicatd to the 
+    // view with a hidden control : CanIncludeDockerfile
+    public bool CanIncludeDockerfile
+    {
+        get
+        {
+            // If TemplateVersion is Empty, it's the latest so supports Docker
+            if (string.IsNullOrWhiteSpace(TemplateVersion))
+            {
+                return true;
+            }
+
+            try
+            {
+                // Parse major version number
+                if (int.TryParse(TemplateVersion.Split('.')[0], out var majorVersion))
+                {
+                    return majorVersion >= 15;
+                }
+            }
+            catch
+            {
+                // Only used to disable a checkbox, so swallow exception for now
+                return false;
+            }
+
+            return false;
+        }
+    }
+
     [Display(Name = "Starter Kit Package Id:")]
     public string? StarterKitPackage { get; set; }
 
