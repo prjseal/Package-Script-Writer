@@ -22,6 +22,7 @@ public class PackagesViewModel
         UserPassword = apiRequest.UserPassword;
         IncludeStarterKit = apiRequest.IncludeStarterKit;
         IncludeDockerfile = apiRequest.IncludeDockerfile;
+        IncludeDockerCompose = apiRequest.IncludeDockerCompose;
         StarterKitPackage = apiRequest.StarterKitPackage;
         UseUnattendedInstall = apiRequest.UseUnattendedInstall;
         DatabaseType = apiRequest.DatabaseType;
@@ -65,17 +66,21 @@ public class PackagesViewModel
     [Display(Name = "Include a Starter Kit:")]
     public bool IncludeStarterKit { get; set; }
 
-    [Display(Name = "Include Dockerfile:")]
+    [Display(Name = "Include Dockerfile")]
     public bool IncludeDockerfile { get; set; }
+
+    [Display(Name = "Include Docker Compose")]
+    public bool IncludeDockerCompose { get; set; }
 
     // Computed property for enabling/disabling Docker support checkbox on the view. 
     // The bulk of the logic is done here to keep the view clean, and is communicatd to the 
     // view with a hidden control : CanIncludeDockerfile
-    public bool CanIncludeDockerfile
+    public bool CanIncludeDocker
     {
         get
         {
             // If TemplateVersion is Empty, it's the latest so supports Docker
+            // Todo : Are we checking that we're installing from the Umbraco Template
             if (string.IsNullOrWhiteSpace(TemplateVersion))
             {
                 return true;
@@ -83,7 +88,9 @@ public class PackagesViewModel
 
             try
             {
-                // Parse major version number
+                // Parse major version number : Technically 14.3 or above supports docker, but 14
+                // is an STS release, and most people would be on 15 anyway, for simplicity keeping
+                // it on 15 as a minimum
                 if (int.TryParse(TemplateVersion.Split('.')[0], out var majorVersion))
                 {
                     return majorVersion >= 15;
