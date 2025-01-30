@@ -217,11 +217,6 @@
             psw.updateOutput();
             psw.updateUrl();
         });
-        
-        psw.controls.includeDockerfile.addEventListener('change', function () {
-            psw.updateOutput();
-            psw.updateUrl();
-        });
 
         psw.controls.createSolutionFile.addEventListener('change', function () {
             psw.updateOutput();
@@ -438,6 +433,7 @@
         psw.controls.templateVersion.value = '';
         psw.controls.includeStarterKit.checked = true;
         psw.controls.includeDockerfile.checked = false;
+        psw.controls.includeDockerCompose.checked = false;
         psw.controls.starterKitPackage.value = 'clean';
         psw.controls.createSolutionFile.checked = true;
         psw.controls.solutionName.value = 'MySolution';
@@ -479,6 +475,7 @@
         psw.controls.templateVersion.value = searchParams.get("TemplateVersion");
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.includeDockerfile.checked = searchParams.get("IncludeDockerfile") === "true";
+        psw.controls.includeDockerCompose.checked = searchParams.get("IncludeDockerCompose") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
         psw.controls.solutionName.value = searchParams.get("SolutionName");
@@ -521,6 +518,7 @@
         psw.controls.templateVersion.value = (umbracoTemplateVersion ? umbracoTemplateVersion : searchParams.get("TemplateVersion")) || "";
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.includeDockerfile.checked = searchParams.get("IncludeDockerfile") === "true";
+        psw.controls.includeDockerCompose.checked = searchParams.get("IncludeDockerCompose") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
         psw.controls.solutionName.value = searchParams.get("SolutionName");

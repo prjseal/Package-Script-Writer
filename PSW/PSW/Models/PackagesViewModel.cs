@@ -79,27 +79,24 @@ public class PackagesViewModel
     {
         get
         {
-            // If TemplateVersion is Empty, it's the latest so supports Docker
-            // Todo : Are we checking that we're installing from the Umbraco Template
+            if (!TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO))
+            {
+                return false;
+            }
+
+            // No template specified => Latest version, so can support docker
             if (string.IsNullOrWhiteSpace(TemplateVersion))
             {
                 return true;
             }
 
-            try
+            // Parse major version number : Check that version >= 15 which supports Docker
+            // Technically 14.3 or above supports docker, but 14
+            // is an STS release, and most people would be on 15 anyway, for simplicity keeping
+            // it on 15 as a minimum
+            if (int.TryParse(TemplateVersion.Split('.')[0], out var majorVersion))
             {
-                // Parse major version number : Technically 14.3 or above supports docker, but 14
-                // is an STS release, and most people would be on 15 anyway, for simplicity keeping
-                // it on 15 as a minimum
-                if (int.TryParse(TemplateVersion.Split('.')[0], out var majorVersion))
-                {
-                    return majorVersion >= 15;
-                }
-            }
-            catch
-            {
-                // Only used to disable a checkbox, so swallow exception for now
-                return false;
+                return majorVersion >= 15;
             }
 
             return false;

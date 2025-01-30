@@ -34,10 +34,15 @@ public class ScriptGeneratorService : IScriptGeneratorService
             outputList.AddRange(GenerateAddProjectToSolutionScript(model));
 
             outputList.Add("");
+
         }
 
         if (model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO))
         {
+            outputList.AddRange(GenerateAddDockerComposeScript(model));
+
+            outputList.Add("");
+
             outputList.AddRange(GenerateAddStarterKitScript(model, renderPackageName));
         }
 
@@ -134,9 +139,10 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         var isOldv10RCVersion = installUmbracoTemplate && (model.TemplateVersion == "10.0.0-rc1" || model.TemplateVersion == "10.0.0-rc2" || model.TemplateVersion == "10.0.0-rc3");
         var isV10OrAbove = installUmbracoTemplate && majorVersionNumber >= 10;
-        var isV15OrAbove = installUmbracoTemplate && majorVersionNumber >= 15;
 
-        if (model.IncludeDockerfile && model.CanIncludeDocker)
+        // Only add Docker for specific versions
+        if (model.IncludeDockerfile &&
+            model.CanIncludeDocker)
         {
             dockerfileString = "--add-docker";
         }
@@ -306,6 +312,16 @@ public class ScriptGeneratorService : IScriptGeneratorService
     public List<string> GenerateAddDockerComposeScript(PackagesViewModel model)
     {
         var outputList = new List<string>();
+
+        if (model.IncludeDockerCompose && model.CanIncludeDocker)
+        {
+            if (!model.OnelinerOutput)
+            {
+                outputList.Add("#Add Docker Compose");
+            }
+
+            outputList.Add($"dotnet new umbraco-compose -P \"{model.ProjectName}\"");
+        }
 
         return outputList;
     }

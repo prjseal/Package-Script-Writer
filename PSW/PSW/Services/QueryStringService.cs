@@ -18,6 +18,7 @@ public class QueryStringService : IQueryStringService
         {
             includeStarterKit = true;
             includeDockerfile = false;
+            includeDockerCompose = false;
             createSolutionFile = true;
             useUnattendedInstall = true;
             onelinerOutput = false;

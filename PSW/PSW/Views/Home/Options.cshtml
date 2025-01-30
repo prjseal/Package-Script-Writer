@@ -55,9 +55,9 @@
                     </select>
                 </div>
                 <!-- TODO : Do we want to hide these controls if we can't include docker? -->
+                <hidden asp-for="@Model.CanIncludeDocker"></hidden>
                 <div class="form-group pt-3">
                     <div class="form-check">
-                        <hidden asp-for="@Model.CanIncludeDocker"></hidden>
                         <label asp-for="@Model.IncludeDockerfile" class="form-check-label"></label>
                         <input asp-for="@Model.IncludeDockerfile" class="form-check-input" type="checkbox" disabled="@(Model.CanIncludeDocker ? null : "disabled")" />
                     </div>
