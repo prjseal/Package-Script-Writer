@@ -38,7 +38,7 @@
                 <div class="form-group pt-3">
                     <div class="form-check">
                         <label asp-for="@Model.IncludeStarterKit" class="form-check-label"></label>
-                        <input asp-for="@Model.IncludeStarterKit" class="form-check-input" type="checkbox" />
+                        <input asp-for="@Model.IncludeStarterKit" class="form-check-input" type="checkbox"/>
                     </div>
                 </div>
                 <div class="form-group py-2">
@@ -54,6 +54,20 @@
                         <option selected="@(Model.StarterKitPackage == "uSkinnedSiteBuilder" ? "selected" : null)" value="uSkinnedSiteBuilder">uSkinned Site Builder</option>
                     </select>
                 </div>
+                <!-- TODO : Do we want to hide these controls if we can't include docker? -->
+                <hidden asp-for="@Model.CanIncludeDocker"></hidden>
+                <div class="form-group pt-3">
+                    <div class="form-check">
+                        <label asp-for="@Model.IncludeDockerfile" class="form-check-label"></label>
+                        <input asp-for="@Model.IncludeDockerfile" class="form-check-input" type="checkbox" disabled="@(Model.CanIncludeDocker ? null : "disabled")" />
+                    </div>
+                </div>                
+                <div class="form-group pt-3">
+                    <div class="form-check">
+                        <label asp-for="@Model.IncludeDockerCompose" class="form-check-label"></label>
+                        <input asp-for="@Model.IncludeDockerCompose" class="form-check-input" type="checkbox" disabled="@(Model.CanIncludeDocker ? null : "disabled")" />
+                    </div>
+                </div>                
                 <div class="form-group pt-4">
                     <div class="form-check">
                         <label asp-for="@Model.CreateSolutionFile" class="form-check-label"></label>
