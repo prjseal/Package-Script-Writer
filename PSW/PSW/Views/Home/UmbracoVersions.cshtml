@@ -7,6 +7,7 @@
 <div class="tab-pane fade show" id="umbraco-versions" role="tabpanel" aria-labelledby="umbraco-versions-tab">
     <div class="pt-5">
         <p>This is a handy table to help you work out which version of Umbraco to use. <a href="https://umbraco.com/products/knowledge-center/long-term-support-and-end-of-life/" target="_blank">Find out more here</a></p>
+        <p><strong>Please note, all dates after v19 release date are assumptions and not confirmed by Umbraco.</strong></p>
         @if (Model.UmbracoVersions != null && Model.UmbracoVersions.Any())
         {
             var oneYearFromNow = DateTime.UtcNow.AddYears(1);
