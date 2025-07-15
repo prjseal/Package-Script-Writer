@@ -51,7 +51,14 @@
                     var classValue = string.Join(' ', classesToApply);
 
                     <tr>
-                        <td class="fw-bold">@version.Version</td>
+                        @if(!string.IsNullOrWhiteSpace(version.Url))
+                        {
+                            <td class="fw-bold"><a href="@version.Url" target="_blank" rel="noopener">@version.Version</a></td>
+                        }
+                        else
+                        {
+                            <td class="fw-bold">@version.Version</td>
+                        }
                         <td>@version.ReleaseDate.ToString(Date_Format)</td>
                         <td class="@(isLTS ? "fw-bold" : null)">@version.ReleaseType</td>
                         <td>@version.SupportPhase?.ToString(Date_Format)</td>
