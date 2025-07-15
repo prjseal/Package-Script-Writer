@@ -15,4 +15,5 @@ public class UmbracoVersion
     public DateTime? SupportPhase { get; set; }
     public DateTime? SecurityPhase { get; set; }
     public DateTime EndOfLife { get; set; }
+    public string? Url { get; set; }
 }
