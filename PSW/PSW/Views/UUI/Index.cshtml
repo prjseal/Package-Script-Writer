@@ -1,0 +1,274 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UUI Sandbox</title>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@umbraco-ui/uui@latest/dist/uui.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+    <style>
+        body {
+          font-family: sans-serif;
+          padding: 1rem;
+        }
+        #editor {
+          border: 1px solid #ccc;
+          height: 33vh;
+          width: 50%;
+        }
+        #preview {
+          border: 1px solid #ccc;
+          margin-top: 1rem;
+          padding: 1rem;
+          width: calc(100%-2rem);
+          margin-top: 10px;
+          height: 100%;
+        }
+        button {
+          margin: 0.25rem;
+        }
+        .category {
+          margin-top: 1rem;
+          display: flex;
+          flex-direction: column;
+        }
+        .category h3 {
+          margin-bottom: 0.5rem;
+        }
+
+        #container {
+          display: flex;
+          flex-direction: row;
+          gap: 1rem;
+          height: 33vh;
+        }
+
+        #button-container {
+          display: flex;
+          flex-direction: row;
+          height: 33vh;
+          overflow-y: scroll;
+          width: 50%;
+          gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>UUI Component Sandbox</h1>
+    <div id="container">
+        <div id="editor" style="width: 800px"></div>
+
+        <div id="button-container">
+            <div class="category">
+                <h3>Buttons</h3>
+                <button onclick="insertComponent('button')">Button</button>
+                <button onclick="insertComponent('button-group')">
+                    Button Group
+                </button>
+                <button onclick="insertComponent('action-bar')">Action Bar</button>
+                <button onclick="insertComponent('copy-text')">Copy Text</button>
+            </div>
+
+            <div class="category">
+                <h3>Inputs & Forms</h3>
+                <button onclick="insertComponent('input')">Input</button>
+                <button onclick="insertComponent('textarea')">Textarea</button>
+                <button onclick="insertComponent('password')">Password</button>
+                <button onclick="insertComponent('toggle')">Toggle</button>
+                <button onclick="insertComponent('radio')">Radio</button>
+                <button onclick="insertComponent('checkbox')">Checkbox</button>
+                <button onclick="insertComponent('range')">Range</button>
+                <button onclick="insertComponent('slider')">Slider</button>
+                <button onclick="insertComponent('combobox')">Combobox</button>
+                <button onclick="insertComponent('select')">Select</button>
+                <button onclick="insertComponent('color-picker')">
+                    Color Picker
+                </button>
+                <button onclick="insertComponent('file-dropzone')">
+                    File Dropzone
+                </button>
+            </div>
+
+            <div class="category">
+                <h3>Navigation</h3>
+                <button onclick="insertComponent('pagination')">Pagination</button>
+                <button onclick="insertComponent('breadcrumb')">Breadcrumb</button>
+                <button onclick="insertComponent('menu-item')">Menu Item</button>
+                <button onclick="insertComponent('tabs')">Tabs</button>
+            </div>
+
+            <div class="category">
+                <h3>Feedback</h3>
+                <button onclick="insertComponent('toast')">Toast</button>
+                <button onclick="insertComponent('badge')">Badge</button>
+                <button onclick="insertComponent('progress-bar')">
+                    Progress Bar
+                </button>
+                <button onclick="insertComponent('loader-bar')">Loader Bar</button>
+                <button onclick="insertComponent('loader-circle')">
+                    Loader Circle
+                </button>
+            </div>
+
+            <div class="category">
+                <h3>Containers & Layout</h3>
+                <button onclick="insertComponent('box')">Box</button>
+                <button onclick="insertComponent('card')">Card</button>
+                <button onclick="insertComponent('dialog')">Dialog</button>
+                <button onclick="insertComponent('modal')">Modal</button>
+                <button onclick="insertComponent('popover')">Popover</button>
+                <button onclick="insertComponent('scroll-container')">
+                    Scroll Container
+                </button>
+                <button onclick="insertComponent('table')">Table</button>
+                <button onclick="insertComponent('tablehead')">Table Head</button>
+                <button onclick="insertComponent('tableheadcell')">Table Head Cell</button>
+                <button onclick="insertComponent('tablerow')">Table Row</button>
+                <button onclick="insertComponent('tablecolumn')">Table Column</button>
+                <button onclick="insertComponent('tablecell')">Table Cell</button>
+                <button onclick="insertComponent('tableexample')">Table Example</button>
+            </div>
+
+            <div class="category">
+                <h3>Miscellaneous</h3>
+                <button onclick="insertComponent('avatar')">Avatar</button>
+                <button onclick="insertComponent('tag')">Tag</button>
+                <button onclick="insertComponent('icon')">Icon</button>
+                <button onclick="insertComponent('file-thumbnail')">
+                    File Thumbnail
+                </button>
+                <button onclick="insertComponent('file-preview')">
+                    File Preview
+                </button>
+                <button onclick="insertComponent('reference-list')">
+                    Reference List
+                </button>
+                <button onclick="insertComponent('visually-hidden')">
+                    Visually Hidden
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="preview"></div>
+    <button onclick="renderPreview()">Render Preview</button>
+    <button onclick="clearEditor()">Reset</button>
+
+    <script>
+        const components = {
+          button: '<uui-button look="primary">Click me</uui-button>\n',
+          'button-group':
+            '<uui-button-group><uui-button>One</uui-button><uui-button>Two</uui-button></uui-button-group>\n',
+          'action-bar':
+            '<uui-action-bar><uui-button look="primary">Save</uui-button></uui-action-bar>\n',
+          'copy-text': '<uui-copy-text value="Copy this text"></uui-copy-text>\n',
+          input: '<uui-input placeholder="Enter text..."></uui-input>\n',
+          textarea:
+            '<uui-textarea placeholder="Enter multiline text..."></uui-textarea>\n',
+          password:
+            '<uui-password placeholder="Enter password"></uui-password>\n',
+          toggle: '<uui-toggle checked></uui-toggle>\n',
+          radio: '<uui-radio name="group" label="Option A"></uui-radio>\n',
+          checkbox: '<uui-checkbox label="Accept terms"></uui-checkbox>\n',
+          range: '<uui-range min="0" max="100" value="50"></uui-range>\n',
+          slider: '<uui-slider min="0" max="100" value="25"></uui-slider>\n',
+          combobox:
+            '<uui-combobox label="Choose"><uui-combobox-option value="1">One</uui-combobox-option></uui-combobox>\n',
+          select:
+            '<uui-select><option>Option 1</option><option>Option 2</option></uui-select>\n',
+          'color-picker':
+            '<uui-color-picker value="#ff0000"></uui-color-picker>\n',
+          'file-dropzone': '<uui-file-dropzone></uui-file-dropzone>\n',
+          pagination:
+            '<uui-pagination total="10" current="1"></uui-pagination>\n',
+          breadcrumb:
+            '<uui-breadcrumb><uui-breadcrumb-item href="#">Home</uui-breadcrumb-item></uui-breadcrumb>\n',
+          'menu-item': '<uui-menu-item label="Menu Item"></uui-menu-item>\n',
+          tabs: '<uui-tab-group><uui-tab id="tab1" slot="tab">Tab 1</uui-tab><uui-tab-panel id="tab1-panel" slot="tabpanel">Content</uui-tab-panel></uui-tab-group>\n',
+          toast:
+            '<uui-toast-notification color="positive" open><uui-toast-notification-layout headline="Success!">Done</uui-toast-notification-layout></uui-toast-notification>\n',
+          badge: '<uui-badge color="positive">New</uui-badge>\n',
+          'progress-bar': '<uui-progress-bar value="70"></uui-progress-bar>\n',
+          'loader-bar': '<uui-loader-bar></uui-loader-bar>\n',
+          'loader-circle': '<uui-loader-circle></uui-loader-circle>\n',
+          box: '<uui-box headline="Box Title">Content inside box</uui-box>\n',
+          card: '<uui-card headline="Card Title">Card content</uui-card>\n',
+          dialog:
+            '<uui-dialog open><uui-dialog-layout headline="Dialog">Dialog content</uui-dialog-layout></uui-dialog>\n',
+          modal:
+            '<uui-modal open><uui-modal-dialog headline="Modal"><p>Modal content</p></uui-modal-dialog></uui-modal>\n',
+          popover:
+            '<uui-popover open><uui-popover-layout headline="Popover">Popover content</uui-popover-layout></uui-popover>\n',
+          'scroll-container':
+            '<uui-scroll-container style="height:100px;overflow:auto;">Long content</uui-scroll-container>\n',
+          table:
+            '<uui-table></uui-table>\n',
+          tablehead:
+            '<uui-table-head></uui-table-head>\n',
+          tableheadcell:
+            '<uui-table-head-cell></uui-table-head-cell>\n',
+          tablecolumn:
+            '<uui-table-column>Header</uui-table-column>\n',
+          tablerow:
+            '<uui-table-row></uui-table-row>\n',
+          tablecell:
+            '<uui-table-cell>Cell</uui-table-cell>\n',
+          tableexample:
+            '<uui-box style="--uui-box-default-padding: 0;"><uui-table><uui-table-head><uui-table-head-cell>The Friendly CMS</uui-table-head-cell><uui-table-head-cell>IUrlProvider</uui-table-head-cell><uui-table-head-cell>Hijacked Route</uui-table-head-cell><uui-table-head-cell>TLA (Three Letter Acronym)</uui-table-head-cell><uui-table-head-cell>Package Manifest Podcast</uui-table-head-cell><uui-table-head-cell>Surface Controller</uui-table-head-cell><uui-table-head-cell>Community Teams</uui-table-head-cell></uui-table-head><uui-table-row><uui-table-cell>TLA (Three Letter Acronym)</uui-table-cell><uui-table-cell>ContentService</uui-table-cell><uui-table-cell>IPublishedContent</uui-table-cell><uui-table-cell>Super Tak</uui-table-cell><uui-table-cell>Block List Editor</uui-table-cell><uui-table-cell>Skrift.io</uui-table-cell><uui-table-cell>Super Tak</uui-table-cell></uui-table-row><uui-table-row><uui-table-cell>Documentation</uui-table-cell><uui-table-cell>Blazor</uui-table-cell><uui-table-cell>Angular</uui-table-cell><uui-table-cell>Long term support</uui-table-cell><uui-table-cell>Starter Kits</uui-table-cell><uui-table-cell>Blazor</uui-table-cell><uui-table-cell>Swag Store</uui-table-cell></uui-table-row></uui-table></uui-box>\n',
+          avatar: '<uui-avatar name="Jane Doe"></uui-avatar>\n',
+          tag: '<uui-tag color="positive">Tag</uui-tag>\n',
+          icon: '<uui-icon name="umb:check"></uui-icon>\n',
+          'file-thumbnail':
+            '<uui-file-thumbnail name="file.txt"></uui-file-thumbnail>\n',
+          'file-preview':
+            '<uui-file-preview name="file.txt"></uui-file-preview>\n',
+          'reference-list':
+            '<uui-reference-list><uui-reference-list-item name="Item"></uui-reference-list-item></uui-reference-list>\n',
+          'visually-hidden':
+            '<uui-visually-hidden>This is hidden</uui-visually-hidden>\n',
+        };
+
+        const editor = CodeMirror(document.getElementById('editor'), {
+          mode: 'htmlmixed',
+          lineNumbers: true,
+          value: '',
+        });
+
+        editor.getWrapperElement().addEventListener('dblclick', () => {
+          editor.execCommand('selectAll');
+        });
+
+        function insertComponent(type) {
+          const doc = editor.getDoc();
+          const selection = doc.getSelection();
+          const componentHTML = components[type];
+          if (selection) {
+            doc.replaceSelection(componentHTML);
+          } else {
+            const cursor = doc.getCursor();
+            doc.replaceRange(componentHTML, cursor);
+          }
+
+          renderPreview();
+        }
+
+        function renderPreview() {
+          const html = editor.getValue();
+          document.getElementById('preview').innerHTML = html;
+        }
+
+        function clearEditor() {
+            location.reload(true);
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@@umbraco-ui/uui@latest/dist/uui.min.js"></script>
+</body>
+</html>
