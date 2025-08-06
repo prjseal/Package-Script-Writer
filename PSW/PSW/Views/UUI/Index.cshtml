@@ -69,6 +69,7 @@
             <div class="category">
                 <h3>Buttons</h3>
                 <button onclick="insertComponent('button')">Button</button>
+                <button onclick="insertComponent('buttonexamples')">Button Examples</button>
                 <button onclick="insertComponent('button-group')">
                     Button Group
                 </button>
@@ -83,6 +84,7 @@
                 <button onclick="insertComponent('password')">Password</button>
                 <button onclick="insertComponent('toggle')">Toggle</button>
                 <button onclick="insertComponent('radio')">Radio</button>
+                <button onclick="insertComponent('radiogroupexample')">Radio Group</button>
                 <button onclick="insertComponent('checkbox')">Checkbox</button>
                 <button onclick="insertComponent('range')">Range</button>
                 <button onclick="insertComponent('slider')">Slider</button>
@@ -164,6 +166,7 @@
     <script>
         const components = {
           button: '<uui-button look="primary">Click me</uui-button>\n',
+                buttonexamples: '<h5>Default</h5>\n<uui-button pristine="" label="Default" look="default" color="default"></uui-button>\n<uui-button pristine="" label="Primary" look="primary" color="default"></uui-button>\n<uui-button pristine="" label="Secondary" look="secondary" color="default"></uui-button>\n<uui-button pristine="" label="Outline" look="outline" color="default"></uui-button>\n <uui-button pristine="" label="Placeholder" look="placeholder" color="default"></uui-button>\n<h5>Positive</h5><uui-button pristine="" label="Default" look="default" color="positive"></uui-button>\n <uui-button pristine="" label="Primary" look="primary" color="positive"></uui-button>\n <uui-button pristine="" label="Secondary" look="secondary" color="positive"></uui-button>\n <uui-button pristine="" label="Outline" look="outline" color="positive"></uui-button>\n <uui-button pristine="" label="Placeholder" look="placeholder" color="positive"></uui-button>\n<h5>Warning</h5><uui-button pristine="" label="Default" look="default" color="warning"></uui-button>\n <uui-button pristine="" label="Primary" look="primary" color="warning"></uui-button>\n <uui-button pristine="" label="Secondary" look="secondary" color="warning"></uui-button>\n <uui-button pristine="" label="Outline" look="outline" color="warning"></uui-button>\n <uui-button pristine="" label="Placeholder" look="placeholder" color="warning"></uui-button>\n<h5>Danger</h5><uui-button pristine="" label="Default" look="default" color="danger"></uui-button>\n <uui-button pristine="" label="Primary" look="primary" color="danger"></uui-button>\n <uui-button pristine="" label="Secondary" look="secondary" color="danger"></uui-button>\n <uui-button pristine="" label="Outline" look="outline" color="danger"></uui-button>\n <uui-button pristine="" label="Placeholder" look="placeholder" color="danger"></uui-button>\n<h5>Invalid</h5><uui-button pristine="" label="Default" look="default" color="invalid"></uui-button>\n <uui-button pristine="" label="Primary" look="primary" color="invalid"></uui-button>\n <uui-button pristine="" label="Secondary" look="secondary" color="invalid"></uui-button>\n <uui-button pristine="" label="Outline" look="outline" color="invalid"></uui-button>\n <uui-button pristine="" label="Placeholder" look="placeholder" color="invalid"></uui-button>\n',
           'button-group':
             '<uui-button-group><uui-button>One</uui-button><uui-button>Two</uui-button></uui-button-group>\n',
           'action-bar':
@@ -176,6 +179,7 @@
             '<uui-password placeholder="Enter password"></uui-password>\n',
           toggle: '<uui-toggle checked></uui-toggle>\n',
           radio: '<uui-radio name="group" label="Option A"></uui-radio>\n',
+          radiogroupexample: '<uui-radio-group value="3" pristine="">\n<uui-radio value="1">one</uui-radio>\n<uui-radio value="2">two</uui-radio>\n<uui-radio value="3">three</uui-radio>\n<uui-radio value="4">four</uui-radio>\n</uui-radio-group>\n',
           checkbox: '<uui-checkbox label="Accept terms"></uui-checkbox>\n',
           range: '<uui-range min="0" max="100" value="50"></uui-range>\n',
           slider: '<uui-slider min="0" max="100" value="25"></uui-slider>\n',
@@ -232,7 +236,7 @@
           'reference-list':
             '<uui-reference-list><uui-reference-list-item name="Item"></uui-reference-list-item></uui-reference-list>\n',
           'visually-hidden':
-            '<uui-visually-hidden>This is hidden</uui-visually-hidden>\n',
+            '<uui-visually-hidden>This is hidden</uui-visually-hidden>\n'
         };
 
         const editor = CodeMirror(document.getElementById('editor'), {
