@@ -112,23 +112,69 @@ jobs:
                           exit 1
                       }
 
-                      # Wait a bit longer to ensure site is fully ready to accept connections
-                      Write-Host "Waiting additional 10 seconds for site to be fully ready..." -ForegroundColor Yellow
-                      Start-Sleep -Seconds 10
+                      # Wait and verify site is actually accepting connections
+                      Write-Host "Verifying site is accepting connections..." -ForegroundColor Yellow
+                      $verifyAttempts = 0
+                      $maxVerifyAttempts = 15
+                      $connectionSuccess = $false
 
-                      # Verify process is still running after wait
-                      if ($process.HasExited) {
-                          Write-Host "ERROR: Site process exited during startup!" -ForegroundColor Red
-                          Write-Host "Exit code: $($process.ExitCode)" -ForegroundColor Red
-                          Write-Host "`nStdout log:" -ForegroundColor Yellow
+                      while ($verifyAttempts -lt $maxVerifyAttempts -and -not $connectionSuccess) {
+                          Start-Sleep -Seconds 2
+                          $verifyAttempts++
+
+                          # Check process hasn't exited
+                          if ($process.HasExited) {
+                              Write-Host "ERROR: Site process exited during startup!" -ForegroundColor Red
+                              Write-Host "Exit code: $($process.ExitCode)" -ForegroundColor Red
+                              Write-Host "`nStdout log:" -ForegroundColor Yellow
+                              Get-Content $logFile -ErrorAction SilentlyContinue
+                              Write-Host "`nStderr log:" -ForegroundColor Yellow
+                              Get-Content $errFile -ErrorAction SilentlyContinue
+                              exit 1
+                          }
+
+                          # Try to connect using Test-NetConnection (more reliable than web request)
+                          try {
+                              $uri = [System.Uri]$siteUrl
+                              $port = $uri.Port
+                              $host = $uri.Host
+
+                              Write-Host "Attempt $verifyAttempts/$maxVerifyAttempts - Testing connection to ${host}:${port}..." -ForegroundColor Yellow
+
+                              # Use .NET TcpClient for connection test (works better in CI)
+                              $tcpClient = New-Object System.Net.Sockets.TcpClient
+                              $tcpClient.ReceiveTimeout = 2000
+                              $tcpClient.SendTimeout = 2000
+                              $asyncResult = $tcpClient.BeginConnect($host, $port, $null, $null)
+                              $waitHandle = $asyncResult.AsyncWaitHandle
+
+                              if ($waitHandle.WaitOne(2000)) {
+                                  $tcpClient.EndConnect($asyncResult)
+                                  $connectionSuccess = $true
+                                  Write-Host "Connection successful!" -ForegroundColor Green
+                              } else {
+                                  Write-Host "Connection timeout, retrying..." -ForegroundColor Yellow
+                              }
+                              $tcpClient.Close()
+                          } catch {
+                              Write-Host "Connection failed: $($_.Exception.Message), retrying..." -ForegroundColor Yellow
+                          }
+                      }
+
+                      if (-not $connectionSuccess) {
+                          Write-Host "ERROR: Could not establish connection to site after $maxVerifyAttempts attempts!" -ForegroundColor Red
+                          Write-Host "`nFinal log output:" -ForegroundColor Yellow
                           Get-Content $logFile -ErrorAction SilentlyContinue
-                          Write-Host "`nStderr log:" -ForegroundColor Yellow
+                          Write-Host "`nError output:" -ForegroundColor Yellow
                           Get-Content $errFile -ErrorAction SilentlyContinue
+                          if (-not $process.HasExited) {
+                              Stop-Process -Id $process.Id -Force
+                          }
                           exit 1
                       }
 
                       $siteStarted = $true
-                      Write-Host "Site is ready at: $siteUrl" -ForegroundColor Green
+                      Write-Host "Site is ready and accepting connections at: $siteUrl" -ForegroundColor Green
 
                       # Store the URL for later steps
                       $siteUrl | Out-File -FilePath "site-url.txt"
