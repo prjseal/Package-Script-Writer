@@ -27,7 +27,7 @@ All services follow SOLID principles with clear separation of concerns and inter
 
 ## ScriptGeneratorService
 
-**File**: `PSW/PSW/Services/ScriptGeneratorService.cs`
+**File**: `src/PSW/Services/ScriptGeneratorService.cs`
 
 **Purpose**: Generates shell scripts for Umbraco project installation based on user selections.
 
@@ -271,7 +271,7 @@ dotnet new umbraco-compose -P "MyProject"
 
 ## MarketplacePackageService
 
-**File**: `PSW/PSW/Services/MarketplacePackageService.cs`
+**File**: `src/PSW/Services/MarketplacePackageService.cs`
 
 **Purpose**: Fetches package data from Umbraco Marketplace and NuGet.org with caching.
 
@@ -391,7 +391,7 @@ public async Task<List<string>> GetNugetPackageVersions(
 
 ## QueryStringService
 
-**File**: `PSW/PSW/Services/QueryStringService.cs`
+**File**: `src/PSW/Services/QueryStringService.cs`
 
 **Purpose**: Handles bidirectional conversion between URL query strings and view models.
 
@@ -467,7 +467,7 @@ https://psw.codeshare.co.uk?TemplateName=Umbraco.Templates&TemplateVersion=14.3.
 
 ## UmbracoVersionService
 
-**File**: `PSW/PSW/Services/UmbracoVersionService.cs`
+**File**: `src/PSW/Services/UmbracoVersionService.cs`
 
 **Purpose**: Manages Umbraco version lifecycle data and determines LTS/STS status.
 
@@ -529,7 +529,7 @@ public VersionStatus GetVersionStatus(string version, PSWConfig config)
 
 ## Service Registration
 
-**File**: `PSW/PSW/Program.cs`
+**File**: `src/PSW/Program.cs`
 
 Services are registered in the dependency injection container with **Scoped** lifetime:
 

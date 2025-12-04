@@ -2,15 +2,15 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/PSW/PSW/bin
-/PSW/.vs/PSW/v17
-/PSW/PSW/obj
+/src/PSW/bin
+/src/.vs/PSW/v17
+/src/PSW/obj
 *.user
-/PSW/.vs/PSW
-/PSW/PSW/Properties/PublishProfiles/psw.codeshare.co.uk - Web Deploy.pubxml
-/PSW/PSW/Properties/PublishProfiles/psw.codeshare.co.uk - Web Deploy.pubxml.user
+/src/.vs/PSW
+/src/PSW/Properties/PublishProfiles/psw.codeshare.co.uk - Web Deploy.pubxml
+/src/PSW/Properties/PublishProfiles/psw.codeshare.co.uk - Web Deploy.pubxml.user
 /.vs
-/PSW/.vs/ProjectEvaluation
+/src/.vs/ProjectEvaluation
 
 # JetBrains Rider IDE
 *.sln.iml

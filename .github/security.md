@@ -383,7 +383,7 @@ dotnet add package <PackageName> --version <NewVersion>
 version: 2
 updates:
   - package-ecosystem: "nuget"
-    directory: "/PSW/PSW"
+    directory: "/src/PSW"
     schedule:
       interval: "weekly"
 ```

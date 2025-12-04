@@ -75,7 +75,7 @@ git clone https://github.com/prjseal/Package-Script-Writer.git
 cd Package-Script-Writer
 
 # Run the application
-dotnet watch run --project ./PSW/PSW/
+dotnet watch run --project ./src/PSW/
 
 # Open browser to https://localhost:5001
 ```
@@ -135,13 +135,13 @@ We welcome contributions! Here's how to get started:
 
 ```bash
 # Run with hot reload
-dotnet watch run --project ./PSW/PSW/
+dotnet watch run --project ./src/PSW/
 
 # Build for production
-dotnet publish ./PSW/PSW/PSW.csproj -c Release -o ./publish
+dotnet publish ./src/PSW/PSW.csproj -c Release -o ./publish
 
 # Format code
-dotnet format ./PSW/PSW/PSW.csproj
+dotnet format ./src/PSW/PSW.csproj
 ```
 
 ---
@@ -154,7 +154,7 @@ The repository includes a `Api Request/API Testing.http` file for testing with t
 
 ```bash
 # Start the application
-dotnet watch run --project ./PSW/PSW/
+dotnet watch run --project ./src/PSW/
 
 # Open Api Request/API Testing.http in VS Code
 # Click "Send Request" above each endpoint
@@ -168,7 +168,7 @@ dotnet watch run --project ./PSW/PSW/
 
 ```
 Package-Script-Writer/
-├── PSW/PSW/                    # Main application
+├── src/PSW/                    # Main application
 │   ├── Components/            # View Components
 │   ├── Controllers/           # MVC & API Controllers
 │   ├── Services/              # Business logic

@@ -97,7 +97,7 @@ cd Package-Script-Writer
 ### 2. Restore Dependencies
 
 ```bash
-cd PSW/PSW
+cd src/PSW
 dotnet restore
 ```
 
@@ -113,13 +113,13 @@ Restore completed in 2.5 sec for Package-Script-Writer.csproj
 #### Option A: Using dotnet CLI
 
 ```bash
-dotnet run --project ./PSW/PSW/PSW.csproj
+dotnet run --project ./src/PSW/PSW.csproj
 ```
 
 #### Option B: Using dotnet watch (recommended for development)
 
 ```bash
-dotnet watch run --project ./PSW/PSW/PSW.csproj
+dotnet watch run --project ./src/PSW/PSW.csproj
 ```
 
 **Benefits of `dotnet watch`**:
@@ -152,7 +152,7 @@ info: Microsoft.Hosting.Lifetime[0]
 ### Project Structure
 
 ```
-PSW/PSW/
+src/PSW/
 ├── Components/          # View Components
 ├── Controllers/         # MVC & API Controllers
 ├── Models/             # Data models
@@ -228,7 +228,7 @@ Content-Type: application/json
 GET https://localhost:5001/api/scriptgeneratorapi/clearcache
 ```
 
-3. Run application: `dotnet watch run --project ./PSW/PSW/`
+3. Run application: `dotnet watch run --project ./src/PSW/`
 4. Click "Send Request" in VS Code
 
 ---
@@ -357,7 +357,7 @@ dotnet test
 ### Development Build
 
 ```bash
-dotnet build ./PSW/PSW/PSW.csproj
+dotnet build ./src/PSW/PSW.csproj
 ```
 
 **Output**: `bin/Debug/net9.0/`
@@ -367,7 +367,7 @@ dotnet build ./PSW/PSW/PSW.csproj
 ### Production Build
 
 ```bash
-dotnet publish ./PSW/PSW/PSW.csproj -c Release -o ./publish
+dotnet publish ./src/PSW/PSW.csproj -c Release -o ./publish
 ```
 
 **Output**: `./publish/` (ready for deployment)
@@ -392,10 +392,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY ["PSW/PSW/PSW.csproj", "PSW/PSW/"]
-RUN dotnet restore "PSW/PSW/PSW.csproj"
+COPY ["src/PSW/PSW.csproj", "src/PSW/"]
+RUN dotnet restore "src/PSW/PSW.csproj"
 COPY . .
-WORKDIR "/src/PSW/PSW"
+WORKDIR "/src/src/PSW"
 RUN dotnet build "PSW.csproj" -c Release -o /app/build
 
 FROM build AS publish
@@ -463,7 +463,7 @@ az webapp deployment source config --name psw --resource-group myResourceGroup -
 
 **Manual Format**:
 ```bash
-dotnet format ./PSW/PSW/PSW.csproj
+dotnet format ./src/PSW/PSW.csproj
 ```
 
 ---

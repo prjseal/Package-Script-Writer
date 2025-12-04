@@ -193,7 +193,7 @@ git clone https://github.com/prjseal/Package-Script-Writer.git
 cd Package-Script-Writer
 
 # Run application
-dotnet watch run --project ./PSW/PSW/
+dotnet watch run --project ./src/PSW/
 
 # Access at https://localhost:5001
 ```
