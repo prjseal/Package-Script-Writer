@@ -116,7 +116,7 @@ All services are registered with **Scoped** lifetime in the DI container.
 ## Project Structure
 
 ```
-PSW/PSW/
+src/PSW/
 ├── Components/              # View Components (10+ files)
 │   ├── AboutViewComponent.cs
 │   ├── InstallScriptViewComponent.cs

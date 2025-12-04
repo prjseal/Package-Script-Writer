@@ -20,7 +20,7 @@ The application uses strongly-typed models for all data transfer:
 - **API Models**: Request/response DTOs for external APIs
 - **Configuration Models**: Application settings from `appsettings.json`
 
-**Location**: `PSW/PSW/Models/`
+**Location**: `src/PSW/Models/`
 
 ---
 
