@@ -49,7 +49,8 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Installing Playwright..." -ForegroundColor Cyan
-          npm install -g playwright
+          npm init -y
+          npm install --save-dev playwright
           npx playwright install chromium
 
       - name: Start website
