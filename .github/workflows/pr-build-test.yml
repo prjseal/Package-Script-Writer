@@ -63,7 +63,7 @@ jobs:
           $errFile = "site.err"
 
           $process = Start-Process -FilePath "dotnet" `
-            -ArgumentList "run --project ./src/PSW/PSW.csproj --no-build --configuration Release" `
+            -ArgumentList "run --project ./src/PSW/PSW.csproj" `
             -RedirectStandardOutput $logFile `
             -RedirectStandardError $errFile `
             -NoNewWindow `
