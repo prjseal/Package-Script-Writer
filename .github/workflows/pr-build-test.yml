@@ -56,7 +56,6 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Starting website in background..." -ForegroundColor Cyan
-          $env:ASPNETCORE_URLS = "http://localhost:5000"
           $env:ASPNETCORE_ENVIRONMENT = "Development"
           $process = Start-Process -FilePath "dotnet" -ArgumentList "run --project ./src/PSW/PSW.csproj --no-build --configuration Release" -PassThru -NoNewWindow
           Write-Host "Website started with process ID: $($process.Id)" -ForegroundColor Green
@@ -73,7 +72,7 @@ jobs:
           while ($attempt -lt $maxAttempts -and -not $siteReady) {
               Start-Sleep -Seconds 2
               try {
-                  $response = Invoke-WebRequest -Uri "http://localhost:5000" -UseBasicParsing -TimeoutSec 5
+                  $response = Invoke-WebRequest -Uri "https://localhost:7192" -UseBasicParsing -TimeoutSec 5 -SkipCertificateCheck
                   if ($response.StatusCode -eq 200) {
                       $siteReady = $true
                       Write-Host "Site is ready!" -ForegroundColor Green
@@ -100,7 +99,7 @@ jobs:
       - name: Run Playwright tests
         shell: pwsh
         env:
-          SITE_URL: http://localhost:5000
+          SITE_URL: https://localhost:7192
         run: |
           Write-Host "Running Playwright tests..." -ForegroundColor Cyan
           node test-site.js
