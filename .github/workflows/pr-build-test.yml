@@ -76,7 +76,7 @@ jobs:
 
           # Wait for site to start and extract URL from log
           $startTime = Get-Date
-          $timeoutSeconds = 120
+          $timeoutSeconds = 180
           $siteStarted = $false
           $siteUrl = $null
 
@@ -113,8 +113,8 @@ jobs:
                       }
 
                       # Wait a bit longer to ensure site is fully ready to accept connections
-                      Write-Host "Waiting additional 5 seconds for site to be fully ready..." -ForegroundColor Yellow
-                      Start-Sleep -Seconds 5
+                      Write-Host "Waiting additional 10 seconds for site to be fully ready..." -ForegroundColor Yellow
+                      Start-Sleep -Seconds 10
 
                       # Verify process is still running after wait
                       if ($process.HasExited) {
@@ -151,6 +151,11 @@ jobs:
           Write-Host "Running Playwright tests..." -ForegroundColor Cyan
           $siteUrl = Get-Content "site-url.txt"
           Write-Host "Testing site at: $siteUrl" -ForegroundColor Cyan
+
+          # Display recent log output before running tests
+          Write-Host "`nRecent site log output:" -ForegroundColor Yellow
+          Get-Content "site.log" -Tail 20 -ErrorAction SilentlyContinue
+
           $env:SITE_URL = $siteUrl
           node test-site.js
 
