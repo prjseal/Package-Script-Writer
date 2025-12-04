@@ -99,8 +99,36 @@ jobs:
                   # Check if site is listening on HTTPS
                   if ($logContent -match "Now listening on:\s*(https://[^\s]+)") {
                       $siteUrl = $matches[1]
+                      Write-Host "Site detected at: $siteUrl" -ForegroundColor Yellow
+
+                      # Check if process is still running
+                      if ($process.HasExited) {
+                          Write-Host "ERROR: Site process has exited!" -ForegroundColor Red
+                          Write-Host "Exit code: $($process.ExitCode)" -ForegroundColor Red
+                          Write-Host "`nStdout log:" -ForegroundColor Yellow
+                          Get-Content $logFile -ErrorAction SilentlyContinue
+                          Write-Host "`nStderr log:" -ForegroundColor Yellow
+                          Get-Content $errFile -ErrorAction SilentlyContinue
+                          exit 1
+                      }
+
+                      # Wait a bit longer to ensure site is fully ready to accept connections
+                      Write-Host "Waiting additional 5 seconds for site to be fully ready..." -ForegroundColor Yellow
+                      Start-Sleep -Seconds 5
+
+                      # Verify process is still running after wait
+                      if ($process.HasExited) {
+                          Write-Host "ERROR: Site process exited during startup!" -ForegroundColor Red
+                          Write-Host "Exit code: $($process.ExitCode)" -ForegroundColor Red
+                          Write-Host "`nStdout log:" -ForegroundColor Yellow
+                          Get-Content $logFile -ErrorAction SilentlyContinue
+                          Write-Host "`nStderr log:" -ForegroundColor Yellow
+                          Get-Content $errFile -ErrorAction SilentlyContinue
+                          exit 1
+                      }
+
                       $siteStarted = $true
-                      Write-Host "Site is running at: $siteUrl" -ForegroundColor Green
+                      Write-Host "Site is ready at: $siteUrl" -ForegroundColor Green
 
                       # Store the URL for later steps
                       $siteUrl | Out-File -FilePath "site-url.txt"
