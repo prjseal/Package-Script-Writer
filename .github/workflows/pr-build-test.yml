@@ -1,0 +1,158 @@
+name: PR - Build and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Clean solution
+        shell: pwsh
+        run: |
+          Write-Host "Cleaning solution..." -ForegroundColor Cyan
+          dotnet clean ./src/PSW.sln --configuration Release
+
+      - name: Restore dependencies
+        shell: pwsh
+        run: |
+          Write-Host "Restoring dependencies..." -ForegroundColor Cyan
+          dotnet restore ./src/PSW.sln
+
+      - name: Build solution
+        shell: pwsh
+        run: |
+          Write-Host "Building solution..." -ForegroundColor Cyan
+          dotnet build ./src/PSW.sln --configuration Release --no-restore
+
+      - name: Install Playwright
+        shell: pwsh
+        run: |
+          Write-Host "Installing Playwright..." -ForegroundColor Cyan
+          npm install -g playwright
+          npx playwright install chromium
+
+      - name: Start website
+        shell: pwsh
+        run: |
+          Write-Host "Starting website in background..." -ForegroundColor Cyan
+          $env:ASPNETCORE_ENVIRONMENT = "Development"
+
+          $logFile = "site.log"
+          $errFile = "site.err"
+
+          $process = Start-Process -FilePath "dotnet" `
+            -ArgumentList "run --project ./src/PSW/PSW.csproj --no-build --configuration Release" `
+            -RedirectStandardOutput $logFile `
+            -RedirectStandardError $errFile `
+            -NoNewWindow `
+            -PassThru
+
+          Write-Host "Site process started with PID: $($process.Id)" -ForegroundColor Green
+
+          # Store process ID for cleanup
+          $process.Id | Out-File -FilePath "site-process-id.txt"
+
+          # Wait for site to start and extract URL from log
+          $startTime = Get-Date
+          $timeoutSeconds = 120
+          $siteStarted = $false
+          $siteUrl = $null
+
+          Write-Host "Waiting for site to start (timeout: ${timeoutSeconds}s)..." -ForegroundColor Yellow
+
+          while (-not $siteStarted) {
+              if ((Get-Date) - $startTime -gt (New-TimeSpan -Seconds $timeoutSeconds)) {
+                  Write-Host "Timeout reached! Site failed to start." -ForegroundColor Red
+                  if (-not $process.HasExited) {
+                      Stop-Process -Id $process.Id -Force
+                  }
+                  Get-Content $logFile -ErrorAction SilentlyContinue
+                  Get-Content $errFile -ErrorAction SilentlyContinue
+                  exit 1
+              }
+
+              if (Test-Path $logFile) {
+                  $logContent = Get-Content $logFile -Raw
+
+                  # Check if site is listening on HTTPS
+                  if ($logContent -match "Now listening on:\s*(https://[^\s]+)") {
+                      $siteUrl = $matches[1]
+                      $siteStarted = $true
+                      Write-Host "Site is running at: $siteUrl" -ForegroundColor Green
+
+                      # Store the URL for later steps
+                      $siteUrl | Out-File -FilePath "site-url.txt"
+                      break
+                  }
+              }
+
+              Start-Sleep -Seconds 2
+          }
+
+      - name: Generate Playwright test script
+        shell: pwsh
+        run: |
+          Write-Host "Generating Playwright test script..." -ForegroundColor Cyan
+          ./.github/workflows/powershell/Write-PlaywrightTestScript.ps1 -OutputPath "test-site.js"
+
+      - name: Run Playwright tests
+        shell: pwsh
+        run: |
+          Write-Host "Running Playwright tests..." -ForegroundColor Cyan
+          $siteUrl = Get-Content "site-url.txt"
+          Write-Host "Testing site at: $siteUrl" -ForegroundColor Cyan
+          $env:SITE_URL = $siteUrl
+          node test-site.js
+
+      - name: Upload Screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-test-screenshots-${{ github.event.pull_request.number }}
+          path: screenshots/*.png
+          if-no-files-found: warn
+
+      - name: Stop website
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "Stopping website..." -ForegroundColor Cyan
+          if (Test-Path "site-process-id.txt") {
+              $processId = Get-Content "site-process-id.txt"
+              Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue
+              Write-Host "Website process stopped" -ForegroundColor Green
+          }
+
+      - name: Build Summary
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host "================================================" -ForegroundColor Cyan
+          Write-Host "Build and Test Summary" -ForegroundColor Cyan
+          Write-Host "================================================" -ForegroundColor Cyan
+          Write-Host "PR Number: ${{ github.event.pull_request.number }}" -ForegroundColor White
+          Write-Host "Branch: ${{ github.head_ref }}" -ForegroundColor White
+          Write-Host "Actor: ${{ github.actor }}" -ForegroundColor White
+          Write-Host "Repository: ${{ github.repository }}" -ForegroundColor White
+          Write-Host "================================================" -ForegroundColor Cyan
