@@ -1,31 +1,275 @@
-# Package-Script-Writer
+# Package Script Writer
 
-This is the code repository for the Package Script Writer website. 
+<div align="center">
 
-[https://psw.codeshare.co.uk](https://psw.codeshare.co.uk/)
+[![Live Site](https://img.shields.io/badge/Live-psw.codeshare.co.uk-blue?style=for-the-badge)](https://psw.codeshare.co.uk)
+[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
-The site is built in ASP.NET Core 6.
+**Generate customized installation scripts for Umbraco CMS projects**
 
-There is no database so it is very easy to get up and running. 
+[Live Demo](https://psw.codeshare.co.uk) · [Documentation](.github/documentation.md) · [Report Bug](https://github.com/prjseal/Package-Script-Writer/issues) · [Request Feature](https://github.com/prjseal/Package-Script-Writer/issues)
 
-You need to have the .NET 6 SDK installed first.
+</div>
 
-## How to contribute
+---
 
-The process to follow when contributing is to:
+## 🎯 What is Package Script Writer?
 
-1. Raise an issue if there isn’t one already. This can be for a bug or a feature. Give a detailed description about the problem, what were you expecting and what actually happened etc.
-2. We can discuss new features in the issue to make sure that your PR is something I want to include on the site before you go and spend a long time working on a PR that might not get merged in.
-3. Fork the repository in your own GitHub account.
-4. Work on the code in a branch on your fork.
-5. Push your changes in your branch up to your repository.
-6. Create a PR back to the main repository that shows what the problem was, how you fixed it and what happens now.
-7. Hopefully I will be able to review the PR, test it out, and all being well, merge it in.
+Package Script Writer is a web-based tool that helps Umbraco developers quickly generate installation scripts for new projects. Simply select your template, choose packages, configure your settings, and get a ready-to-run script!
 
-## Testing the API
+**Perfect for**:
+- 🚀 Quick project setup
+- 👥 Team onboarding
+- 📚 Training and tutorials
+- 🔄 Consistent project configurations
 
-To test the api, there is a self-documenting script which relies on the [Rest Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) VSCode Extension, or you can use POSTMan. You will need to use VS Code, and run the site using the following
+---
 
-    dotnet watch run --project .\PSW\PSW\
+## ✨ Features
 
-And then opening the file Api Request/API Testing.http file
+- **Template Selection** - Choose from Umbraco official templates and community packages
+- **Package Browser** - Browse 150+ packages from the Umbraco Marketplace
+- **Version Control** - Select specific package versions or use latest
+- **Unattended Install** - Pre-configure database and admin credentials
+- **Docker Support** - Optional Dockerfile and Docker Compose generation
+- **Shareable URLs** - All configuration encoded in the URL for easy sharing
+- **Multiple Formats** - Generate multi-line scripts or one-liners
+- **Syntax Highlighting** - Clean, readable output with syntax highlighting
+
+---
+
+## 🚀 Quick Start
+
+### For Users
+
+1. Visit **[psw.codeshare.co.uk](https://psw.codeshare.co.uk)**
+2. Select your Umbraco template and version
+3. Choose any packages you want to include
+4. Configure your project settings
+5. Click "Generate" and copy your script!
+
+**Example Output**:
+```bash
+# Ensure we have the version specific Umbraco templates
+dotnet new install Umbraco.Templates::14.3.0 --force
+
+# Create solution/project
+dotnet new sln --name "MySolution"
+dotnet new umbraco --force -n "MyProject" --development-database-type SQLite
+dotnet sln add "MyProject"
+
+#Add Packages
+dotnet add "MyProject" package Umbraco.Community.BlockPreview --version 1.6.0
+
+dotnet run --project "MyProject"
+```
+
+### For Developers
+
+**Prerequisites**: [.NET 9.0 SDK](https://dotnet.microsoft.com/download)
+
+```bash
+# Clone the repository
+git clone https://github.com/prjseal/Package-Script-Writer.git
+cd Package-Script-Writer
+
+# Run the application
+dotnet watch run --project ./PSW/PSW/
+
+# Open browser to https://localhost:5001
+```
+
+That's it! No database setup required - the application is completely stateless.
+
+---
+
+## 📖 Documentation
+
+Comprehensive documentation is available in the [`.github/`](.github/) directory:
+
+| Document | Description |
+|----------|-------------|
+| **[Documentation Index](.github/documentation.md)** | Main documentation hub with overview |
+| [Architecture](.github/architecture.md) | System architecture and design patterns |
+| [Process Flows](.github/process-flows.md) | Visual diagrams of all processes |
+| [Services](.github/services.md) | Business logic layer documentation |
+| [API Reference](.github/api-reference.md) | Complete REST API documentation |
+| [Frontend](.github/frontend.md) | JavaScript and UI architecture |
+| [Data Models](.github/data-models.md) | All data structures and models |
+| [Configuration](.github/configuration.md) | Settings and configuration guide |
+| [Security](.github/security.md) | Security measures and best practices |
+| [Development Guide](.github/development-guide.md) | Setup, testing, and contributing |
+
+**Start here**: [📚 Read the Documentation](.github/documentation.md)
+
+---
+
+## 🛠️ Technology Stack
+
+- **Framework**: ASP.NET Core 9.0
+- **Language**: C# 13
+- **Frontend**: Razor Pages + Vanilla JavaScript
+- **UI**: Bootstrap 5
+- **Caching**: In-memory (IMemoryCache)
+- **APIs**: NuGet.org, Umbraco Marketplace
+
+**Why no database?** The application is intentionally stateless for simplicity, security, and easy deployment.
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+1. **Raise an issue** - For bugs or features, create an issue first
+2. **Discuss** - Let's agree on the approach before coding
+3. **Fork & branch** - Fork the repo and create a feature branch
+4. **Code** - Make your changes following our code style
+5. **Test** - Test your changes thoroughly
+6. **Submit PR** - Create a pull request with clear description
+
+**See the [Development Guide](.github/development-guide.md) for detailed contributing instructions.**
+
+### Development Commands
+
+```bash
+# Run with hot reload
+dotnet watch run --project ./PSW/PSW/
+
+# Build for production
+dotnet publish ./PSW/PSW/PSW.csproj -c Release -o ./publish
+
+# Format code
+dotnet format ./PSW/PSW/PSW.csproj
+```
+
+---
+
+## 🧪 Testing
+
+### API Testing
+
+The repository includes a `Api Request/API Testing.http` file for testing with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) VS Code extension.
+
+```bash
+# Start the application
+dotnet watch run --project ./PSW/PSW/
+
+# Open Api Request/API Testing.http in VS Code
+# Click "Send Request" above each endpoint
+```
+
+**See [API Reference](.github/api-reference.md) for complete endpoint documentation.**
+
+---
+
+## 📦 Project Structure
+
+```
+Package-Script-Writer/
+├── PSW/PSW/                    # Main application
+│   ├── Components/            # View Components
+│   ├── Controllers/           # MVC & API Controllers
+│   ├── Services/              # Business logic
+│   ├── Models/                # Data models
+│   ├── Views/                 # Razor views
+│   └── wwwroot/               # Static files (CSS, JS, images)
+├── .github/                    # Documentation
+└── README.md                   # This file
+```
+
+**See [Architecture](.github/architecture.md) for detailed structure.**
+
+---
+
+## 🔒 Security
+
+The application implements multiple security measures:
+
+- ✅ **Security Headers** - X-Frame-Options, CSP, etc.
+- ✅ **HTTPS/HSTS** - Forced HTTPS connections
+- ✅ **Input Validation** - Client and server-side
+- ✅ **No Data Storage** - Stateless, no user data stored
+- ✅ **Regular Updates** - Dependencies kept current
+
+**See [Security](.github/security.md) for complete security documentation.**
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Port already in use**:
+```bash
+# Run on different port
+dotnet run --urls "https://localhost:5555"
+```
+
+**Certificate errors**:
+```bash
+# Trust development certificate
+dotnet dev-certs https --trust
+```
+
+**Cache issues**:
+```bash
+# Clear cache via API
+curl https://localhost:5001/api/scriptgeneratorapi/clearcache
+```
+
+**See [Development Guide](.github/development-guide.md#troubleshooting) for more solutions.**
+
+---
+
+## 📝 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+
+**Paul Seal**
+
+- Website: [codeshare.co.uk](https://codeshare.co.uk)
+- Twitter: [@codeshare](https://twitter.com/codeshare)
+- GitHub: [@prjseal](https://github.com/prjseal)
+
+---
+
+## 🌟 Acknowledgments
+
+- **Umbraco Community** - For the amazing CMS and package ecosystem
+- **Microsoft** - For ASP.NET Core and .NET
+- **Contributors** - Everyone who has contributed to this project
+
+---
+
+## 📊 Project Stats
+
+![GitHub stars](https://img.shields.io/github/stars/prjseal/Package-Script-Writer?style=social)
+![GitHub forks](https://img.shields.io/github/forks/prjseal/Package-Script-Writer?style=social)
+![GitHub issues](https://img.shields.io/github/issues/prjseal/Package-Script-Writer)
+![GitHub pull requests](https://img.shields.io/github/issues-pr/prjseal/Package-Script-Writer)
+
+---
+
+## 🔗 Useful Links
+
+- **Live Site**: [psw.codeshare.co.uk](https://psw.codeshare.co.uk)
+- **Documentation**: [Technical Documentation](.github/documentation.md)
+- **Issues**: [GitHub Issues](https://github.com/prjseal/Package-Script-Writer/issues)
+- **Umbraco**: [docs.umbraco.com](https://docs.umbraco.com)
+- **Marketplace**: [marketplace.umbraco.com](https://marketplace.umbraco.com)
+
+---
+
+<div align="center">
+
+**⭐ If this project helps you, consider giving it a star! ⭐**
+
+Made with ❤️ for the Umbraco Community
+
+</div>
