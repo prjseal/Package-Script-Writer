@@ -1,0 +1,137 @@
+name: Scheduled - Update NuGet Packages
+
+on:
+  schedule:
+    - cron: '10 8 * * *'
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: 'Run without making changes'
+        required: false
+        default: 'false'
+      includePrerelease:
+        description: 'Include prerelease versions'
+        required: false
+        default: 'false'
+      nugetSources:
+        description: 'Comma-separated custom NuGet source URLs (e.g., "https://www.myget.org/F/umbraco-dev/api/v3/index.json")'
+        required: false
+        default: ''
+
+env:
+  SCHEDULED_INCLUDE_PRERELEASE: 'false'
+
+jobs:
+  update-packages:
+    runs-on: windows-latest
+    if: github.repository == 'prjseal/Package-Script-Writer'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Configure custom NuGet sources
+        if: ${{ github.event.inputs.nugetSources != '' }}
+        shell: pwsh
+        run: |
+          ./.github/workflows/powershell/Configure-CustomNuGetSourcesFromInput.ps1 -SourcesInput '${{ github.event.inputs.nugetSources }}'
+
+      - name: Install GitHub CLI
+        run: |
+          choco install gh -y
+
+      - name: Run UpdateThirdPartyPackages script
+        id: update-packages
+        shell: pwsh
+        run: |
+          $dryRunFlag = if ('${{ github.event.inputs.dryRun }}' -eq 'true') { $true } else { $false }
+          $isScheduled = '${{ github.event_name }}' -eq 'schedule'
+          if ($isScheduled) {
+            $includePrereleaseFlag = if ('${{ env.SCHEDULED_INCLUDE_PRERELEASE }}' -eq 'false') { $false } else { $true }
+            Write-Host "Scheduled run - using SCHEDULED_INCLUDE_PRERELEASE env variable" -ForegroundColor Cyan
+          } else {
+            $includePrereleaseFlag = if ('${{ github.event.inputs.includePrerelease }}' -eq 'false') { $false } else { $true }
+            Write-Host "Manual run - using includePrerelease input" -ForegroundColor Cyan
+          }
+          Write-Host "DryRunFlag = $dryRunFlag"
+          Write-Host "IncludePrereleaseFlag = $includePrereleaseFlag"
+          ./.github/workflows/powershell/UpdateThirdPartyPackages.ps1 `
+            -RootPath "${{ github.workspace }}" `
+            -DryRun:$dryRunFlag `
+            -IncludePrerelease:$includePrereleaseFlag
+
+      - name: Build Failure Summary
+        if: failure() && steps.update-packages.conclusion == 'failure'
+        shell: pwsh
+        run: |
+          ./.github/workflows/powershell/Show-BuildFailureSummary.ps1 -WorkspacePath "${{ github.workspace }}"
+
+      - name: Check if any changes were made
+        id: check-changes
+        if: success()
+        shell: pwsh
+        run: |
+          ./.github/workflows/powershell/Test-WorkflowChanges.ps1 -WorkspacePath "${{ github.workspace }}"
+
+      - name: Commit and push changes
+        id: commit-and-push
+        if: ${{ github.event.inputs.dryRun != 'true' && steps.check-changes.outputs.has_changes == 'true' }}
+        shell: pwsh
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          ./.github/workflows/powershell/Invoke-CommitAndPush.ps1 `
+            -WorkspacePath "${{ github.workspace }}" `
+            -Repository "${{ github.repository }}" `
+            -PatToken $env:PAT_TOKEN
+
+      - name: Read package summary
+        id: read-summary
+        if: ${{ github.event.inputs.dryRun != 'true' && steps.check-changes.outputs.has_changes == 'true' }}
+        shell: pwsh
+        run: |
+          ./.github/workflows/powershell/Get-PackageSummary.ps1 -WorkspacePath "${{ github.workspace }}"
+
+      - name: Check for existing similar PRs
+        id: check-existing-pr
+        if: ${{ github.event.inputs.dryRun != 'true' && steps.check-changes.outputs.has_changes == 'true' }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo $env:GITHUB_TOKEN | gh auth login --with-token
+          ./.github/workflows/powershell/Test-ExistingPullRequest.ps1 -WorkspacePath "${{ github.workspace }}"
+
+      - name: Create Pull Request
+        if: ${{ github.event.inputs.dryRun != 'true' && steps.check-changes.outputs.has_changes == 'true' && steps.check-existing-pr.outputs.skip != 'true' }}
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo $env:GITHUB_TOKEN | gh auth login --with-token
+          $isScheduled = '${{ github.event_name }}' -eq 'schedule'
+          if ($isScheduled) {
+            $includePrereleaseValue = '${{ env.SCHEDULED_INCLUDE_PRERELEASE }}'
+          } else {
+            $includePrereleaseValue = '${{ github.event.inputs.includePrerelease }}'
+          }
+          ./.github/workflows/powershell/New-PackageUpdatePullRequest.ps1 `
+            -PackageSummary "${{ steps.read-summary.outputs.summary }}" `
+            -IncludePrerelease "$includePrereleaseValue" `
+            -NuGetSources "${{ github.event.inputs.nugetSources }}" `
+            -BranchName "${{ steps.commit-and-push.outputs.branchName }}" `
+            -WorkspacePath "${{ github.workspace }}"
+
+      - name: Summary - PR Skipped
+        if: ${{ github.event.inputs.dryRun != 'true' && steps.check-changes.outputs.has_changes == 'true' && steps.check-existing-pr.outputs.skip == 'true' }}
+        shell: pwsh
+        run: |
+          ./.github/workflows/powershell/Show-PullRequestSkippedSummary.ps1 `
+            -ExistingPrNumber "${{ steps.check-existing-pr.outputs.existing_pr_number }}" `
+            -Repository "${{ github.repository }}"
