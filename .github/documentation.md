@@ -300,8 +300,8 @@ flowchart TD
     B -->|Miss| D[Call NuGet.org API]
 
     D --> E{Include Prerelease?}
-    E -->|Yes| F[GET /v3-flatcontainer/{id}/index.json]
-    E -->|No| G[GET /query?q={id}&prerelease=false]
+    E -->|Yes| F["GET /v3-flatcontainer/(id)/index.json"]
+    E -->|No| G["GET /query?q=(id)&prerelease=false"]
 
     F --> H[Parse JSON Response]
     G --> H
