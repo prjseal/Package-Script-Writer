@@ -57,37 +57,57 @@ jobs:
         run: |
           Write-Host "Starting website in background..." -ForegroundColor Cyan
           $env:ASPNETCORE_ENVIRONMENT = "Development"
-          $process = Start-Process -FilePath "dotnet" -ArgumentList "run --project ./src/PSW/PSW.csproj --no-build --configuration Release" -PassThru -NoNewWindow
-          Write-Host "Website started with process ID: $($process.Id)" -ForegroundColor Green
+
+          $logFile = "site.log"
+          $errFile = "site.err"
+
+          $process = Start-Process -FilePath "dotnet" `
+            -ArgumentList "run --project ./src/PSW/PSW.csproj --no-build --configuration Release" `
+            -RedirectStandardOutput $logFile `
+            -RedirectStandardError $errFile `
+            -NoNewWindow `
+            -PassThru
+
+          Write-Host "Site process started with PID: $($process.Id)" -ForegroundColor Green
 
           # Store process ID for cleanup
           $process.Id | Out-File -FilePath "site-process-id.txt"
 
-          # Wait for site to be ready
-          Write-Host "Waiting for site to be ready..." -ForegroundColor Cyan
-          $maxAttempts = 30
-          $attempt = 0
-          $siteReady = $false
+          # Wait for site to start and extract URL from log
+          $startTime = Get-Date
+          $timeoutSeconds = 120
+          $siteStarted = $false
+          $siteUrl = $null
 
-          while ($attempt -lt $maxAttempts -and -not $siteReady) {
-              Start-Sleep -Seconds 2
-              try {
-                  $response = Invoke-WebRequest -Uri "https://localhost:7192" -UseBasicParsing -TimeoutSec 5 -SkipCertificateCheck
-                  if ($response.StatusCode -eq 200) {
-                      $siteReady = $true
-                      Write-Host "Site is ready!" -ForegroundColor Green
+          Write-Host "Waiting for site to start (timeout: ${timeoutSeconds}s)..." -ForegroundColor Yellow
+
+          while (-not $siteStarted) {
+              if ((Get-Date) - $startTime -gt (New-TimeSpan -Seconds $timeoutSeconds)) {
+                  Write-Host "Timeout reached! Site failed to start." -ForegroundColor Red
+                  if (-not $process.HasExited) {
+                      Stop-Process -Id $process.Id -Force
                   }
-              } catch {
-                  $attempt++
-                  Write-Host "Waiting for site... (attempt $attempt/$maxAttempts)" -ForegroundColor Yellow
+                  Get-Content $logFile -ErrorAction SilentlyContinue
+                  Get-Content $errFile -ErrorAction SilentlyContinue
+                  exit 1
               }
-          }
 
-          if (-not $siteReady) {
-              Write-Host "Site failed to start within timeout period" -ForegroundColor Red
-              # Try to stop the process
-              Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
-              exit 1
+              if (Test-Path $logFile) {
+                  $logContent = Get-Content $logFile -Raw
+
+                  # Check if site is listening on HTTPS
+                  if ($logContent -match "Now listening on:\s*(https://[^\s]+)") {
+                      $siteUrl = $matches[1]
+                      $siteStarted = $true
+                      Write-Host "Site is running at: $siteUrl" -ForegroundColor Green
+
+                      # Store the URL for later steps
+                      $siteUrl | Out-File -FilePath "site-url.txt"
+                      break
+                  }
+              }
+
+              Start-Sleep -Seconds 2
           }
 
       - name: Generate Playwright test script
@@ -98,10 +118,11 @@ jobs:
 
       - name: Run Playwright tests
         shell: pwsh
-        env:
-          SITE_URL: https://localhost:7192
         run: |
           Write-Host "Running Playwright tests..." -ForegroundColor Cyan
+          $siteUrl = Get-Content "site-url.txt"
+          Write-Host "Testing site at: $siteUrl" -ForegroundColor Cyan
+          $env:SITE_URL = $siteUrl
           node test-site.js
 
       - name: Upload Screenshots
