@@ -36,6 +36,12 @@ An interactive command-line interface for the Package Script Writer API, built w
 
 Once published to NuGet, install globally:
 
+**Install Beta Version:**
+```bash
+dotnet tool install --global PackageScriptWriter.Cli --prerelease
+```
+
+**Install Stable Version (when available):**
 ```bash
 dotnet tool install --global PackageScriptWriter.Cli
 ```
@@ -48,6 +54,10 @@ psw
 
 **Update the tool:**
 ```bash
+# Update to latest beta
+dotnet tool update --global PackageScriptWriter.Cli --prerelease
+
+# Update to latest stable
 dotnet tool update --global PackageScriptWriter.Cli
 ```
 
@@ -431,14 +441,34 @@ To publish this tool to NuGet.org:
 
 3. **Push to NuGet**:
    ```bash
-   dotnet nuget push PackageCliTool/bin/Release/PackageScriptWriter.Cli.1.0.0.nupkg \
+   dotnet nuget push PackageCliTool/bin/Release/PackageScriptWriter.Cli.1.0.0-beta.nupkg \
      --api-key YOUR_API_KEY \
      --source https://api.nuget.org/v3/index.json
    ```
 
 4. **Verify publication** at https://www.nuget.org/packages/PackageScriptWriter.Cli
 
-**Update version**: Edit the `<Version>` in `PackageCliTool.csproj` before each new release.
+#### Version Management
+
+**Beta/Pre-release versions:**
+- Format: `1.0.0-beta`, `1.0.0-beta.1`, `1.0.0-rc1`, `1.0.0-alpha`
+- Edit `<Version>` in `PackageCliTool.csproj`
+- Users must use `--prerelease` flag to install
+
+**Stable versions:**
+- Format: `1.0.0`, `1.1.0`, `2.0.0`
+- Remove the suffix (e.g., change `1.0.0-beta` to `1.0.0`)
+- Users can install without `--prerelease` flag
+
+**Version progression example:**
+1. `1.0.0-alpha` - Early testing
+2. `1.0.0-beta` - Feature complete, testing
+3. `1.0.0-beta.2` - Beta updates
+4. `1.0.0-rc1` - Release candidate
+5. `1.0.0` - Stable release
+6. `1.0.1` - Patch release
+7. `1.1.0` - Minor version with new features
+8. `2.0.0` - Major version with breaking changes
 
 ## Dependencies
 
