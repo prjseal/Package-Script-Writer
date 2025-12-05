@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -11,7 +11,6 @@ namespace PSW.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-[Produces("application/json")]
 public class ScriptGeneratorApiController : ControllerBase
 {
     private readonly IScriptGeneratorService _scriptGeneratorService;
@@ -30,11 +29,12 @@ public class ScriptGeneratorApiController : ControllerBase
     /// Generates a script for installing packages based on the provided configuration
     /// </summary>
     /// <param name="apiRequest">The request containing package and project configuration details</param>
-    /// <returns>A generated script as a string</returns>
+    /// <returns>A generated script as plain text</returns>
     /// <response code="200">Returns the generated script</response>
     /// <response code="400">If the request is invalid</response>
     [Route("generatescript")]
     [HttpPost]
+    [Produces("text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult GenerateScript([FromBody] GeneratorApiRequest apiRequest)
@@ -72,6 +72,7 @@ public class ScriptGeneratorApiController : ControllerBase
     /// <response code="400">If the package ID is invalid</response>
     [Route("getpackageversions")]
     [HttpPost]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult GetPackageVersions([FromBody] PackageVersionsApiRequest apiRequest)
@@ -96,6 +97,7 @@ public class ScriptGeneratorApiController : ControllerBase
     /// <response code="200">Returns a test message with timestamp</response>
     [Route("test")]
     [HttpGet]
+    [Produces("text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public ActionResult Test()
     {
@@ -110,6 +112,7 @@ public class ScriptGeneratorApiController : ControllerBase
     /// <response code="200">Returns a confirmation message</response>
     [Route("clearcache")]
     [HttpGet]
+    [Produces("text/plain")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public ActionResult ClearCache()
     {
