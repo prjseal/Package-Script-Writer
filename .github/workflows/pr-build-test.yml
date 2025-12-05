@@ -49,8 +49,41 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Installing Playwright..." -ForegroundColor Cyan
-          npm install -g playwright
+
+          # Initialize npm project
+          Write-Host "Initializing npm project..." -ForegroundColor Yellow
+          npm init -y
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "ERROR: npm init failed with exit code $LASTEXITCODE" -ForegroundColor Red
+              exit 1
+          }
+          Write-Host "npm init completed successfully" -ForegroundColor Green
+
+          # Install Playwright
+          Write-Host "Installing Playwright package..." -ForegroundColor Yellow
+          npm install --save-dev playwright
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "ERROR: npm install playwright failed with exit code $LASTEXITCODE" -ForegroundColor Red
+              exit 1
+          }
+
+          # Verify Playwright module exists
+          if (-not (Test-Path "node_modules/playwright")) {
+              Write-Host "ERROR: Playwright module directory not found after installation" -ForegroundColor Red
+              Write-Host "Checking node_modules contents..." -ForegroundColor Yellow
+              Get-ChildItem node_modules -ErrorAction SilentlyContinue | Select-Object -First 10
+              exit 1
+          }
+          Write-Host "Playwright package installed successfully" -ForegroundColor Green
+
+          # Install Playwright browsers
+          Write-Host "Installing Playwright Chromium browser..." -ForegroundColor Yellow
           npx playwright install chromium
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "ERROR: playwright install chromium failed with exit code $LASTEXITCODE" -ForegroundColor Red
+              exit 1
+          }
+          Write-Host "Playwright Chromium browser installed successfully" -ForegroundColor Green
 
       - name: Start website
         shell: pwsh
@@ -62,7 +95,7 @@ jobs:
           $errFile = "site.err"
 
           $process = Start-Process -FilePath "dotnet" `
-            -ArgumentList "run --project ./src/PSW/PSW.csproj --no-build --configuration Release" `
+            -ArgumentList "run --project ./src/PSW/PSW.csproj" `
             -RedirectStandardOutput $logFile `
             -RedirectStandardError $errFile `
             -NoNewWindow `
@@ -75,7 +108,7 @@ jobs:
 
           # Wait for site to start and extract URL from log
           $startTime = Get-Date
-          $timeoutSeconds = 120
+          $timeoutSeconds = 180
           $siteStarted = $false
           $siteUrl = $null
 
@@ -98,8 +131,82 @@ jobs:
                   # Check if site is listening on HTTPS
                   if ($logContent -match "Now listening on:\s*(https://[^\s]+)") {
                       $siteUrl = $matches[1]
+                      Write-Host "Site detected at: $siteUrl" -ForegroundColor Yellow
+
+                      # Check if process is still running
+                      if ($process.HasExited) {
+                          Write-Host "ERROR: Site process has exited!" -ForegroundColor Red
+                          Write-Host "Exit code: $($process.ExitCode)" -ForegroundColor Red
+                          Write-Host "`nStdout log:" -ForegroundColor Yellow
+                          Get-Content $logFile -ErrorAction SilentlyContinue
+                          Write-Host "`nStderr log:" -ForegroundColor Yellow
+                          Get-Content $errFile -ErrorAction SilentlyContinue
+                          exit 1
+                      }
+
+                      # Wait and verify site is actually accepting connections
+                      Write-Host "Verifying site is accepting connections..." -ForegroundColor Yellow
+                      $verifyAttempts = 0
+                      $maxVerifyAttempts = 15
+                      $connectionSuccess = $false
+
+                      while ($verifyAttempts -lt $maxVerifyAttempts -and -not $connectionSuccess) {
+                          Start-Sleep -Seconds 2
+                          $verifyAttempts++
+
+                          # Check process hasn't exited
+                          if ($process.HasExited) {
+                              Write-Host "ERROR: Site process exited during startup!" -ForegroundColor Red
+                              Write-Host "Exit code: $($process.ExitCode)" -ForegroundColor Red
+                              Write-Host "`nStdout log:" -ForegroundColor Yellow
+                              Get-Content $logFile -ErrorAction SilentlyContinue
+                              Write-Host "`nStderr log:" -ForegroundColor Yellow
+                              Get-Content $errFile -ErrorAction SilentlyContinue
+                              exit 1
+                          }
+
+                          # Try to connect using TCP client
+                          try {
+                              $uri = [System.Uri]$siteUrl
+                              $port = $uri.Port
+                              $hostname = $uri.Host
+
+                              Write-Host "Attempt $verifyAttempts/$maxVerifyAttempts - Testing connection to ${hostname}:${port}..." -ForegroundColor Yellow
+
+                              # Use .NET TcpClient for connection test (works better in CI)
+                              $tcpClient = New-Object System.Net.Sockets.TcpClient
+                              $tcpClient.ReceiveTimeout = 2000
+                              $tcpClient.SendTimeout = 2000
+                              $asyncResult = $tcpClient.BeginConnect($hostname, $port, $null, $null)
+                              $waitHandle = $asyncResult.AsyncWaitHandle
+
+                              if ($waitHandle.WaitOne(2000)) {
+                                  $tcpClient.EndConnect($asyncResult)
+                                  $connectionSuccess = $true
+                                  Write-Host "Connection successful!" -ForegroundColor Green
+                              } else {
+                                  Write-Host "Connection timeout, retrying..." -ForegroundColor Yellow
+                              }
+                              $tcpClient.Close()
+                          } catch {
+                              Write-Host "Connection failed: $($_.Exception.Message), retrying..." -ForegroundColor Yellow
+                          }
+                      }
+
+                      if (-not $connectionSuccess) {
+                          Write-Host "ERROR: Could not establish connection to site after $maxVerifyAttempts attempts!" -ForegroundColor Red
+                          Write-Host "`nFinal log output:" -ForegroundColor Yellow
+                          Get-Content $logFile -ErrorAction SilentlyContinue
+                          Write-Host "`nError output:" -ForegroundColor Yellow
+                          Get-Content $errFile -ErrorAction SilentlyContinue
+                          if (-not $process.HasExited) {
+                              Stop-Process -Id $process.Id -Force
+                          }
+                          exit 1
+                      }
+
                       $siteStarted = $true
-                      Write-Host "Site is running at: $siteUrl" -ForegroundColor Green
+                      Write-Host "Site is ready and accepting connections at: $siteUrl" -ForegroundColor Green
 
                       # Store the URL for later steps
                       $siteUrl | Out-File -FilePath "site-url.txt"
@@ -122,6 +229,11 @@ jobs:
           Write-Host "Running Playwright tests..." -ForegroundColor Cyan
           $siteUrl = Get-Content "site-url.txt"
           Write-Host "Testing site at: $siteUrl" -ForegroundColor Cyan
+
+          # Display recent log output before running tests
+          Write-Host "`nRecent site log output:" -ForegroundColor Yellow
+          Get-Content "site.log" -Tail 20 -ErrorAction SilentlyContinue
+
           $env:SITE_URL = $siteUrl
           node test-site.js
 
