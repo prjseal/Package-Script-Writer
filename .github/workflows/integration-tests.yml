@@ -32,10 +32,10 @@ jobs:
         run: dotnet restore ./src/PSW.sln
 
       - name: Build solution
-        run: dotnet build ./src/PSW.sln --configuration Release --no-restore
+        run: dotnet build ./src/PSW.sln --configuration Release --no-restore /p:RunPreBuildEvent=false
 
       - name: Run integration tests
-        run: dotnet test ./src/PSW.IntegrationTests/PSW.IntegrationTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test ./src/PSW.IntegrationTests/PSW.IntegrationTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --logger "console;verbosity=detailed"
 
       - name: Upload test results
         if: always()
