@@ -1,0 +1,58 @@
+name: Integration Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+      - 'claude/**'
+  push:
+    branches:
+      - main
+      - 'claude/**'
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./src/PSW.sln
+
+      - name: Build solution
+        run: dotnet build ./src/PSW.sln --configuration Release --no-restore /p:RunPreBuildEvent=false
+
+      - name: Run integration tests
+        run: dotnet test ./src/PSW.IntegrationTests/PSW.IntegrationTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --logger "console;verbosity=detailed"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results-${{ github.run_number }}
+          path: '**/test-results.trx'
+          if-no-files-found: warn
+
+      - name: Test Summary
+        if: always()
+        run: |
+          echo "================================================"
+          echo "Integration Tests Summary"
+          echo "================================================"
+          echo "Workflow: ${{ github.workflow }}"
+          echo "Run Number: ${{ github.run_number }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Actor: ${{ github.actor }}"
+          echo "================================================"
