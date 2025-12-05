@@ -165,19 +165,19 @@ jobs:
                               exit 1
                           }
 
-                          # Try to connect using Test-NetConnection (more reliable than web request)
+                          # Try to connect using TCP client
                           try {
                               $uri = [System.Uri]$siteUrl
                               $port = $uri.Port
-                              $host = $uri.Host
+                              $hostname = $uri.Host
 
-                              Write-Host "Attempt $verifyAttempts/$maxVerifyAttempts - Testing connection to ${host}:${port}..." -ForegroundColor Yellow
+                              Write-Host "Attempt $verifyAttempts/$maxVerifyAttempts - Testing connection to ${hostname}:${port}..." -ForegroundColor Yellow
 
                               # Use .NET TcpClient for connection test (works better in CI)
                               $tcpClient = New-Object System.Net.Sockets.TcpClient
                               $tcpClient.ReceiveTimeout = 2000
                               $tcpClient.SendTimeout = 2000
-                              $asyncResult = $tcpClient.BeginConnect($host, $port, $null, $null)
+                              $asyncResult = $tcpClient.BeginConnect($hostname, $port, $null, $null)
                               $waitHandle = $asyncResult.AsyncWaitHandle
 
                               if ($waitHandle.WaitOne(2000)) {
