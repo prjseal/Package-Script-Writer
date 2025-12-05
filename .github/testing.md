@@ -375,13 +375,11 @@ name: Integration Tests
 
 on:
   pull_request:
-    branches: [ main ]
-  push:
-    branches: [ main ]
+    branches: [ main, 'claude/**' ]
   workflow_dispatch:
 
 jobs:
-  test:
+  integration-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -390,16 +388,16 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Restore dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore
-      - name: Run tests
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet restore ./src/PSW.sln
+      - name: Build solution
+        run: dotnet build ./src/PSW.sln --configuration Release --no-restore
+      - name: Run integration tests
+        run: dotnet test ./src/PSW.IntegrationTests/PSW.IntegrationTests.csproj --no-build --verbosity normal
 ```
 
 #### Features
 
-- 🔄 **Automatic execution** on every PR and push to main
+- 🔄 **Automatic execution** on every pull request
 - ✅ **Build verification** ensures solution compiles
 - 🧪 **Test execution** runs all integration tests
 - 📊 **Result reporting** shows pass/fail status
@@ -409,9 +407,8 @@ jobs:
 #### Triggering the Workflow
 
 **Automatically triggered**:
-- On pull request creation/update to `main` branch
-- On push to `main` branch
-- Manual trigger via GitHub Actions UI
+- On pull request creation/update to `main` or `claude/**` branches
+- Manual trigger via GitHub Actions UI (workflow_dispatch)
 
 **Manual trigger** (via GitHub CLI):
 ```bash

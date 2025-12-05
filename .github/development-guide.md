@@ -293,9 +293,8 @@ Every pull request automatically runs all tests via **GitHub Actions**:
 ```yaml
 on:
   pull_request:
-    branches: [ main ]
-  push:
-    branches: [ main ]
+    branches: [ main, 'claude/**' ]
+  workflow_dispatch:
 ```
 
 **Manual Workflow Run**:
