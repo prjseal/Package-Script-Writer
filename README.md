@@ -101,6 +101,7 @@ Comprehensive documentation is available in the [`.github/`](.github/) directory
 | [Configuration](.github/configuration.md) | Settings and configuration guide |
 | [Security](.github/security.md) | Security measures and best practices |
 | [Development Guide](.github/development-guide.md) | Setup, testing, and contributing |
+| [Testing Guide](.github/testing.md) | Integration tests, API testing, and CI/CD |
 
 **Start here**: [📚 Read the Documentation](.github/documentation.md)
 
@@ -115,6 +116,8 @@ Comprehensive documentation is available in the [`.github/`](.github/) directory
 - **Caching**: In-memory (IMemoryCache)
 - **APIs**: NuGet.org, Umbraco Marketplace
 - **Documentation**: Swagger/OpenAPI (Swashbuckle)
+- **Testing**: xUnit, FluentAssertions, ASP.NET Core Testing
+- **CI/CD**: GitHub Actions
 
 **Why no database?** The application is intentionally stateless for simplicity, security, and easy deployment.
 
@@ -139,6 +142,9 @@ We welcome contributions! Here's how to get started:
 # Run with hot reload
 dotnet watch run --project ./src/PSW/
 
+# Run integration tests
+dotnet test
+
 # Build for production
 dotnet publish ./src/PSW/PSW.csproj -c Release -o ./publish
 
@@ -149,6 +155,45 @@ dotnet format ./src/PSW/PSW.csproj
 ---
 
 ## 🧪 Testing
+
+### Integration Tests
+
+The project includes comprehensive integration tests that validate all API endpoints using **xUnit**, **HttpClient**, and **FluentAssertions**.
+
+```bash
+# Run all integration tests
+dotnet test
+
+# Run tests with detailed output
+dotnet test --verbosity normal
+
+# Run tests with code coverage
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+**Test Coverage**:
+- ✅ Script generation with various configurations
+- ✅ Package version retrieval
+- ✅ Cache clearing functionality
+- ✅ API health checks
+- ✅ Error handling and validation
+
+**See [Integration Tests README](src/PSW.IntegrationTests/README.md) for detailed testing documentation.**
+
+---
+
+### Continuous Integration
+
+Every pull request automatically runs all tests via **GitHub Actions**:
+
+- 🔄 Automated test execution on all PRs
+- ✅ Build verification across multiple environments
+- 📊 Test result reporting
+- 🚫 PR merge blocked if tests fail
+
+**GitHub Actions Workflow**: `.github/workflows/integration-tests.yml`
+
+---
 
 ### API Testing
 
@@ -165,10 +210,11 @@ https://localhost:5001/api/docs
 ```
 
 Swagger UI provides:
-- 📖 Interactive API documentation
+- 📖 Interactive API documentation with OpenAPI annotations
 - 🧪 Built-in request testing
 - 📝 Request/response examples
 - 🔍 Schema exploration
+- 📄 Complete API specification
 
 #### REST Client (VS Code)
 
@@ -190,15 +236,21 @@ dotnet watch run --project ./src/PSW/
 
 ```
 Package-Script-Writer/
-├── src/PSW/                    # Main application
-│   ├── Components/            # View Components
-│   ├── Controllers/           # MVC & API Controllers
-│   ├── Services/              # Business logic
-│   ├── Models/                # Data models
-│   ├── Views/                 # Razor views
-│   └── wwwroot/               # Static files (CSS, JS, images)
-├── .github/                    # Documentation
-└── README.md                   # This file
+├── src/
+│   ├── PSW/                        # Main application
+│   │   ├── Components/            # View Components
+│   │   ├── Controllers/           # MVC & API Controllers
+│   │   ├── Services/              # Business logic
+│   │   ├── Models/                # Data models
+│   │   ├── Views/                 # Razor views
+│   │   └── wwwroot/               # Static files (CSS, JS, images)
+│   └── PSW.IntegrationTests/      # Integration test project
+│       ├── ScriptGeneratorApiTests.cs
+│       └── CustomWebApplicationFactory.cs
+├── .github/
+│   ├── workflows/                  # GitHub Actions workflows
+│   └── *.md                        # Documentation
+└── README.md                       # This file
 ```
 
 **See [Architecture](.github/architecture.md) for detailed structure.**

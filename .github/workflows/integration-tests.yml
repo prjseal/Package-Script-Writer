@@ -4,11 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - 'claude/**'
-  push:
-    branches:
-      - main
-      - 'claude/**'
   workflow_dispatch:
 
 jobs:
