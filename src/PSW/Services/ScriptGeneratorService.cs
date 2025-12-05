@@ -37,7 +37,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         }
 
-        if (model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO))
+        if (GlobalConstants.TEMPLATE_NAME_UMBRACO.Equals(model.TemplateName))
         {
             outputList.AddRange(GenerateAddDockerComposeScript(model));
 
