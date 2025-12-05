@@ -6,8 +6,12 @@ using PSW.Models;
 
 namespace PSW.Controllers;
 
+/// <summary>
+/// API controller for generating package installation scripts and managing package versions
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class ScriptGeneratorApiController : ControllerBase
 {
     private readonly IScriptGeneratorService _scriptGeneratorService;
@@ -22,8 +26,17 @@ public class ScriptGeneratorApiController : ControllerBase
         _packageService = packageService;
     }
 
+    /// <summary>
+    /// Generates a script for installing packages based on the provided configuration
+    /// </summary>
+    /// <param name="apiRequest">The request containing package and project configuration details</param>
+    /// <returns>A generated script as a string</returns>
+    /// <response code="200">Returns the generated script</response>
+    /// <response code="400">If the request is invalid</response>
     [Route("generatescript")]
     [HttpPost]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult GenerateScript([FromBody] GeneratorApiRequest apiRequest)
     {
         if (apiRequest.IsEmpty)
@@ -50,8 +63,17 @@ public class ScriptGeneratorApiController : ControllerBase
         return Ok(_scriptGeneratorService.GenerateScript(model));
     }
 
+    /// <summary>
+    /// Retrieves available versions for a specific NuGet package
+    /// </summary>
+    /// <param name="apiRequest">The request containing the package ID</param>
+    /// <returns>A list of available package versions</returns>
+    /// <response code="200">Returns the list of package versions</response>
+    /// <response code="400">If the package ID is invalid</response>
     [Route("getpackageversions")]
     [HttpPost]
+    [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public ActionResult GetPackageVersions([FromBody] PackageVersionsApiRequest apiRequest)
     {
         int cacheTime = 60;
@@ -67,16 +89,28 @@ public class ScriptGeneratorApiController : ControllerBase
         return Ok(packageVersions);
     }
 
+    /// <summary>
+    /// Test endpoint to verify API connectivity
+    /// </summary>
+    /// <returns>A greeting message with current timestamp</returns>
+    /// <response code="200">Returns a test message with timestamp</response>
     [Route("test")]
     [HttpGet]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public ActionResult Test()
     {
         var model = "Hello, world!. The time is " + DateTime.Now.ToString();
         return Ok(model);
     }
 
+    /// <summary>
+    /// Clears the application cache for packages and templates
+    /// </summary>
+    /// <returns>A confirmation message with timestamp</returns>
+    /// <response code="200">Returns a confirmation message</response>
     [Route("clearcache")]
     [HttpGet]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public ActionResult ClearCache()
     {
         _memoryCache.Remove("allPackages");
