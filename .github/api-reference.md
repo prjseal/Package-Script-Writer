@@ -3,6 +3,7 @@
 Complete reference documentation for all API endpoints in the Package Script Writer application.
 
 ## Table of Contents
+- [Interactive Documentation (Swagger UI)](#interactive-documentation-swagger-ui)
 - [Base URL](#base-url)
 - [API Endpoints](#api-endpoints)
   - [Generate Script](#generate-script)
@@ -12,6 +13,32 @@ Complete reference documentation for all API endpoints in the Package Script Wri
 - [Request/Response Examples](#requestresponse-examples)
 - [Error Handling](#error-handling)
 - [Rate Limiting](#rate-limiting)
+
+---
+
+## Interactive Documentation (Swagger UI)
+
+The **easiest way** to explore and test the API is through the built-in Swagger UI interface. Swagger UI provides interactive documentation where you can:
+
+- 📖 View all available endpoints and their parameters
+- 🧪 Test API calls directly from your browser
+- 📝 See request/response examples
+- 🔍 Explore data models and schemas
+- 📄 View OpenAPI/Swagger specification
+
+### Accessing Swagger UI
+
+**Production**: [https://psw.codeshare.co.uk/api/docs](https://psw.codeshare.co.uk/api/docs)
+**Development**: [https://localhost:5001/api/docs](https://localhost:5001/api/docs)
+
+### Features
+
+- **Try it out**: Execute API requests directly from the documentation
+- **Model schemas**: View detailed structure of request/response objects
+- **Response codes**: See all possible HTTP status codes for each endpoint
+- **XML comments**: Rich descriptions from code documentation
+
+The Swagger UI is built using **Swashbuckle.AspNetCore** and automatically generated from the API controller annotations.
 
 ---
 
@@ -436,6 +463,18 @@ Potential rate limits for future implementation:
 ---
 
 ## API Testing
+
+### Using Swagger UI (Recommended)
+
+The easiest way to test the API is through Swagger UI:
+
+1. Start the application: `dotnet watch run --project ./src/PSW/`
+2. Navigate to: [https://localhost:5001/api/docs](https://localhost:5001/api/docs)
+3. Click on any endpoint to expand it
+4. Click "Try it out" button
+5. Fill in the parameters
+6. Click "Execute" to send the request
+7. View the response directly in the browser
 
 ### Using REST Client (VS Code Extension)
 

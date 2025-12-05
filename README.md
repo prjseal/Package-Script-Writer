@@ -36,6 +36,7 @@ Package Script Writer is a web-based tool that helps Umbraco developers quickly 
 - **Shareable URLs** - All configuration encoded in the URL for easy sharing
 - **Multiple Formats** - Generate multi-line scripts or one-liners
 - **Syntax Highlighting** - Clean, readable output with syntax highlighting
+- **Swagger/OpenAPI** - Interactive API documentation with Swagger UI
 
 ---
 
@@ -113,6 +114,7 @@ Comprehensive documentation is available in the [`.github/`](.github/) directory
 - **UI**: Bootstrap 5
 - **Caching**: In-memory (IMemoryCache)
 - **APIs**: NuGet.org, Umbraco Marketplace
+- **Documentation**: Swagger/OpenAPI (Swashbuckle)
 
 **Why no database?** The application is intentionally stateless for simplicity, security, and easy deployment.
 
@@ -149,6 +151,26 @@ dotnet format ./src/PSW/PSW.csproj
 ## 🧪 Testing
 
 ### API Testing
+
+#### Swagger UI (Interactive Documentation)
+
+The easiest way to explore and test the API is through the built-in Swagger UI:
+
+```bash
+# Start the application
+dotnet watch run --project ./src/PSW/
+
+# Open your browser to:
+https://localhost:5001/api/docs
+```
+
+Swagger UI provides:
+- 📖 Interactive API documentation
+- 🧪 Built-in request testing
+- 📝 Request/response examples
+- 🔍 Schema exploration
+
+#### REST Client (VS Code)
 
 The repository includes a `Api Request/API Testing.http` file for testing with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) VS Code extension.
 
