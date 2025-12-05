@@ -1,3 +1,4 @@
+using Microsoft.OpenApi.Models;
 using PSW.Configuration;
 using PSW.Middleware;
 
@@ -12,7 +13,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Package Script Writer API",
         Version = "v1",
