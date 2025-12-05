@@ -195,12 +195,149 @@ src/PSW/
 
 ## Testing
 
+### Integration Tests
+
+The project includes a comprehensive integration test suite using **xUnit**, **Microsoft.AspNetCore.Mvc.Testing**, **HttpClient**, and **FluentAssertions**. Integration tests validate API endpoints in a realistic environment by spinning up a test server and making actual HTTP requests.
+
+#### Running Integration Tests
+
+**Using .NET CLI** (recommended):
+```bash
+# Run all tests
+dotnet test
+
+# Run tests with detailed output
+dotnet test --verbosity normal
+
+# Run tests with code coverage
+dotnet test --collect:"XPlat Code Coverage"
+
+# Run specific test class
+dotnet test --filter "FullyQualifiedName~ScriptGeneratorApiTests"
+```
+
+**Using Visual Studio**:
+1. Open Test Explorer (Test → Test Explorer)
+2. Click "Run All" or select specific tests
+
+**Using Visual Studio Code**:
+1. Install the .NET Test Explorer extension
+2. Tests appear in Test Explorer panel
+3. Click play button to run tests
+
+---
+
+#### Integration Test Coverage
+
+The current test suite (`PSW.IntegrationTests` project) covers:
+
+- ✅ **GET /api/ScriptGeneratorApi/test** - API health check
+- ✅ **GET /api/ScriptGeneratorApi/clearcache** - Cache clearing functionality
+- ✅ **POST /api/ScriptGeneratorApi/generatescript** - Script generation with valid data
+- ✅ **POST /api/ScriptGeneratorApi/generatescript** - Script generation with empty request (error handling)
+- ✅ **POST /api/ScriptGeneratorApi/getpackageversions** - Package version retrieval
+
+**Test Project Structure**:
+```
+src/PSW.IntegrationTests/
+├── ScriptGeneratorApiTests.cs          # Main test class
+├── CustomWebApplicationFactory.cs      # Test server configuration
+└── GlobalUsings.cs                     # Common using statements
+```
+
+**Example Test**:
+```csharp
+[Fact]
+public async Task GenerateScript_WithValidRequest_ReturnsScript()
+{
+    // Arrange
+    var request = new
+    {
+        model = new
+        {
+            templateName = "Umbraco.Templates",
+            templateVersion = "14.3.0",
+            projectName = "TestProject"
+        }
+    };
+
+    // Act
+    var response = await _client.PostAsJsonAsync(
+        "/api/ScriptGeneratorApi/generatescript", request);
+
+    // Assert
+    response.StatusCode.Should().Be(HttpStatusCode.OK);
+    var result = await response.Content.ReadFromJsonAsync<JsonElement>();
+    result.GetProperty("script").GetString().Should().NotBeNullOrEmpty();
+}
+```
+
+**See [Integration Tests README](../src/PSW.IntegrationTests/README.md) for detailed information on writing tests.**
+
+---
+
+#### Continuous Integration with GitHub Actions
+
+Every pull request automatically runs all tests via **GitHub Actions**:
+
+**Workflow**: `.github/workflows/integration-tests.yml`
+
+**Features**:
+- 🔄 Runs on every pull request
+- ✅ Builds the solution
+- 🧪 Executes all integration tests
+- 📊 Reports test results
+- 🚫 Blocks PR merge if tests fail
+
+**Workflow Triggers**:
+```yaml
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+```
+
+**Manual Workflow Run**:
+```bash
+# Via GitHub CLI
+gh workflow run integration-tests.yml
+```
+
+**View Test Results**:
+1. Go to the Pull Request on GitHub
+2. Check "Checks" tab
+3. View "Integration Tests" workflow results
+
+---
+
 ### API Testing
+
+#### Using Swagger UI (Recommended)
+
+The easiest way to test the API is through the built-in **Swagger UI** with full OpenAPI documentation:
+
+1. Start the application: `dotnet watch run --project ./src/PSW/`
+2. Navigate to: [https://localhost:5001/api/docs](https://localhost:5001/api/docs)
+3. Click on any endpoint to expand it
+4. Click "Try it out" button
+5. Fill in the parameters
+6. Click "Execute" to send the request
+7. View the response directly in the browser
+
+**Swagger UI Features**:
+- 📖 Interactive API documentation with OpenAPI annotations
+- 🧪 Built-in request testing
+- 📝 Request/response examples with schemas
+- 🔍 Model schema exploration
+- 📄 Complete API specification download
+
+---
 
 #### Using REST Client (VS Code)
 
 1. Install **REST Client** extension
-2. Create file: `api-tests.http`
+2. Open file: `Api Request/API Testing.http`
 
 ```http
 ### Test Generate Script
@@ -279,6 +416,7 @@ curl -X POST https://localhost:5001/api/scriptgeneratorapi/generatescript \
 - [ ] One-liner output formats correctly
 - [ ] Remove comments option works
 - [ ] All Umbraco versions generate valid scripts
+- [ ] All integration tests pass
 
 #### Browser Testing
 
@@ -291,64 +429,69 @@ curl -X POST https://localhost:5001/api/scriptgeneratorapi/generatescript \
 
 ---
 
-### Unit Testing (Future)
+### Writing New Integration Tests
 
-**Example Test Structure**:
+To add new integration tests to the `PSW.IntegrationTests` project:
 
+**1. Create Test Class**:
 ```csharp
-using Xunit;
-using Moq;
-
-public class ScriptGeneratorServiceTests
+public class MyNewApiTests : IClassFixture<CustomWebApplicationFactory>
 {
+    private readonly HttpClient _client;
+
+    public MyNewApiTests(CustomWebApplicationFactory factory)
+    {
+        _client = factory.CreateClient();
+    }
+
     [Fact]
-    public void GenerateScript_WithBasicModel_ReturnsValidScript()
+    public async Task MyEndpoint_WithValidData_ReturnsSuccess()
     {
         // Arrange
-        var config = Options.Create(new PSWConfig());
-        var versionService = new Mock<IUmbracoVersionService>();
-        versionService.Setup(x => x.GetLatestLTSVersion(It.IsAny<PSWConfig>()))
-            .Returns("14.3.0");
-
-        var service = new ScriptGeneratorService(config, versionService.Object);
-
-        var model = new PackagesViewModel
-        {
-            TemplateName = "Umbraco.Templates",
-            TemplateVersion = "14.3.0",
-            ProjectName = "TestProject"
-        };
+        var request = new { /* test data */ };
 
         // Act
-        var result = service.GenerateScript(model);
+        var response = await _client.PostAsJsonAsync("/api/myendpoint", request);
 
         // Assert
-        Assert.Contains("dotnet new install Umbraco.Templates::14.3.0", result);
-        Assert.Contains("dotnet new umbraco", result);
-        Assert.Contains("dotnet run", result);
-    }
-
-    [Fact]
-    public void GenerateScript_WithPackages_IncludesPackageCommands()
-    {
-        // Test implementation
-    }
-
-    [Theory]
-    [InlineData("SQLite", "development-database-type SQLite")]
-    [InlineData("LocalDb", "development-database-type LocalDB")]
-    public void GenerateScript_WithDatabaseType_UsesCorrectSwitch(
-            string dbType, string expectedSwitch)
-    {
-        // Test implementation
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
 ```
 
-**Run Tests**:
-```bash
-dotnet test
+**2. Use FluentAssertions for readable assertions**:
+```csharp
+// Instead of:
+Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+// Use:
+response.StatusCode.Should().Be(HttpStatusCode.OK);
+response.Content.Should().NotBeNull();
+result.Should().Contain("expected text");
 ```
+
+**3. Test both success and failure scenarios**:
+```csharp
+[Fact]
+public async Task Endpoint_WithInvalidData_ReturnsBadRequest()
+{
+    var response = await _client.PostAsJsonAsync("/api/endpoint", null);
+    response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+}
+```
+
+---
+
+### Testing Best Practices
+
+1. **Use IClassFixture**: Share `WebApplicationFactory` across tests for better performance
+2. **Test behavior, not implementation**: Focus on API contracts and expected responses
+3. **Use realistic data**: Test with data representing actual usage scenarios
+4. **Isolate tests**: Each test should be independent
+5. **Use meaningful names**: `MethodName_Scenario_ExpectedResult`
+6. **Test error cases**: Verify proper error handling
+7. **Run tests frequently**: Use `dotnet watch test` during development
+8. **Check CI results**: Ensure tests pass in GitHub Actions
 
 ---
 

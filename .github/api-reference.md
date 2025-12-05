@@ -18,27 +18,87 @@ Complete reference documentation for all API endpoints in the Package Script Wri
 
 ## Interactive Documentation (Swagger UI)
 
-The **easiest way** to explore and test the API is through the built-in Swagger UI interface. Swagger UI provides interactive documentation where you can:
+The **easiest way** to explore and test the API is through the built-in Swagger UI interface. The API includes comprehensive **OpenAPI annotations** on all controllers and endpoints, providing rich, interactive documentation.
 
-- 📖 View all available endpoints and their parameters
-- 🧪 Test API calls directly from your browser
-- 📝 See request/response examples
-- 🔍 Explore data models and schemas
-- 📄 View OpenAPI/Swagger specification
+### Key Features
+
+- 📖 **View all endpoints**: Complete API documentation with detailed descriptions
+- 🧪 **Test API calls**: Execute requests directly from your browser
+- 📝 **Request/response examples**: See realistic data samples
+- 🔍 **Explore schemas**: Detailed structure of all data models
+- 📄 **OpenAPI specification**: Download the complete API spec
+- 🏷️ **Operation tags**: Organized endpoints by category
+- 📋 **Parameter descriptions**: Detailed information for each parameter
+- ✅ **Response codes**: All possible HTTP status codes with descriptions
 
 ### Accessing Swagger UI
 
 **Production**: [https://psw.codeshare.co.uk/api/docs](https://psw.codeshare.co.uk/api/docs)
 **Development**: [https://localhost:5001/api/docs](https://localhost:5001/api/docs)
 
-### Features
+### OpenAPI Annotations
 
-- **Try it out**: Execute API requests directly from the documentation
-- **Model schemas**: View detailed structure of request/response objects
-- **Response codes**: See all possible HTTP status codes for each endpoint
-- **XML comments**: Rich descriptions from code documentation
+All API controllers are fully annotated with OpenAPI attributes for comprehensive documentation:
 
-The Swagger UI is built using **Swashbuckle.AspNetCore** and automatically generated from the API controller annotations.
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+[Produces("application/json")]
+[Tags("Script Generator")]
+public class ScriptGeneratorApiController : ControllerBase
+{
+    [HttpPost("generatescript")]
+    [ProducesResponseType(typeof(ScriptResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult GenerateScript([FromBody] ScriptRequest request)
+    {
+        // Implementation
+    }
+}
+```
+
+**Benefits**:
+- Rich, accurate documentation generated directly from code
+- Type-safe request/response definitions
+- Clear HTTP status code documentation
+- Automatic schema validation
+- Version tracking and change detection
+
+### Technology Stack
+
+The Swagger/OpenAPI implementation uses:
+- **Swashbuckle.AspNetCore** - OpenAPI document generation
+- **OpenAPI annotations** - Controller and method-level documentation
+- **XML documentation** - Enhanced descriptions from code comments
+- **JSON Schema** - Automatic model schema generation
+
+### Using Swagger UI
+
+1. **Start the application**:
+   ```bash
+   dotnet watch run --project ./src/PSW/
+   ```
+
+2. **Open Swagger UI** in your browser:
+   ```
+   https://localhost:5001/api/docs
+   ```
+
+3. **Explore endpoints**:
+   - Click on any endpoint to expand it
+   - View parameters, request body, and response schemas
+   - See all possible response codes
+
+4. **Test an endpoint**:
+   - Click "Try it out" button
+   - Fill in the parameters or request body
+   - Click "Execute"
+   - View the response with status code, headers, and body
+
+5. **Download OpenAPI specification**:
+   - Click the link at the top to download the JSON specification
+   - Use with tools like Postman, Insomnia, or code generators
 
 ---
 

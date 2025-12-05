@@ -165,13 +165,29 @@ Complete guide for developers to get started.
 - Prerequisites and installation
 - Getting started (clone, build, run)
 - Development workflow
-- Testing (manual, API, unit)
+- Testing (integration, API, manual)
 - Building and deployment
 - Code style guidelines
 - Contributing process
 - Troubleshooting
 
 [➡️ Read Development Guide](development-guide.md)
+
+---
+
+#### [🧪 Testing Guide](testing.md)
+Comprehensive testing documentation for all testing approaches.
+
+**Topics**:
+- Integration tests with xUnit
+- API testing with Swagger UI
+- Continuous integration with GitHub Actions
+- Writing new tests
+- FluentAssertions usage
+- Testing best practices
+- Troubleshooting test failures
+
+[➡️ Read Testing Guide](testing.md)
 
 ---
 
@@ -386,6 +402,7 @@ Use the links above to navigate to specific documentation sections, or browse th
 - **[configuration.md](configuration.md)** - Configuration guide
 - **[security.md](security.md)** - Security documentation
 - **[development-guide.md](development-guide.md)** - Development setup
+- **[testing.md](testing.md)** - Testing guide and best practices
 
 ---
 
