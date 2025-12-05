@@ -375,7 +375,7 @@ name: Integration Tests
 
 on:
   pull_request:
-    branches: [ main, 'claude/**' ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -407,7 +407,7 @@ jobs:
 #### Triggering the Workflow
 
 **Automatically triggered**:
-- On pull request creation/update to `main` or `claude/**` branches
+- On pull request creation/update to `main` branch
 - Manual trigger via GitHub Actions UI (workflow_dispatch)
 
 **Manual trigger** (via GitHub CLI):
