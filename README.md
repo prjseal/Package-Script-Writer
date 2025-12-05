@@ -3,7 +3,7 @@
 <div align="center">
 
 [![Live Site](https://img.shields.io/badge/Live-psw.codeshare.co.uk-blue?style=for-the-badge)](https://psw.codeshare.co.uk)
-[![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?style=for-the-badge&logo=dotnet)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
 **Generate customized installation scripts for Umbraco CMS projects**
@@ -67,7 +67,7 @@ dotnet run --project "MyProject"
 
 ### For Developers
 
-**Prerequisites**: [.NET 9.0 SDK](https://dotnet.microsoft.com/download)
+**Prerequisites**: [.NET 10.0 SDK](https://dotnet.microsoft.com/download)
 
 ```bash
 # Clone the repository
@@ -107,7 +107,7 @@ Comprehensive documentation is available in the [`.github/`](.github/) directory
 
 ## 🛠️ Technology Stack
 
-- **Framework**: ASP.NET Core 9.0
+- **Framework**: ASP.NET Core 10.0
 - **Language**: C# 13
 - **Frontend**: Razor Pages + Vanilla JavaScript
 - **UI**: Bootstrap 5
