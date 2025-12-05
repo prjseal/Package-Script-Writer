@@ -31,9 +31,9 @@ An interactive command-line interface for the Package Script Writer API, built w
 
 ### Option 1: Build and Run from Source
 
-1. Navigate to the project directory:
+1. Navigate to the src directory:
    ```bash
-   cd src/PackageCliTool
+   cd src
    ```
 
 2. Restore dependencies:
@@ -43,12 +43,12 @@ An interactive command-line interface for the Package Script Writer API, built w
 
 3. Run the CLI tool:
    ```bash
-   dotnet run
+   dotnet run --project PackageCliTool
    ```
 
 ### Option 2: Open in Visual Studio
 
-1. Open `PackageCliTool.sln` in Visual Studio
+1. Open `src/PackageCliTool.sln` in Visual Studio
 2. Press F5 to build and run
 
 ### Option 3: Build and Install Globally
@@ -247,11 +247,12 @@ Enter file name [install-script.sh]: setup.sh
 ## Project Structure
 
 ```
-PackageCliTool/
+src/
 ├── PackageCliTool.sln          # Solution file
-├── PackageCliTool.csproj       # Project file (.NET 10.0)
-├── Program.cs                  # Main application code
-└── README.md                   # This file
+└── PackageCliTool/
+    ├── PackageCliTool.csproj   # Project file (.NET 10.0)
+    ├── Program.cs              # Main application code
+    └── README.md               # This file
 ```
 
 ## Code Structure
