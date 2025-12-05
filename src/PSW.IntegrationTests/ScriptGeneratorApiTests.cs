@@ -77,11 +77,8 @@ public class ScriptGeneratorApiTests : IClassFixture<CustomWebApplicationFactory
     [Fact]
     public async Task GenerateScript_WithEmptyRequest_ReturnsScriptWithDefaults()
     {
-        // Arrange
-        var request = new GeneratorApiRequest
-        {
-            IsEmpty = true
-        };
+        // Arrange - Create an empty request (all default values)
+        var request = new GeneratorApiRequest();
 
         // Act
         var response = await _client.PostAsJsonAsync("/api/ScriptGeneratorApi/generatescript", request);
