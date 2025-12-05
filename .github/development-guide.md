@@ -53,13 +53,13 @@ brew install dotnet
 ```bash
 wget https://dot.net/v1/dotnet-install.sh
 chmod +x dotnet-install.sh
-./dotnet-install.sh --channel 9.0
+./dotnet-install.sh --channel 10.0
 ```
 
 **Verify Installation**:
 ```bash
 dotnet --version
-# Output: 9.0.x
+# Output: 10.0.x
 ```
 
 ---

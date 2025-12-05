@@ -367,7 +367,7 @@ Browse the documentation sections listed above for detailed information on speci
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 3.0 | 2024 | Upgraded to .NET 9.0, added version lifecycle display |
+| 3.0 | 2024 | Upgraded to .NET 10.0, added version lifecycle display |
 | 2.0 | 2023 | Added Docker support, one-liner output, starter kits |
 | 1.0 | 2022 | Initial release with basic script generation |
 
