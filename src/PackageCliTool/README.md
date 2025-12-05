@@ -8,8 +8,19 @@ An interactive command-line interface for the Package Script Writer API, built w
 - 📦 **Package Selection** - Multi-select from popular Umbraco packages or add custom ones
 - 🔢 **Version Selection** - Choose specific versions for each selected package
 - ⚡ **Progress Indicators** - Spinners and progress displays during API calls
-- 📄 **Script Generation** - Generate complete installation scripts
+- 📄 **Script Generation** - Generate complete installation scripts with all options
 - 💾 **Export Scripts** - Save generated scripts to files
+- ⚙️ **Complete Configuration** - All options from the website's Options tab:
+  - Template and project settings
+  - Solution file creation
+  - Starter kit selection (9 different starter kits)
+  - Docker integration (Dockerfile & Docker Compose)
+  - Unattended install with database configuration
+  - Admin user credentials (with secure password input)
+  - Output formatting (one-liner, comment removal)
+- 📊 **Configuration Summary** - Review all settings before generating script
+- 🔒 **Secure Input** - Password fields are hidden during input
+- ✅ **Confirmation Prompts** - Prevent accidental operations
 
 ## Requirements
 
@@ -79,10 +90,42 @@ An interactive command-line interface for the Package Script Writer API, built w
 4. **Review Selection**:
    - View your selected packages and versions in a formatted table
 
-5. **Generate Script** (Optional):
-   - Choose whether to generate a complete installation script
-   - Enter project name and Umbraco template version
-   - View the generated script
+5. **Configure Project Options**:
+   The CLI will guide you through all configuration options:
+
+   **Template & Project Settings**:
+   - Template version (Latest Stable, Latest LTS, or specific version)
+   - Project name
+   - Create solution file (yes/no)
+   - Solution name (if creating solution)
+
+   **Starter Kit Options**:
+   - Include starter kit (yes/no)
+   - Select starter kit type (clean, Articulate, Portfolio, etc.)
+
+   **Docker Options**:
+   - Include Dockerfile (yes/no)
+   - Include Docker Compose (yes/no)
+
+   **Unattended Install Options**:
+   - Use unattended install (yes/no)
+   - Database type (SQLite, LocalDb, SQL Server, SQL Azure, SQLCE)
+   - Connection string (for SQL Server/Azure)
+   - Admin user friendly name
+   - Admin email
+   - Admin password (hidden input)
+
+   **Output Format Options**:
+   - Output as one-liner (yes/no)
+   - Remove comments (yes/no)
+
+6. **Review Configuration Summary**:
+   - View all your settings in a formatted table
+   - Confirm to proceed or cancel
+
+7. **Generate and Save**:
+   - Script is generated using the API
+   - View the generated script in a formatted panel
    - Optionally save it to a file
 
 ### Example Session
@@ -106,6 +149,9 @@ Select one or more packages (use Space to select, Enter to confirm):
   [ ] Umbraco.Community.Contentment
   ...
 
+Step 2: Select Versions
+
+⠋ Fetching versions for Diplo.GodMode...
 ✓ Selected Diplo.GodMode version 3.0.3
 ✓ Selected uSync version 12.0.0
 
@@ -119,6 +165,83 @@ Step 3: Final Selection
 └───────────────────────────┴──────────────────┘
 
 Would you like to generate a complete installation script? (y/n): y
+
+Step 4: Configure Project Options
+
+Template & Project Settings
+
+Select Umbraco template version:
+> Latest LTS
+  Latest Stable
+  14.3.0
+  ...
+
+Enter project name [MyUmbracoProject]: MyBlog
+
+Create a solution file? (y/n): y
+Enter solution name [MyBlog]: MyBlog
+
+Starter Kit Options
+
+Include a starter kit? (y/n): n
+
+Docker Options
+
+Include Dockerfile? (y/n): n
+Include Docker Compose? (y/n): n
+
+Unattended Install Options
+
+Use unattended install? (y/n): y
+Select database type:
+> SQLite
+  LocalDb
+  SQL Server
+  ...
+
+Enter admin user friendly name [Administrator]: Site Admin
+Enter admin email [admin@example.com]: admin@myblog.com
+Enter admin password (min 10 characters): **********
+
+Output Format Options
+
+Output as one-liner? (y/n): n
+Remove comments from script? (y/n): n
+
+Configuration Summary
+
+┌─────────────────────┬──────────────────────────┐
+│ Setting             │ Value                    │
+├─────────────────────┼──────────────────────────┤
+│ Template            │ Umbraco.Templates @ LTS  │
+│ Project Name        │ MyBlog                   │
+│ Solution Name       │ MyBlog                   │
+│ Packages            │ 2 package(s) selected    │
+│ Unattended Install  │ Enabled                  │
+│ Database Type       │ SQLite                   │
+│ Admin User          │ Site Admin               │
+│ Admin Email         │ admin@myblog.com         │
+└─────────────────────┴──────────────────────────┘
+
+Generate script with these settings? (y/n): y
+
+⭐ Generating installation script...
+
+╔═══════════════════════════════════════════╗
+║ Generated Installation Script            ║
+╠═══════════════════════════════════════════╣
+║                                           ║
+║ # Install Umbraco templates               ║
+║ dotnet new install Umbraco.Templates...   ║
+║ ...                                       ║
+║                                           ║
+╚═══════════════════════════════════════════╝
+
+Would you like to save this script to a file? (y/n): y
+Enter file name [install-script.sh]: setup.sh
+✓ Script saved to setup.sh
+
+✓ Process completed successfully!
 ```
 
 ## Project Structure
@@ -141,16 +264,17 @@ PackageCliTool/
    - `SelectPackagesAsync()` - Multi-select package prompt
    - `SelectVersionsForPackagesAsync()` - Version selection for each package
    - `DisplayFinalSelection()` - Shows selected packages in a table
-   - `GenerateAndDisplayScriptAsync()` - Generates installation script
+   - `GenerateAndDisplayScriptAsync()` - Comprehensive configuration wizard for all options
+   - `DisplayConfigurationSummary()` - Shows configuration summary table before generation
 
 2. **ApiClient Class** - API communication
-   - `GetPackageVersionsAsync()` - Fetches package versions
-   - `GenerateScriptAsync()` - Generates installation script
+   - `GetPackageVersionsAsync()` - Fetches package versions from NuGet
+   - `GenerateScriptAsync()` - Generates installation script via API
 
 3. **Data Models** - Request/Response DTOs
-   - `PackageVersionRequest/Response`
-   - `ScriptRequest/Response`
-   - `ScriptModel`
+   - `PackageVersionRequest/Response` - Package version lookup
+   - `ScriptRequest/Response` - Script generation
+   - `ScriptModel` - Complete configuration with all 17 options
 
 ### Key Features in Code
 
@@ -162,9 +286,11 @@ var versions = await apiClient.GetPackageVersionsAsync(package, includePrereleas
 
 #### Spectre.Console Integration
 - **MultiSelectionPrompt** - For selecting multiple packages
-- **SelectionPrompt** - For selecting single version
+- **SelectionPrompt** - For selecting single options (versions, database types, starter kits, etc.)
+- **TextPrompt with Secret** - For secure password input
+- **Confirm** - For yes/no prompts (checkboxes equivalent)
 - **Status/Spinner** - For showing progress during API calls
-- **Table** - For displaying results
+- **Table** - For displaying package selections and configuration summary
 - **Panel** - For showing generated scripts
 - **FigletText** - For ASCII art banner
 

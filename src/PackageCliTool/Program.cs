@@ -207,14 +207,123 @@ class Program
     private static async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions)
     {
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Step 4:[/] Generate Script\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 4:[/] Configure Project Options\n");
 
         // Build packages string in format: "Package1|Version1,Package2|Version2"
         var packagesString = string.Join(",", packageVersions.Select(kvp => $"{kvp.Key}|{kvp.Value}"));
 
-        // Prompt for basic project details
-        var projectName = AnsiConsole.Ask<string>("Enter [green]project name[/]:", "MyUmbracoProject");
-        var templateVersion = AnsiConsole.Ask<string>("Enter [green]Umbraco template version[/] (or 'LTS'):", "LTS");
+        // Create a script model and populate it with user inputs
+        var model = new ScriptModel
+        {
+            TemplateName = "Umbraco.Templates",
+            Packages = packagesString
+        };
+
+        // Template and Project Configuration
+        AnsiConsole.MarkupLine("[bold yellow]Template & Project Settings[/]\n");
+
+        model.TemplateVersion = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Select [green]Umbraco template version[/]:")
+                .AddChoices(new[] { "Latest Stable", "Latest LTS", "14.3.0", "14.2.0", "14.1.0", "14.0.0", "13.5.2", "13.4.0", "13.3.0", "Custom..." }));
+
+        if (model.TemplateVersion == "Custom...")
+        {
+            model.TemplateVersion = AnsiConsole.Ask<string>("Enter [green]custom version[/]:");
+        }
+        else if (model.TemplateVersion == "Latest Stable")
+        {
+            model.TemplateVersion = "";
+        }
+        else if (model.TemplateVersion == "Latest LTS")
+        {
+            model.TemplateVersion = "LTS";
+        }
+
+        model.ProjectName = AnsiConsole.Ask<string>("Enter [green]project name[/]:", "MyUmbracoProject");
+
+        model.CreateSolutionFile = AnsiConsole.Confirm("Create a [green]solution file[/]?", false);
+
+        if (model.CreateSolutionFile)
+        {
+            model.SolutionName = AnsiConsole.Ask<string>("Enter [green]solution name[/]:", model.ProjectName);
+        }
+
+        // Starter Kit Configuration
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold yellow]Starter Kit Options[/]\n");
+
+        model.IncludeStarterKit = AnsiConsole.Confirm("Include a [green]starter kit[/]?", false);
+
+        if (model.IncludeStarterKit)
+        {
+            model.StarterKitPackage = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select [green]starter kit[/]:")
+                    .AddChoices(new[]
+                    {
+                        "clean",
+                        "clean --version 4.1.0 (Umbraco 13)",
+                        "clean --version 3.1.4 (Umbraco 9-12)",
+                        "Articulate",
+                        "Portfolio",
+                        "LittleNorth.Igloo",
+                        "Umbraco.BlockGrid.Example.Website",
+                        "Umbraco.TheStarterKit",
+                        "uSkinnedSiteBuilder"
+                    }));
+        }
+
+        // Docker Configuration
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold yellow]Docker Options[/]\n");
+
+        model.IncludeDockerfile = AnsiConsole.Confirm("Include [green]Dockerfile[/]?", false);
+        model.IncludeDockerCompose = AnsiConsole.Confirm("Include [green]Docker Compose[/]?", false);
+        model.CanIncludeDocker = model.IncludeDockerfile || model.IncludeDockerCompose;
+
+        // Unattended Install Configuration
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold yellow]Unattended Install Options[/]\n");
+
+        model.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install[/]?", false);
+
+        if (model.UseUnattendedInstall)
+        {
+            model.DatabaseType = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select [green]database type[/]:")
+                    .AddChoices(new[] { "SQLite", "LocalDb", "SQLServer", "SQLAzure", "SQLCE" }));
+
+            if (model.DatabaseType == "SQLServer" || model.DatabaseType == "SQLAzure")
+            {
+                model.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:");
+            }
+
+            model.UserFriendlyName = AnsiConsole.Ask<string>("Enter [green]admin user friendly name[/]:", "Administrator");
+            model.UserEmail = AnsiConsole.Ask<string>("Enter [green]admin email[/]:", "admin@example.com");
+            model.UserPassword = AnsiConsole.Prompt(
+                new TextPrompt<string>("Enter [green]admin password[/] (min 10 characters):")
+                    .PromptStyle("red")
+                    .Secret());
+        }
+
+        // Output Format Options
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold yellow]Output Format Options[/]\n");
+
+        model.OnelinerOutput = AnsiConsole.Confirm("Output as [green]one-liner[/]?", false);
+        model.RemoveComments = AnsiConsole.Confirm("Remove [green]comments[/] from script?", false);
+
+        // Display configuration summary
+        DisplayConfigurationSummary(model, packageVersions);
+
+        // Confirm generation
+        if (!AnsiConsole.Confirm("\nGenerate script with these settings?", true))
+        {
+            AnsiConsole.MarkupLine("[yellow]Script generation cancelled.[/]");
+            return;
+        }
 
         var apiClient = new ApiClient(ApiBaseUrl);
 
@@ -225,21 +334,11 @@ class Program
                 .SpinnerStyle(Style.Parse("green"))
                 .StartAsync("Generating installation script...", async ctx =>
                 {
-                    return await apiClient.GenerateScriptAsync(new ScriptRequest
-                    {
-                        Model = new ScriptModel
-                        {
-                            TemplateName = "Umbraco.Templates",
-                            TemplateVersion = templateVersion,
-                            ProjectName = projectName,
-                            Packages = packagesString,
-                            UseUnattendedInstall = false,
-                            CreateSolutionFile = false
-                        }
-                    });
+                    return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
                 });
 
             // Display the generated script in a panel
+            AnsiConsole.WriteLine();
             var panel = new Panel(script)
                 .Header("[bold green]Generated Installation Script[/]")
                 .Border(BoxBorder.Double)
@@ -249,7 +348,7 @@ class Program
             AnsiConsole.Write(panel);
 
             // Option to save to file
-            if (AnsiConsole.Confirm("Would you like to save this script to a file?"))
+            if (AnsiConsole.Confirm("\nWould you like to save this script to a file?"))
             {
                 var fileName = AnsiConsole.Ask<string>("Enter [green]file name[/]:", "install-script.sh");
                 await File.WriteAllTextAsync(fileName, script);
@@ -260,6 +359,69 @@ class Program
         {
             AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
         }
+    }
+
+    /// <summary>
+    /// Displays a summary of the configuration before generating the script
+    /// </summary>
+    private static void DisplayConfigurationSummary(ScriptModel model, Dictionary<string, string> packageVersions)
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Configuration Summary[/]\n");
+
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .BorderColor(Color.Cyan)
+            .AddColumn(new TableColumn("[bold]Setting[/]"))
+            .AddColumn(new TableColumn("[bold]Value[/]"));
+
+        table.AddRow("Template", $"{model.TemplateName} @ {(string.IsNullOrEmpty(model.TemplateVersion) ? "Latest Stable" : model.TemplateVersion)}");
+        table.AddRow("Project Name", model.ProjectName);
+
+        if (model.CreateSolutionFile)
+        {
+            table.AddRow("Solution Name", model.SolutionName ?? "N/A");
+        }
+
+        if (packageVersions.Count > 0)
+        {
+            table.AddRow("Packages", $"{packageVersions.Count} package(s) selected");
+        }
+
+        if (model.IncludeStarterKit)
+        {
+            table.AddRow("Starter Kit", model.StarterKitPackage ?? "N/A");
+        }
+
+        if (model.IncludeDockerfile)
+        {
+            table.AddRow("Docker", "Dockerfile included");
+        }
+
+        if (model.IncludeDockerCompose)
+        {
+            table.AddRow("Docker Compose", "Included");
+        }
+
+        if (model.UseUnattendedInstall)
+        {
+            table.AddRow("Unattended Install", "Enabled");
+            table.AddRow("Database Type", model.DatabaseType ?? "N/A");
+            table.AddRow("Admin User", model.UserFriendlyName ?? "N/A");
+            table.AddRow("Admin Email", model.UserEmail ?? "N/A");
+        }
+
+        if (model.OnelinerOutput)
+        {
+            table.AddRow("Output Format", "One-liner");
+        }
+
+        if (model.RemoveComments)
+        {
+            table.AddRow("Comments", "Removed");
+        }
+
+        AnsiConsole.Write(table);
     }
 }
 
