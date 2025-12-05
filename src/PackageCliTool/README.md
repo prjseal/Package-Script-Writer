@@ -1,6 +1,9 @@
-# Package CLI Tool
+# Package Script Writer CLI (`psw`)
 
 An interactive command-line interface for the Package Script Writer API, built with .NET 10.0 and Spectre.Console.
+
+[![NuGet](https://img.shields.io/nuget/v/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
+[![Downloads](https://img.shields.io/nuget/dt/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
 
 ## Features
 
@@ -29,52 +32,83 @@ An interactive command-line interface for the Package Script Writer API, built w
 
 ## Installation
 
-### Option 1: Build and Run from Source
+### Option 1: Install as .NET Global Tool (Recommended)
+
+Once published to NuGet, install globally:
+
+```bash
+dotnet tool install --global PackageScriptWriter.Cli
+```
+
+Then run from anywhere:
+
+```bash
+psw
+```
+
+**Update the tool:**
+```bash
+dotnet tool update --global PackageScriptWriter.Cli
+```
+
+**Uninstall the tool:**
+```bash
+dotnet tool uninstall --global PackageScriptWriter.Cli
+```
+
+### Option 2: Install from Local Build
 
 1. Navigate to the src directory:
    ```bash
    cd src
    ```
 
-2. Restore dependencies:
+2. Pack the project:
    ```bash
-   dotnet restore
+   dotnet pack PackageCliTool -c Release
    ```
 
-3. Run the CLI tool:
+3. Install from the local package:
+   ```bash
+   dotnet tool install --global --add-source ./PackageCliTool/bin/Release PackageScriptWriter.Cli
+   ```
+
+4. Run from anywhere:
+   ```bash
+   psw
+   ```
+
+### Option 3: Build and Run from Source
+
+1. Navigate to the src directory:
+   ```bash
+   cd src
+   ```
+
+2. Run the CLI tool:
    ```bash
    dotnet run --project PackageCliTool
    ```
 
-### Option 2: Open in Visual Studio
+### Option 4: Open in Visual Studio
 
 1. Open `src/PackageCliTool.sln` in Visual Studio
 2. Press F5 to build and run
-
-### Option 3: Build and Install Globally
-
-1. Build the project:
-   ```bash
-   dotnet build -c Release
-   ```
-
-2. Pack as a .NET tool (optional):
-   ```bash
-   dotnet pack -c Release
-   ```
-
-3. Install globally:
-   ```bash
-   dotnet tool install --global --add-source ./nupkg PackageCliTool
-   ```
 
 ## Usage
 
 ### Basic Workflow
 
 1. **Start the CLI**:
+
+   If installed as a global tool:
    ```bash
-   dotnet run
+   psw
+   ```
+
+   Or if running from source:
+   ```bash
+   dotnet run --project PackageCliTool
    ```
 
 2. **Select Packages**:
@@ -382,6 +416,29 @@ The code includes extensive comments explaining:
 - Parameter descriptions
 - Key logic decisions
 - API interactions
+
+### Publishing to NuGet
+
+To publish this tool to NuGet.org:
+
+1. **Build and pack the project**:
+   ```bash
+   cd src
+   dotnet pack PackageCliTool -c Release
+   ```
+
+2. **Get your NuGet API key** from https://www.nuget.org/account/apikeys
+
+3. **Push to NuGet**:
+   ```bash
+   dotnet nuget push PackageCliTool/bin/Release/PackageScriptWriter.Cli.1.0.0.nupkg \
+     --api-key YOUR_API_KEY \
+     --source https://api.nuget.org/v3/index.json
+   ```
+
+4. **Verify publication** at https://www.nuget.org/packages/PackageScriptWriter.Cli
+
+**Update version**: Edit the `<Version>` in `PackageCliTool.csproj` before each new release.
 
 ## Dependencies
 

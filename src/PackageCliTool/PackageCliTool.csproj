@@ -5,10 +5,32 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- Global Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>psw</ToolCommandName>
+
+    <!-- Package Metadata -->
+    <PackageId>PackageScriptWriter.Cli</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>Paul Seal</Authors>
+    <Company>CodeShare</Company>
+    <Description>Interactive CLI tool for the Package Script Writer API. Generate Umbraco installation scripts with ease using a beautiful terminal interface.</Description>
+    <PackageTags>umbraco;cli;dotnet-tool;package-script-writer;script-generator</PackageTags>
+    <PackageProjectUrl>https://github.com/prjseal/Package-Script-Writer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/prjseal/Package-Script-Writer</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright (c) 2024 Paul Seal</Copyright>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Spectre.Console" Version="0.49.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>
