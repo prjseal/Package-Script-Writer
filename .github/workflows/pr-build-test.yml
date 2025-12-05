@@ -49,9 +49,41 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Installing Playwright..." -ForegroundColor Cyan
+
+          # Initialize npm project
+          Write-Host "Initializing npm project..." -ForegroundColor Yellow
           npm init -y
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "ERROR: npm init failed with exit code $LASTEXITCODE" -ForegroundColor Red
+              exit 1
+          }
+          Write-Host "npm init completed successfully" -ForegroundColor Green
+
+          # Install Playwright
+          Write-Host "Installing Playwright package..." -ForegroundColor Yellow
           npm install --save-dev playwright
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "ERROR: npm install playwright failed with exit code $LASTEXITCODE" -ForegroundColor Red
+              exit 1
+          }
+
+          # Verify Playwright module exists
+          if (-not (Test-Path "node_modules/playwright")) {
+              Write-Host "ERROR: Playwright module directory not found after installation" -ForegroundColor Red
+              Write-Host "Checking node_modules contents..." -ForegroundColor Yellow
+              Get-ChildItem node_modules -ErrorAction SilentlyContinue | Select-Object -First 10
+              exit 1
+          }
+          Write-Host "Playwright package installed successfully" -ForegroundColor Green
+
+          # Install Playwright browsers
+          Write-Host "Installing Playwright Chromium browser..." -ForegroundColor Yellow
           npx playwright install chromium
+          if ($LASTEXITCODE -ne 0) {
+              Write-Host "ERROR: playwright install chromium failed with exit code $LASTEXITCODE" -ForegroundColor Red
+              exit 1
+          }
+          Write-Host "Playwright Chromium browser installed successfully" -ForegroundColor Green
 
       - name: Start website
         shell: pwsh
