@@ -157,13 +157,8 @@ class Program
     /// </summary>
     private static async Task HandleScriptSaveAndRunAsync(string script)
     {
-        // Option to save to file
-        if (!AnsiConsole.Confirm("\nWould you like to save this script to a file?"))
-        {
-            return;
-        }
-
-        var fileName = AnsiConsole.Ask<string>("Enter [green]file name[/]:", "install-script.sh");
+        // Save script to file
+        var fileName = AnsiConsole.Ask<string>("\nEnter [green]file name[/]:", "install-script.sh");
         await File.WriteAllTextAsync(fileName, script);
         AnsiConsole.MarkupLine($"[green]✓ Script saved to {fileName}[/]");
 
