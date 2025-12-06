@@ -130,11 +130,14 @@ psw -v
 psw --default
 psw -d
 
-# Generate custom script with packages
+# Generate custom script with packages (latest versions)
 psw -p "uSync,Umbraco.Forms" -n MyProject
 
+# Generate script with specific package versions
+psw -p "uSync|17.0.0,clean|7.0.1" -n MyProject
+
 # Full automation example
-psw -p "uSync" -n MyProject -s --solution-name MySolution \
+psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
     -u --database-type SQLite --admin-email admin@test.com \
     --admin-password "MySecurePass123!" --auto-run
 ```
@@ -147,7 +150,10 @@ psw -p "uSync" -n MyProject -s --solution-name MySolution \
 - `-d, --default` - Generate a default script with minimal configuration
 
 **Script Configuration:**
-- `-p, --packages <packages>` - Comma-separated list of packages (e.g., "uSync,Umbraco.Forms")
+- `-p, --packages <packages>` - Comma-separated list of packages with optional versions
+  - Format: `"Package1|Version1,Package2|Version2"` (e.g., `"uSync|17.0.0,clean|7.0.1"`)
+  - Or just package names: `"uSync,Umbraco.Forms"` (automatically uses latest version)
+  - Mix both formats: `"uSync|17.0.0,Umbraco.Forms"` (first uses specific version, second uses latest)
 - `-t, --template-version <version>` - Template version (Latest, LTS, or specific version like "14.3.0")
 - `-n, --project-name <name>` - Project name (default: MyUmbracoProject)
 - `-s, --solution` - Create a solution file
@@ -185,19 +191,29 @@ psw -p "uSync" -n MyProject -s --solution-name MySolution \
 psw --default
 ```
 
-**Example 2: Simple Custom Script**
+**Example 2: Simple Custom Script (Latest Versions)**
 ```bash
 psw -p "uSync,Diplo.GodMode" -n MyBlog
 ```
 
-**Example 3: Script with Solution**
+**Example 3: Script with Specific Package Versions**
 ```bash
-psw -p "uSync" -n MyProject -s --solution-name MySolution
+psw -p "uSync|17.0.0,clean|7.0.1" -n MyProject
 ```
 
-**Example 4: Full Automation with Unattended Install**
+**Example 4: Mixed Package Versions (Some Specific, Some Latest)**
 ```bash
-psw -p "uSync,Umbraco.Forms" \
+psw -p "uSync|17.0.0,Umbraco.Forms,Diplo.GodMode|3.0.3" -n MyProject
+```
+
+**Example 5: Script with Solution**
+```bash
+psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution
+```
+
+**Example 6: Full Automation with Unattended Install**
+```bash
+psw -p "uSync|17.0.0,Umbraco.Forms|14.2.0" \
     -n MyUmbracoSite \
     -t "14.3.0" \
     -s --solution-name MyUmbracoSolution \
@@ -207,16 +223,16 @@ psw -p "uSync,Umbraco.Forms" \
     --admin-password "SecurePassword123!"
 ```
 
-**Example 5: Docker-enabled Setup**
+**Example 7: Docker-enabled Setup**
 ```bash
-psw -p "uSync" -n MyDockerProject \
+psw -p "uSync|17.0.0" -n MyDockerProject \
     --dockerfile --docker-compose \
     --auto-run --run-dir ./projects/docker-site
 ```
 
-**Example 6: One-liner Output**
+**Example 8: One-liner Output**
 ```bash
-psw -p "uSync" -n QuickSite -o -r
+psw -p "uSync|17.0.0" -n QuickSite -o -r
 ```
 
 ### Interactive Mode Workflow
