@@ -133,7 +133,10 @@ class Program
   [green]-d, --default[/]                 Generate a default script with minimal configuration
 
 [bold yellow]SCRIPT CONFIGURATION:[/]
-  [green]-p, --packages[/] <packages>     Comma-separated list of packages (e.g., ""uSync,Umbraco.Forms"")
+  [green]-p, --packages[/] <packages>     Comma-separated list of packages with optional versions
+                                   Format: ""Package1|Version1,Package2|Version2""
+                                   Or just package names: ""uSync,Umbraco.Forms"" (uses latest)
+                                   Example: ""uSync|17.0.0,clean|7.0.1""
   [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
   [green]-n, --project-name[/] <name>     Project name (default: MyUmbracoProject)
   [green]-s, --solution[/]                Create a solution file
@@ -168,11 +171,17 @@ class Program
   Generate default script:
     [cyan]psw --default[/]
 
-  Generate custom script with packages:
+  Generate custom script with packages (latest versions):
     [cyan]psw --packages ""uSync,Umbraco.Forms"" --project-name MyProject[/]
 
+  Generate script with specific package versions:
+    [cyan]psw --packages ""uSync|17.0.0,clean|7.0.1"" --project-name MyProject[/]
+
+  Mixed: some with versions, some without:
+    [cyan]psw -p ""uSync|17.0.0,Umbraco.Forms"" -n MyProject[/]
+
   Full configuration example:
-    [cyan]psw -p ""uSync"" -n MyProject -s --solution-name MySolution -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run[/]
+    [cyan]psw -p ""uSync|17.0.0"" -n MyProject -s --solution-name MySolution -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run[/]
 
   Interactive mode (no flags):
     [cyan]psw[/]")
@@ -231,34 +240,54 @@ class Program
         // Handle packages
         if (!string.IsNullOrWhiteSpace(options.Packages))
         {
-            var packages = options.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries)
+            var packageEntries = options.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(p => p.Trim())
                 .ToList();
 
-            if (packages.Count > 0)
+            if (packageEntries.Count > 0)
             {
-                // Fetch versions for each package
                 var packageVersions = new Dictionary<string, string>();
 
-                foreach (var package in packages)
+                foreach (var entry in packageEntries)
                 {
-                    try
+                    // Check if version is specified with pipe character (e.g., "uSync|17.0.0")
+                    if (entry.Contains('|'))
                     {
-                        var versions = await apiClient.GetPackageVersionsAsync(package, options.IncludePrerelease);
-                        if (versions.Count > 0)
+                        var parts = entry.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
+                        if (parts.Length == 2)
                         {
-                            // Use the first version (latest)
-                            packageVersions[package] = versions[0];
-                            AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} version {versions[0]}");
+                            var packageName = parts[0].Trim();
+                            var version = parts[1].Trim();
+                            packageVersions[packageName] = version;
+                            AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
                         }
                         else
                         {
-                            AnsiConsole.MarkupLine($"[yellow]⚠[/] No versions found for {package}, skipping...");
+                            AnsiConsole.MarkupLine($"[yellow]⚠[/] Invalid package format: {entry}, skipping...");
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        AnsiConsole.MarkupLine($"[red]✗[/] Error fetching versions for {package}: {ex.Message}");
+                        // No version specified, fetch the latest
+                        var packageName = entry;
+                        try
+                        {
+                            var versions = await apiClient.GetPackageVersionsAsync(packageName, options.IncludePrerelease);
+                            if (versions.Count > 0)
+                            {
+                                // Use the first version (latest)
+                                packageVersions[packageName] = versions[0];
+                                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageName} version {versions[0]} (latest)");
+                            }
+                            else
+                            {
+                                AnsiConsole.MarkupLine($"[yellow]⚠[/] No versions found for {packageName}, skipping...");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            AnsiConsole.MarkupLine($"[red]✗[/] Error fetching versions for {packageName}: {ex.Message}");
+                        }
                     }
                 }
 
