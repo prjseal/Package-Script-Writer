@@ -37,27 +37,16 @@ class Program
             // Display welcome banner
             DisplayWelcomeBanner();
 
-            // Step 1: Select packages
-            var selectedPackages = await SelectPackagesAsync();
+            // Ask if user wants a default script (fast route)
+            var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
 
-            if (selectedPackages.Count == 0)
+            if (useDefaultScript)
             {
-                AnsiConsole.MarkupLine("[yellow]No packages selected. Exiting...[/]");
-                return;
+                await GenerateDefaultScriptAsync();
             }
-
-            // Step 2: For each package, select version
-            var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages);
-
-            // Step 3: Display final selection
-            DisplayFinalSelection(packageVersions);
-
-            // Step 4: Optional - Generate script (if we want to call the generate endpoint)
-            var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
-
-            if (shouldGenerate)
+            else
             {
-                await GenerateAndDisplayScriptAsync(packageVersions);
+                await RunCustomFlowAsync();
             }
 
             // Display completion message
@@ -67,6 +56,35 @@ class Program
         {
             AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
             AnsiConsole.WriteException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Runs the custom configuration flow for script generation
+    /// </summary>
+    private static async Task RunCustomFlowAsync()
+    {
+        // Step 1: Select packages
+        var selectedPackages = await SelectPackagesAsync();
+
+        if (selectedPackages.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No packages selected. Exiting...[/]");
+            return;
+        }
+
+        // Step 2: For each package, select version
+        var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages);
+
+        // Step 3: Display final selection
+        DisplayFinalSelection(packageVersions);
+
+        // Step 4: Optional - Generate script (if we want to call the generate endpoint)
+        var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
+
+        if (shouldGenerate)
+        {
+            await GenerateAndDisplayScriptAsync(packageVersions);
         }
     }
 
@@ -83,6 +101,194 @@ class Program
         AnsiConsole.MarkupLine("[dim]Package Script Writer - Interactive CLI[/]");
         AnsiConsole.MarkupLine("[dim]By Paul Seal[/]");
         AnsiConsole.WriteLine();
+    }
+
+    /// <summary>
+    /// Generates a default script with minimal configuration
+    /// </summary>
+    private static async Task GenerateDefaultScriptAsync()
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
+        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco, no packages)[/]");
+        AnsiConsole.WriteLine();
+
+        // Create default script model
+        var model = new ScriptModel
+        {
+            TemplateName = "Umbraco.Templates",
+            TemplateVersion = "", // Latest stable
+            ProjectName = "MyUmbracoProject",
+            CreateSolutionFile = false,
+            IncludeStarterKit = false,
+            IncludeDockerfile = false,
+            IncludeDockerCompose = false,
+            CanIncludeDocker = false,
+            UseUnattendedInstall = false,
+            OnelinerOutput = false,
+            RemoveComments = false
+        };
+
+        var apiClient = new ApiClient(ApiBaseUrl);
+
+        try
+        {
+            var script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Star)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating default installation script...", async ctx =>
+                {
+                    return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+                });
+
+            // Display the generated script in a panel
+            AnsiConsole.WriteLine();
+            var panel = new Panel(script)
+                .Header("[bold green]Generated Default Installation Script[/]")
+                .Border(BoxBorder.Double)
+                .BorderColor(Color.Green)
+                .Padding(1, 1);
+
+            AnsiConsole.Write(panel);
+
+            // Option to save and run the script
+            await HandleScriptSaveAndRunAsync(script);
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
+        }
+    }
+
+    /// <summary>
+    /// Handles running or editing the generated script
+    /// </summary>
+    private static async Task HandleScriptSaveAndRunAsync(string script)
+    {
+        // Ask user what they want to do with the script
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("\nWhat would you like to do with this script?")
+                .AddChoices(new[] { "Edit", "Run" }));
+
+        if (action == "Run")
+        {
+            var currentDir = Directory.GetCurrentDirectory();
+            var targetDir = AnsiConsole.Ask<string>(
+                $"Enter [green]directory path[/] to run the script (leave blank for current directory: {currentDir}):",
+                string.Empty);
+
+            if (string.IsNullOrWhiteSpace(targetDir))
+            {
+                targetDir = currentDir;
+            }
+            else
+            {
+                // Expand path and verify it exists
+                targetDir = Path.GetFullPath(targetDir);
+                if (!Directory.Exists(targetDir))
+                {
+                    if (AnsiConsole.Confirm($"Directory [yellow]{targetDir}[/] doesn't exist. Create it?"))
+                    {
+                        Directory.CreateDirectory(targetDir);
+                        AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[yellow]Script execution cancelled.[/]");
+                        return;
+                    }
+                }
+            }
+
+            await RunScriptAsync(script, targetDir);
+        }
+        else if (action == "Edit")
+        {
+            AnsiConsole.MarkupLine("\n[blue]Let's configure a custom script...[/]\n");
+            await RunCustomFlowAsync();
+        }
+    }
+
+    /// <summary>
+    /// Executes the script content in the specified directory
+    /// </summary>
+    private static async Task RunScriptAsync(string scriptContent, string workingDirectory)
+    {
+        try
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[bold blue]Running script in:[/] {workingDirectory}");
+            AnsiConsole.WriteLine();
+
+            // Determine shell for script execution
+            string shell;
+            if (OperatingSystem.IsWindows())
+            {
+                shell = "cmd.exe";
+            }
+            else
+            {
+                shell = "/bin/bash";
+            }
+
+            var process = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = shell,
+                    WorkingDirectory = workingDirectory,
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    AnsiConsole.MarkupLine($"[dim]{e.Data.EscapeMarkup()}[/]");
+                }
+            };
+
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    AnsiConsole.MarkupLine($"[red]{e.Data.EscapeMarkup()}[/]");
+                }
+            };
+
+            process.Start();
+
+            // Write the script content to stdin
+            await process.StandardInput.WriteAsync(scriptContent);
+            await process.StandardInput.FlushAsync();
+            process.StandardInput.Close();
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0)
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine("[green]✓ Script executed successfully![/]");
+            }
+            else
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine($"[yellow]⚠ Script exited with code {process.ExitCode}[/]");
+            }
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]✗ Error running script: {ex.Message}[/]");
+        }
     }
 
     /// <summary>
@@ -348,13 +554,8 @@ class Program
 
             AnsiConsole.Write(panel);
 
-            // Option to save to file
-            if (AnsiConsole.Confirm("\nWould you like to save this script to a file?"))
-            {
-                var fileName = AnsiConsole.Ask<string>("Enter [green]file name[/]:", "install-script.sh");
-                await File.WriteAllTextAsync(fileName, script);
-                AnsiConsole.MarkupLine($"[green]✓ Script saved to {fileName}[/]");
-            }
+            // Option to save and run the script
+            await HandleScriptSaveAndRunAsync(script);
         }
         catch (Exception ex)
         {
