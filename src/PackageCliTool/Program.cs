@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
+using PackageCliTool.Models;
 
 namespace PackageCliTool;
 
@@ -14,7 +15,11 @@ class Program
     private const string ApiBaseUrl = "https://psw.codeshare.co.uk";
     private const string GetVersionsEndpoint = "/api/scriptgeneratorapi/getpackageversions";
     private const string GenerateScriptEndpoint = "/api/scriptgeneratorapi/generatescript";
+    private const string GetAllPackagesEndpoint = "/api/scriptgeneratorapi/getallpackages";
     private const string Version = "1.0.0-beta";
+
+    // All available packages from the Umbraco marketplace
+    private static List<PagedPackagesPackage> allPackages = new();
 
     // Popular Umbraco packages for quick selection
     private static readonly List<string> PopularPackages = new()
@@ -96,6 +101,9 @@ class Program
     {
         // Display welcome banner
         DisplayWelcomeBanner();
+
+        // Populate all packages from API
+        await PopulateAllPackagesAsync();
 
         // Ask if user wants a default script (fast route)
         var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
@@ -357,6 +365,35 @@ class Program
         if (shouldGenerate)
         {
             await GenerateAndDisplayScriptAsync(packageVersions);
+        }
+    }
+
+    /// <summary>
+    /// Populates the allPackages list from the API
+    /// </summary>
+    private static async Task PopulateAllPackagesAsync()
+    {
+        var apiClient = new ApiClient(ApiBaseUrl);
+
+        try
+        {
+            allPackages = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Loading available packages...", async ctx =>
+                {
+                    return await apiClient.GetAllPackagesAsync();
+                });
+
+            AnsiConsole.MarkupLine($"[green]✓[/] Loaded {allPackages.Count} packages from marketplace");
+            AnsiConsole.WriteLine();
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[yellow]⚠[/] Unable to load packages from API: {ex.Message}");
+            AnsiConsole.MarkupLine("[dim]Continuing with limited package selection...[/]");
+            AnsiConsole.WriteLine();
+            allPackages = new List<PagedPackagesPackage>();
         }
     }
 
@@ -1021,6 +1058,41 @@ public class ApiClient
         catch (Exception ex)
         {
             throw new Exception($"Unexpected error generating script: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Retrieves all available Umbraco packages from the marketplace
+    /// </summary>
+    public async Task<List<PagedPackagesPackage>> GetAllPackagesAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync("/api/scriptgeneratorapi/getallpackages");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"API request failed: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            var packages = JsonSerializer.Deserialize<List<PagedPackagesPackage>>(responseContent,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            return packages ?? new List<PagedPackagesPackage>();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new Exception($"Failed to fetch all packages: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Unexpected error fetching all packages: {ex.Message}", ex);
         }
     }
 }
