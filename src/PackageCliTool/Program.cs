@@ -46,28 +46,7 @@ class Program
             }
             else
             {
-                // Step 1: Select packages
-                var selectedPackages = await SelectPackagesAsync();
-
-                if (selectedPackages.Count == 0)
-                {
-                    AnsiConsole.MarkupLine("[yellow]No packages selected. Exiting...[/]");
-                    return;
-                }
-
-                // Step 2: For each package, select version
-                var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages);
-
-                // Step 3: Display final selection
-                DisplayFinalSelection(packageVersions);
-
-                // Step 4: Optional - Generate script (if we want to call the generate endpoint)
-                var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
-
-                if (shouldGenerate)
-                {
-                    await GenerateAndDisplayScriptAsync(packageVersions);
-                }
+                await RunCustomFlowAsync();
             }
 
             // Display completion message
@@ -77,6 +56,35 @@ class Program
         {
             AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
             AnsiConsole.WriteException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Runs the custom configuration flow for script generation
+    /// </summary>
+    private static async Task RunCustomFlowAsync()
+    {
+        // Step 1: Select packages
+        var selectedPackages = await SelectPackagesAsync();
+
+        if (selectedPackages.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No packages selected. Exiting...[/]");
+            return;
+        }
+
+        // Step 2: For each package, select version
+        var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages);
+
+        // Step 3: Display final selection
+        DisplayFinalSelection(packageVersions);
+
+        // Step 4: Optional - Generate script (if we want to call the generate endpoint)
+        var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
+
+        if (shouldGenerate)
+        {
+            await GenerateAndDisplayScriptAsync(packageVersions);
         }
     }
 
@@ -153,12 +161,17 @@ class Program
     }
 
     /// <summary>
-    /// Handles optionally running the generated script
+    /// Handles running or editing the generated script
     /// </summary>
     private static async Task HandleScriptSaveAndRunAsync(string script)
     {
-        // Option to run the script
-        if (AnsiConsole.Confirm("\nWould you like to run this script?"))
+        // Ask user what they want to do with the script
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("\nWhat would you like to do with this script?")
+                .AddChoices(new[] { "Edit", "Run" }));
+
+        if (action == "Run")
         {
             var currentDir = Directory.GetCurrentDirectory();
             var targetDir = AnsiConsole.Ask<string>(
@@ -189,6 +202,11 @@ class Program
             }
 
             await RunScriptAsync(script, targetDir);
+        }
+        else if (action == "Edit")
+        {
+            AnsiConsole.MarkupLine("\n[blue]Let's configure a custom script...[/]\n");
+            await RunCustomFlowAsync();
         }
     }
 
