@@ -110,21 +110,27 @@ class Program
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
-        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco, no packages)[/]");
+        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
         AnsiConsole.WriteLine();
 
-        // Create default script model
+        // Create default script model matching website defaults
         var model = new ScriptModel
         {
             TemplateName = "Umbraco.Templates",
             TemplateVersion = "", // Latest stable
-            ProjectName = "MyUmbracoProject",
-            CreateSolutionFile = false,
-            IncludeStarterKit = false,
+            ProjectName = "MyProject",
+            CreateSolutionFile = true,
+            SolutionName = "MySolution",
+            IncludeStarterKit = true,
+            StarterKitPackage = "clean",
             IncludeDockerfile = false,
             IncludeDockerCompose = false,
             CanIncludeDocker = false,
-            UseUnattendedInstall = false,
+            UseUnattendedInstall = true,
+            DatabaseType = "SQLite",
+            UserEmail = "admin@example.com",
+            UserPassword = "1234567890",
+            UserFriendlyName = "Administrator",
             OnelinerOutput = false,
             RemoveComments = false
         };
