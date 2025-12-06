@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
+using PackageCliTool.Models;
 
 namespace PackageCliTool;
 
@@ -14,7 +15,11 @@ class Program
     private const string ApiBaseUrl = "https://psw.codeshare.co.uk";
     private const string GetVersionsEndpoint = "/api/scriptgeneratorapi/getpackageversions";
     private const string GenerateScriptEndpoint = "/api/scriptgeneratorapi/generatescript";
+    private const string GetAllPackagesEndpoint = "/api/scriptgeneratorapi/getallpackages";
     private const string Version = "1.0.0-beta";
+
+    // All available packages from the Umbraco marketplace
+    private static List<PagedPackagesPackage> allPackages = new();
 
     // Popular Umbraco packages for quick selection
     private static readonly List<string> PopularPackages = new()
@@ -96,6 +101,9 @@ class Program
     {
         // Display welcome banner
         DisplayWelcomeBanner();
+
+        // Populate all packages from API
+        await PopulateAllPackagesAsync();
 
         // Ask if user wants a default script (fast route)
         var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
@@ -246,7 +254,7 @@ class Program
 
             if (packageEntries.Count > 0)
             {
-                var packageVersions = new Dictionary<string, string>();
+                var processedPackages = new List<string>();
 
                 foreach (var entry in packageEntries)
                 {
@@ -258,7 +266,7 @@ class Program
                         {
                             var packageName = parts[0].Trim();
                             var version = parts[1].Trim();
-                            packageVersions[packageName] = version;
+                            processedPackages.Add($"{packageName}|{version}");
                             AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
                         }
                         else
@@ -268,33 +276,17 @@ class Program
                     }
                     else
                     {
-                        // No version specified, fetch the latest
-                        var packageName = entry;
-                        try
-                        {
-                            var versions = await apiClient.GetPackageVersionsAsync(packageName, options.IncludePrerelease);
-                            if (versions.Count > 0)
-                            {
-                                // Use the first version (latest)
-                                packageVersions[packageName] = versions[0];
-                                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageName} version {versions[0]} (latest)");
-                            }
-                            else
-                            {
-                                AnsiConsole.MarkupLine($"[yellow]⚠[/] No versions found for {packageName}, skipping...");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            AnsiConsole.MarkupLine($"[red]✗[/] Error fetching versions for {packageName}: {ex.Message}");
-                        }
+                        // No version specified, use package name without version
+                        var packageName = entry.Trim();
+                        processedPackages.Add(packageName);
+                        AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
                     }
                 }
 
-                // Build packages string in format: "Package1|Version1,Package2|Version2"
-                if (packageVersions.Count > 0)
+                // Build packages string - can be mixed format: "Package1|Version1,Package2,Package3|Version3"
+                if (processedPackages.Count > 0)
                 {
-                    model.Packages = string.Join(",", packageVersions.Select(kvp => $"{kvp.Key}|{kvp.Value}"));
+                    model.Packages = string.Join(",", processedPackages);
                 }
             }
         }
@@ -357,7 +349,15 @@ class Program
 
         if (selectedPackages.Count == 0)
         {
-            AnsiConsole.MarkupLine("[yellow]No packages selected. Exiting...[/]");
+            AnsiConsole.MarkupLine("[yellow]No packages selected. Continuing without packages...[/]");
+            AnsiConsole.WriteLine();
+
+            // Skip to script generation with no packages
+            var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
+            if (shouldGenerate)
+            {
+                await GenerateAndDisplayScriptAsync(new Dictionary<string, string>());
+            }
             return;
         }
 
@@ -368,11 +368,40 @@ class Program
         DisplayFinalSelection(packageVersions);
 
         // Step 4: Optional - Generate script (if we want to call the generate endpoint)
-        var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
+        var shouldGenerate2 = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
 
-        if (shouldGenerate)
+        if (shouldGenerate2)
         {
             await GenerateAndDisplayScriptAsync(packageVersions);
+        }
+    }
+
+    /// <summary>
+    /// Populates the allPackages list from the API
+    /// </summary>
+    private static async Task PopulateAllPackagesAsync()
+    {
+        var apiClient = new ApiClient(ApiBaseUrl);
+
+        try
+        {
+            allPackages = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Loading available packages...", async ctx =>
+                {
+                    return await apiClient.GetAllPackagesAsync();
+                });
+
+            AnsiConsole.MarkupLine($"[green]✓[/] Loaded {allPackages.Count} packages from marketplace");
+            AnsiConsole.WriteLine();
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[yellow]⚠[/] Unable to load packages from API: {ex.Message}");
+            AnsiConsole.MarkupLine("[dim]Continuing with limited package selection...[/]");
+            AnsiConsole.WriteLine();
+            allPackages = new List<PagedPackagesPackage>();
         }
     }
 
@@ -604,32 +633,114 @@ class Program
     {
         AnsiConsole.MarkupLine("[bold blue]Step 1:[/] Select Packages\n");
 
-        var selections = AnsiConsole.Prompt(
-            new MultiSelectionPrompt<string>()
-                .Title("Select [green]one or more packages[/] (use Space to select, Enter to confirm):")
-                .PageSize(15)
-                .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
-                .InstructionsText("[grey](Press [blue]<space>[/] to toggle a package, [green]<enter>[/] to accept)[/]")
-                .AddChoices(PopularPackages)
-                .AddChoices(new[] { "+ Add custom package..." }));
+        // Ask user how they want to select packages
+        var selectionMode = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("How would you like to add packages?")
+                .AddChoices(new[] { "Select from list", "Search for package", "None - skip packages" }));
 
         var selectedPackages = new List<string>();
 
-        // Process selections
-        foreach (var selection in selections)
+        if (selectionMode == "None - skip packages")
         {
-            if (selection == "+ Add custom package...")
+            AnsiConsole.MarkupLine("[dim]Skipping package selection...[/]");
+            return selectedPackages;
+        }
+
+        if (selectionMode == "Select from list")
+        {
+            selectedPackages = await SelectPackagesFromListAsync();
+        }
+        else if (selectionMode == "Search for package")
+        {
+            selectedPackages = await SearchForPackagesAsync();
+        }
+
+        return selectedPackages;
+    }
+
+    /// <summary>
+    /// Select packages from the full list with pagination
+    /// </summary>
+    private static async Task<List<string>> SelectPackagesFromListAsync()
+    {
+        var packageChoices = new List<string>();
+
+        if (allPackages.Count > 0)
+        {
+            // Use all packages from the API
+            packageChoices = allPackages
+                .Where(p => !string.IsNullOrWhiteSpace(p.NuGetPackageId))
+                .Select(p => p.NuGetPackageId)
+                .OrderBy(p => p)
+                .ToList();
+        }
+        else
+        {
+            // Fallback to popular packages if API call failed
+            packageChoices = PopularPackages.ToList();
+        }
+
+        var selections = AnsiConsole.Prompt(
+            new MultiSelectionPrompt<string>()
+                .Title("Select [green]one or more packages[/] (use Space to select, Enter to confirm):")
+                .PageSize(10)
+                .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+                .InstructionsText("[grey](Press [blue]<space>[/] to toggle a package, [green]<enter>[/] to accept)[/]")
+                .AddChoices(packageChoices));
+
+        return selections.ToList();
+    }
+
+    /// <summary>
+    /// Search for packages with autocomplete
+    /// </summary>
+    private static async Task<List<string>> SearchForPackagesAsync()
+    {
+        var selectedPackages = new List<string>();
+        var continueAdding = true;
+
+        while (continueAdding)
+        {
+            // Build autocomplete choices from allPackages
+            var packageChoices = allPackages
+                .Where(p => !string.IsNullOrWhiteSpace(p.NuGetPackageId))
+                .Select(p => p.NuGetPackageId)
+                .OrderBy(p => p)
+                .ToList();
+
+            string packageName;
+
+            if (packageChoices.Count > 0)
             {
-                // Allow user to add custom package name
-                var customPackage = AnsiConsole.Ask<string>("Enter [green]custom package name[/]:");
-                if (!string.IsNullOrWhiteSpace(customPackage))
-                {
-                    selectedPackages.Add(customPackage.Trim());
-                }
+                // Use TextPrompt with autocomplete
+                packageName = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter [green]package name[/] (or type to search):")
+                        .AllowEmpty()
+                        .ShowDefaultValue(false)
+                        .DefaultValue("")
+                        .AddChoices(packageChoices));
             }
             else
             {
-                selectedPackages.Add(selection);
+                // Fallback to simple input if no packages loaded
+                packageName = AnsiConsole.Ask<string>("Enter [green]package name[/]:", string.Empty);
+            }
+
+            if (!string.IsNullOrWhiteSpace(packageName))
+            {
+                selectedPackages.Add(packageName.Trim());
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {packageName.Trim()}");
+            }
+
+            // Ask if they want to add another package
+            if (selectedPackages.Count > 0)
+            {
+                continueAdding = AnsiConsole.Confirm("Add another package?", false);
+            }
+            else
+            {
+                continueAdding = AnsiConsole.Confirm("No packages added yet. Add a package?", true);
             }
         }
 
@@ -660,26 +771,56 @@ class Program
                         return await apiClient.GetPackageVersionsAsync(package, includePrerelease: true);
                     });
 
-                if (versions.Count == 0)
+                // Build version choices with special options first
+                var versionChoices = new List<string>
                 {
-                    AnsiConsole.MarkupLine($"[yellow]⚠ No versions found for {package}. Skipping...[/]");
-                    continue;
+                    "Latest Stable",
+                    "Pre-release"
+                };
+
+                // Add actual versions if available
+                if (versions.Count > 0)
+                {
+                    versionChoices.AddRange(versions);
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine($"[yellow]⚠ No specific versions found for {package}. Showing default options only.[/]");
                 }
 
                 // Let user select a version
                 var selectedVersion = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title($"Select version for [green]{package}[/]:")
-                        .PageSize(10)
+                        .PageSize(12)
                         .MoreChoicesText("[grey](Move up and down to see more versions)[/]")
-                        .AddChoices(versions));
+                        .AddChoices(versionChoices));
 
-                packageVersions[package] = selectedVersion;
-                AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} version {selectedVersion}");
+                // Map the selection to the appropriate value
+                if (selectedVersion == "Latest Stable")
+                {
+                    // No version specified means latest stable
+                    packageVersions[package] = "";
+                    AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} - Latest Stable");
+                }
+                else if (selectedVersion == "Pre-release")
+                {
+                    // Pre-release flag
+                    packageVersions[package] = "--prerelease";
+                    AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} - Pre-release");
+                }
+                else
+                {
+                    // Specific version selected
+                    packageVersions[package] = selectedVersion;
+                    AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} version {selectedVersion}");
+                }
             }
             catch (Exception ex)
             {
                 AnsiConsole.MarkupLine($"[red]✗ Error fetching versions for {package}: {ex.Message}[/]");
+                AnsiConsole.MarkupLine($"[dim]Using latest stable for {package}[/]");
+                packageVersions[package] = "";
             }
         }
 
@@ -708,7 +849,13 @@ class Program
 
         foreach (var (package, version) in packageVersions)
         {
-            table.AddRow(package, $"[green]{version}[/]");
+            string versionDisplay = version switch
+            {
+                "" => "Latest Stable",
+                "--prerelease" => "Pre-release",
+                _ => version
+            };
+            table.AddRow(package, $"[green]{versionDisplay}[/]");
         }
 
         AnsiConsole.Write(table);
@@ -722,8 +869,27 @@ class Program
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 4:[/] Configure Project Options\n");
 
-        // Build packages string in format: "Package1|Version1,Package2|Version2"
-        var packagesString = string.Join(",", packageVersions.Select(kvp => $"{kvp.Key}|{kvp.Value}"));
+        // Build packages string with proper format handling
+        var packageParts = new List<string>();
+        foreach (var (package, version) in packageVersions)
+        {
+            if (string.IsNullOrEmpty(version))
+            {
+                // Latest Stable - just package name
+                packageParts.Add(package);
+            }
+            else if (version == "--prerelease")
+            {
+                // Pre-release - package name with flag
+                packageParts.Add($"{package} {version}");
+            }
+            else
+            {
+                // Specific version - package|version format
+                packageParts.Add($"{package}|{version}");
+            }
+        }
+        var packagesString = string.Join(",", packageParts);
 
         // Create a script model and populate it with user inputs
         var model = new ScriptModel
@@ -1037,6 +1203,41 @@ public class ApiClient
         catch (Exception ex)
         {
             throw new Exception($"Unexpected error generating script: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Retrieves all available Umbraco packages from the marketplace
+    /// </summary>
+    public async Task<List<PagedPackagesPackage>> GetAllPackagesAsync()
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync("/api/scriptgeneratorapi/getallpackages");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                throw new HttpRequestException($"API request failed: {response.StatusCode} - {errorContent}");
+            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            var packages = JsonSerializer.Deserialize<List<PagedPackagesPackage>>(responseContent,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            return packages ?? new List<PagedPackagesPackage>();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new Exception($"Failed to fetch all packages: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Unexpected error fetching all packages: {ex.Message}", ex);
         }
     }
 }

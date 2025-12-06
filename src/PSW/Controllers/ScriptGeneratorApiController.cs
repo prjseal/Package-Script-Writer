@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
+using PSW.Configuration;
 using PSW.Models;
 
 namespace PSW.Controllers;
@@ -16,13 +18,15 @@ public class ScriptGeneratorApiController : ControllerBase
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly IMemoryCache _memoryCache;
     private readonly IPackageService _packageService;
+    private readonly PSWConfig _pswConfig;
 
     public ScriptGeneratorApiController(IScriptGeneratorService scriptGeneratorService,
-        IMemoryCache memoryCache, IPackageService packageService)
+        IMemoryCache memoryCache, IPackageService packageService, IOptions<PSWConfig> pswConfig)
     {
         _scriptGeneratorService = scriptGeneratorService;
         _memoryCache = memoryCache;
         _packageService = packageService;
+        _pswConfig = pswConfig.Value;
     }
 
     /// <summary>
@@ -90,6 +94,32 @@ public class ScriptGeneratorApiController : ControllerBase
                 return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{packageUniqueId}/index.json");
             });
         return Ok(packageVersions);
+    }
+
+    /// <summary>
+    /// Retrieves all available Umbraco packages from the marketplace
+    /// </summary>
+    /// <returns>A list of all available packages</returns>
+    /// <response code="200">Returns the list of all packages</response>
+    [Route("getallpackages")]
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(List<PagedPackagesPackage>), StatusCodes.Status200OK)]
+    public ActionResult GetAllPackagesAsync()
+    {
+        var allPackages = new List<PagedPackagesPackage>();
+
+        int cacheTime = _pswConfig.CachingTimeInMins;
+
+        allPackages = _memoryCache.GetOrCreate(
+            "allPackages",
+            cacheEntry =>
+            {
+                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
+                return _packageService.GetAllPackagesFromUmbraco();
+            });
+
+        return Ok(allPackages);
     }
 
     /// <summary>
