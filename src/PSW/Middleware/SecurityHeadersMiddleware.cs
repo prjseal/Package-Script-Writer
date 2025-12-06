@@ -1,4 +1,5 @@
 ﻿namespace PSW.Middleware;
+
 using System.Threading.Tasks;
 
 public sealed class SecurityHeadersMiddleware

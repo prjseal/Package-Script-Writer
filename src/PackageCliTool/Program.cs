@@ -76,11 +76,12 @@ class Program
     private static void DisplayWelcomeBanner()
     {
         AnsiConsole.Write(
-            new FigletText("Package CLI Tool")
+            new FigletText("PSW CLI")
                 .LeftJustified()
                 .Color(Color.Blue));
 
         AnsiConsole.MarkupLine("[dim]Package Script Writer - Interactive CLI[/]");
+        AnsiConsole.MarkupLine("[dim]By Paul Seal[/]");
         AnsiConsole.WriteLine();
     }
 
@@ -98,14 +99,14 @@ class Program
                 .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to toggle a package, [green]<enter>[/] to accept)[/]")
                 .AddChoices(PopularPackages)
-                .AddChoices(new[] { "[italic]+ Add custom package...[/italic]" }));
+                .AddChoices(new[] { "+ Add custom package..." }));
 
         var selectedPackages = new List<string>();
 
         // Process selections
         foreach (var selection in selections)
         {
-            if (selection == "[italic]+ Add custom package...[/italic]")
+            if (selection == "+ Add custom package...")
             {
                 // Allow user to add custom package name
                 var customPackage = AnsiConsole.Ask<string>("Enter [green]custom package name[/]:");
@@ -144,7 +145,7 @@ class Program
                     .SpinnerStyle(Style.Parse("green"))
                     .StartAsync($"Fetching versions for [yellow]{package}[/]...", async ctx =>
                     {
-                        return await apiClient.GetPackageVersionsAsync(package, includePrerelease: false);
+                        return await apiClient.GetPackageVersionsAsync(package, includePrerelease: true);
                     });
 
                 if (versions.Count == 0)
@@ -371,7 +372,7 @@ class Program
 
         var table = new Table()
             .Border(TableBorder.Rounded)
-            .BorderColor(Color.Cyan)
+            .BorderColor(Color.Aqua)
             .AddColumn(new TableColumn("[bold]Setting[/]"))
             .AddColumn(new TableColumn("[bold]Value[/]"));
 
@@ -468,9 +469,22 @@ public class ApiClient
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
-            var result = JsonSerializer.Deserialize<PackageVersionResponse>(responseContent);
 
-            return result?.Versions ?? new List<string>();
+            // Try to deserialize as a raw array first
+            try
+            {
+                var versions = JsonSerializer.Deserialize<List<string>>(responseContent);
+                if (versions != null)
+                    return versions;
+            }
+            catch
+            {
+                // Fallback to object with 'versions' property
+                var result = JsonSerializer.Deserialize<PackageVersionResponse>(responseContent);
+                return result?.Versions ?? new List<string>();
+            }
+
+            return new List<string>();
         }
         catch (HttpRequestException ex)
         {
@@ -501,6 +515,10 @@ public class ApiClient
             }
 
             var responseContent = await response.Content.ReadAsStringAsync();
+
+            // Log the raw response for debugging
+            AnsiConsole.MarkupLine($"[yellow]Raw script API response: {responseContent}[/]");
+
             var result = JsonSerializer.Deserialize<ScriptResponse>(responseContent);
 
             return result?.Script ?? "No script generated.";

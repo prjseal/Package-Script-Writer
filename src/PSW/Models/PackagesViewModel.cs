@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using static PSW.Models.PackageFeed;
 
 namespace PSW.Models;
+
 public class PackagesViewModel
 {
     public PackagesViewModel() { }

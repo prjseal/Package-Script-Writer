@@ -6,6 +6,7 @@ using PSW.Dictionaries;
 using PSW.Models;
 
 namespace PSW.Services;
+
 public class ScriptGeneratorService : IScriptGeneratorService
 {
     private readonly PSWConfig _pswConfig;

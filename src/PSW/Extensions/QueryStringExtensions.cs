@@ -1,4 +1,5 @@
 ﻿namespace PSW.Extensions;
+
 public static class QueryStringExtensions
 {
     public static QueryString AddValueIfNotEmpty(this QueryString queryString, string key, string val)

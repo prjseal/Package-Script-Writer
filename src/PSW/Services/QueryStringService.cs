@@ -2,6 +2,7 @@
 using PSW.Models;
 
 namespace PSW.Services;
+
 public class QueryStringService : IQueryStringService
 {
     public PackagesViewModel LoadModelFromQueryString(HttpRequest request)
