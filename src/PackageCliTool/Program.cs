@@ -246,7 +246,7 @@ class Program
 
             if (packageEntries.Count > 0)
             {
-                var packageVersions = new Dictionary<string, string>();
+                var processedPackages = new List<string>();
 
                 foreach (var entry in packageEntries)
                 {
@@ -258,7 +258,7 @@ class Program
                         {
                             var packageName = parts[0].Trim();
                             var version = parts[1].Trim();
-                            packageVersions[packageName] = version;
+                            processedPackages.Add($"{packageName}|{version}");
                             AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
                         }
                         else
@@ -268,33 +268,17 @@ class Program
                     }
                     else
                     {
-                        // No version specified, fetch the latest
-                        var packageName = entry;
-                        try
-                        {
-                            var versions = await apiClient.GetPackageVersionsAsync(packageName, options.IncludePrerelease);
-                            if (versions.Count > 0)
-                            {
-                                // Use the first version (latest)
-                                packageVersions[packageName] = versions[0];
-                                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageName} version {versions[0]} (latest)");
-                            }
-                            else
-                            {
-                                AnsiConsole.MarkupLine($"[yellow]⚠[/] No versions found for {packageName}, skipping...");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            AnsiConsole.MarkupLine($"[red]✗[/] Error fetching versions for {packageName}: {ex.Message}");
-                        }
+                        // No version specified, use package name without version
+                        var packageName = entry.Trim();
+                        processedPackages.Add(packageName);
+                        AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
                     }
                 }
 
-                // Build packages string in format: "Package1|Version1,Package2|Version2"
-                if (packageVersions.Count > 0)
+                // Build packages string - can be mixed format: "Package1|Version1,Package2,Package3|Version3"
+                if (processedPackages.Count > 0)
                 {
-                    model.Packages = string.Join(",", packageVersions.Select(kvp => $"{kvp.Key}|{kvp.Value}"));
+                    model.Packages = string.Join(",", processedPackages);
                 }
             }
         }
