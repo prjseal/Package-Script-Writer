@@ -143,17 +143,157 @@ class Program
 
             AnsiConsole.Write(panel);
 
-            // Option to save to file
-            if (AnsiConsole.Confirm("\nWould you like to save this script to a file?"))
-            {
-                var fileName = AnsiConsole.Ask<string>("Enter [green]file name[/]:", "install-script.sh");
-                await File.WriteAllTextAsync(fileName, script);
-                AnsiConsole.MarkupLine($"[green]✓ Script saved to {fileName}[/]");
-            }
+            // Option to save and run the script
+            await HandleScriptSaveAndRunAsync(script);
         }
         catch (Exception ex)
         {
             AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
+        }
+    }
+
+    /// <summary>
+    /// Handles saving and optionally running the generated script
+    /// </summary>
+    private static async Task HandleScriptSaveAndRunAsync(string script)
+    {
+        // Option to save to file
+        if (!AnsiConsole.Confirm("\nWould you like to save this script to a file?"))
+        {
+            return;
+        }
+
+        var fileName = AnsiConsole.Ask<string>("Enter [green]file name[/]:", "install-script.sh");
+        await File.WriteAllTextAsync(fileName, script);
+        AnsiConsole.MarkupLine($"[green]✓ Script saved to {fileName}[/]");
+
+        // Option to run the script
+        if (AnsiConsole.Confirm("\nWould you like to run this script?"))
+        {
+            var currentDir = Directory.GetCurrentDirectory();
+            var targetDir = AnsiConsole.Ask<string>(
+                $"Enter [green]directory path[/] to run the script (leave blank for current directory: {currentDir}):",
+                string.Empty);
+
+            if (string.IsNullOrWhiteSpace(targetDir))
+            {
+                targetDir = currentDir;
+            }
+            else
+            {
+                // Expand path and verify it exists
+                targetDir = Path.GetFullPath(targetDir);
+                if (!Directory.Exists(targetDir))
+                {
+                    if (AnsiConsole.Confirm($"Directory [yellow]{targetDir}[/] doesn't exist. Create it?"))
+                    {
+                        Directory.CreateDirectory(targetDir);
+                        AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[yellow]Script execution cancelled.[/]");
+                        return;
+                    }
+                }
+            }
+
+            await RunScriptAsync(fileName, targetDir);
+        }
+    }
+
+    /// <summary>
+    /// Executes the script file in the specified directory
+    /// </summary>
+    private static async Task RunScriptAsync(string scriptFileName, string workingDirectory)
+    {
+        try
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[bold blue]Running script in:[/] {workingDirectory}");
+            AnsiConsole.WriteLine();
+
+            // Make script executable on Unix-like systems
+            if (!OperatingSystem.IsWindows())
+            {
+                var chmodProcess = new System.Diagnostics.Process
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "chmod",
+                        Arguments = $"+x {scriptFileName}",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true
+                    }
+                };
+                chmodProcess.Start();
+                await chmodProcess.WaitForExitAsync();
+            }
+
+            // Determine shell and script execution command
+            string shell, shellArgs;
+            if (OperatingSystem.IsWindows())
+            {
+                shell = "cmd.exe";
+                shellArgs = $"/c \"{scriptFileName}\"";
+            }
+            else
+            {
+                shell = "/bin/bash";
+                shellArgs = scriptFileName;
+            }
+
+            var process = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = shell,
+                    Arguments = shellArgs,
+                    WorkingDirectory = workingDirectory,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    AnsiConsole.MarkupLine($"[dim]{e.Data.EscapeMarkup()}[/]");
+                }
+            };
+
+            process.ErrorDataReceived += (sender, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    AnsiConsole.MarkupLine($"[red]{e.Data.EscapeMarkup()}[/]");
+                }
+            };
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0)
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine("[green]✓ Script executed successfully![/]");
+            }
+            else
+            {
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine($"[yellow]⚠ Script exited with code {process.ExitCode}[/]");
+            }
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]✗ Error running script: {ex.Message}[/]");
         }
     }
 
@@ -420,13 +560,8 @@ class Program
 
             AnsiConsole.Write(panel);
 
-            // Option to save to file
-            if (AnsiConsole.Confirm("\nWould you like to save this script to a file?"))
-            {
-                var fileName = AnsiConsole.Ask<string>("Enter [green]file name[/]:", "install-script.sh");
-                await File.WriteAllTextAsync(fileName, script);
-                AnsiConsole.MarkupLine($"[green]✓ Script saved to {fileName}[/]");
-            }
+            // Option to save and run the script
+            await HandleScriptSaveAndRunAsync(script);
         }
         catch (Exception ex)
         {
