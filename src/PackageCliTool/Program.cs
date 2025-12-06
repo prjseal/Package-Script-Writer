@@ -3,6 +3,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Spectre.Console;
 using PackageCliTool.Models;
+using PackageCliTool.Logging;
+using PackageCliTool.Exceptions;
+using PackageCliTool.Validation;
+using PackageCliTool.Services;
+using Microsoft.Extensions.Logging;
 
 namespace PackageCliTool;
 
@@ -38,10 +43,19 @@ class Program
 
     static async Task Main(string[] args)
     {
+        ILogger? logger = null;
+
         try
         {
             // Parse command-line arguments
             var options = CommandLineOptions.Parse(args);
+
+            // Initialize logging (verbose mode based on environment or flag)
+            var verboseMode = Environment.GetEnvironmentVariable("PSW_VERBOSE") == "1" || options.VerboseMode;
+            LoggerSetup.Initialize(verboseMode, enableFileLogging: true);
+            logger = LoggerSetup.CreateLogger("Program");
+
+            logger.LogInformation("PSW CLI started with {ArgCount} arguments", args.Length);
 
             // Handle help flag
             if (options.ShowHelp)
@@ -62,59 +76,64 @@ class Program
 
             if (useCLIMode)
             {
-                await RunCLIModeAsync(options);
+                await RunCLIModeAsync(options, logger);
             }
             else
             {
-                await RunInteractiveModeAsync();
+                await RunInteractiveModeAsync(logger);
             }
 
             // Display completion message
             AnsiConsole.MarkupLine("\n[green]✓ Process completed successfully![/]");
+            logger.LogInformation("PSW CLI completed successfully");
         }
         catch (Exception ex)
         {
-            AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
-            AnsiConsole.WriteException(ex);
+            ErrorHandler.Handle(ex, logger, showStackTrace: logger != null);
+            Environment.ExitCode = 1;
+        }
+        finally
+        {
+            LoggerSetup.Shutdown();
         }
     }
 
     /// <summary>
     /// Runs the tool in CLI mode using command-line flags
     /// </summary>
-    private static async Task RunCLIModeAsync(CommandLineOptions options)
+    private static async Task RunCLIModeAsync(CommandLineOptions options, ILogger logger)
     {
         if (options.UseDefault)
         {
-            await GenerateDefaultScriptAsync(options);
+            await GenerateDefaultScriptAsync(options, logger);
         }
         else
         {
-            await GenerateCustomScriptFromOptionsAsync(options);
+            await GenerateCustomScriptFromOptionsAsync(options, logger);
         }
     }
 
     /// <summary>
     /// Runs the tool in interactive mode
     /// </summary>
-    private static async Task RunInteractiveModeAsync()
+    private static async Task RunInteractiveModeAsync(ILogger logger)
     {
         // Display welcome banner
         DisplayWelcomeBanner();
 
         // Populate all packages from API
-        await PopulateAllPackagesAsync();
+        await PopulateAllPackagesAsync(logger);
 
         // Ask if user wants a default script (fast route)
         var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
 
         if (useDefaultScript)
         {
-            await GenerateDefaultScriptAsync();
+            await GenerateDefaultScriptAsync(null, logger);
         }
         else
         {
-            await RunCustomFlowAsync();
+            await RunCustomFlowAsync(logger);
         }
     }
 
@@ -220,14 +239,26 @@ class Program
     /// <summary>
     /// Generates a custom script from command-line options
     /// </summary>
-    private static async Task GenerateCustomScriptFromOptionsAsync(CommandLineOptions options)
+    private static async Task GenerateCustomScriptFromOptionsAsync(CommandLineOptions options, ILogger logger)
     {
-        var apiClient = new ApiClient(ApiBaseUrl);
+        logger.LogInformation("Generating custom script from command-line options");
+
+        var projectName = options.ProjectName ?? "MyUmbracoProject";
+
+        // Validate inputs
+        InputValidator.ValidateProjectName(projectName);
+        InputValidator.ValidateSolutionName(options.SolutionName);
+        InputValidator.ValidateEmail(options.AdminEmail);
+        InputValidator.ValidatePassword(options.AdminPassword);
+        InputValidator.ValidateDatabaseType(options.DatabaseType);
+        InputValidator.ValidateConnectionString(options.ConnectionString, options.DatabaseType);
+
+        var apiClient = new ApiClient(ApiBaseUrl, logger);
         var model = new ScriptModel
         {
             TemplateName = "Umbraco.Templates",
             TemplateVersion = options.TemplateVersion ?? "",
-            ProjectName = options.ProjectName ?? "MyUmbracoProject",
+            ProjectName = projectName,
             CreateSolutionFile = options.CreateSolution,
             SolutionName = options.SolutionName,
             IncludeStarterKit = options.IncludeStarterKit,
@@ -248,6 +279,8 @@ class Program
         // Handle packages
         if (!string.IsNullOrWhiteSpace(options.Packages))
         {
+            logger.LogDebug("Processing packages: {Packages}", options.Packages);
+
             var packageEntries = options.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(p => p.Trim())
                 .ToList();
@@ -266,20 +299,29 @@ class Program
                         {
                             var packageName = parts[0].Trim();
                             var version = parts[1].Trim();
+
+                            // Validate package name and version
+                            InputValidator.ValidatePackageName(packageName);
+                            InputValidator.ValidateVersion(version);
+
                             processedPackages.Add($"{packageName}|{version}");
                             AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
+                            logger.LogDebug("Added package {Package} with version {Version}", packageName, version);
                         }
                         else
                         {
-                            AnsiConsole.MarkupLine($"[yellow]⚠[/] Invalid package format: {entry}, skipping...");
+                            ErrorHandler.Warning($"Invalid package format: {entry}, skipping...", logger);
                         }
                     }
                     else
                     {
                         // No version specified, use package name without version
                         var packageName = entry.Trim();
+                        InputValidator.ValidatePackageName(packageName);
+
                         processedPackages.Add(packageName);
                         AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
+                        logger.LogDebug("Added package {Package} with latest version", packageName);
                     }
                 }
 
@@ -292,77 +334,79 @@ class Program
         }
 
         // Generate the script
-        try
+        logger.LogInformation("Generating installation script via API");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+            });
+
+        logger.LogInformation("Script generated successfully");
+
+        // Display the generated script
+        AnsiConsole.WriteLine();
+        var panel = new Panel(script)
+            .Header("[bold green]Generated Installation Script[/]")
+            .Border(BoxBorder.Double)
+            .BorderColor(Color.Green)
+            .Padding(1, 1);
+
+        AnsiConsole.Write(panel);
+
+        // Handle auto-run or interactive run
+        if (options.AutoRun || !string.IsNullOrWhiteSpace(options.RunDirectory))
         {
-            var script = await AnsiConsole.Status()
-                .Spinner(Spinner.Known.Star)
-                .SpinnerStyle(Style.Parse("green"))
-                .StartAsync("Generating installation script...", async ctx =>
-                {
-                    return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
-                });
+            var targetDir = options.RunDirectory ?? Directory.GetCurrentDirectory();
 
-            // Display the generated script
-            AnsiConsole.WriteLine();
-            var panel = new Panel(script)
-                .Header("[bold green]Generated Installation Script[/]")
-                .Border(BoxBorder.Double)
-                .BorderColor(Color.Green)
-                .Padding(1, 1);
+            // Validate and expand path
+            InputValidator.ValidateDirectoryPath(targetDir);
+            targetDir = Path.GetFullPath(targetDir);
 
-            AnsiConsole.Write(panel);
-
-            // Handle auto-run or interactive run
-            if (options.AutoRun || !string.IsNullOrWhiteSpace(options.RunDirectory))
+            if (!Directory.Exists(targetDir))
             {
-                var targetDir = options.RunDirectory ?? Directory.GetCurrentDirectory();
-
-                // Expand path and verify it exists
-                targetDir = Path.GetFullPath(targetDir);
-                if (!Directory.Exists(targetDir))
-                {
-                    Directory.CreateDirectory(targetDir);
-                    AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
-                }
-
-                await RunScriptAsync(script, targetDir);
+                logger.LogInformation("Creating directory: {Directory}", targetDir);
+                Directory.CreateDirectory(targetDir);
+                AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
             }
-            else
-            {
-                // Option to save and run the script
-                await HandleScriptSaveAndRunAsync(script);
-            }
+
+            await RunScriptAsync(script, targetDir, logger);
         }
-        catch (Exception ex)
+        else
         {
-            AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
+            // Option to save and run the script
+            await HandleScriptSaveAndRunAsync(script, logger);
         }
     }
 
     /// <summary>
     /// Runs the custom configuration flow for script generation
     /// </summary>
-    private static async Task RunCustomFlowAsync()
+    private static async Task RunCustomFlowAsync(ILogger logger)
     {
+        logger.LogInformation("Starting custom configuration flow");
+
         // Step 1: Select packages
         var selectedPackages = await SelectPackagesAsync();
 
         if (selectedPackages.Count == 0)
         {
-            AnsiConsole.MarkupLine("[yellow]No packages selected. Continuing without packages...[/]");
+            ErrorHandler.Warning("No packages selected. Continuing without packages...", logger);
             AnsiConsole.WriteLine();
 
             // Skip to script generation with no packages
             var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
             if (shouldGenerate)
             {
-                await GenerateAndDisplayScriptAsync(new Dictionary<string, string>());
+                await GenerateAndDisplayScriptAsync(new Dictionary<string, string>(), logger);
             }
             return;
         }
 
         // Step 2: For each package, select version
-        var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages);
+        var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages, logger);
 
         // Step 3: Display final selection
         DisplayFinalSelection(packageVersions);
@@ -372,19 +416,21 @@ class Program
 
         if (shouldGenerate2)
         {
-            await GenerateAndDisplayScriptAsync(packageVersions);
+            await GenerateAndDisplayScriptAsync(packageVersions, logger);
         }
     }
 
     /// <summary>
     /// Populates the allPackages list from the API
     /// </summary>
-    private static async Task PopulateAllPackagesAsync()
+    private static async Task PopulateAllPackagesAsync(ILogger logger)
     {
-        var apiClient = new ApiClient(ApiBaseUrl);
+        var apiClient = new ApiClient(ApiBaseUrl, logger);
 
         try
         {
+            logger.LogInformation("Fetching available packages from API");
+
             allPackages = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
@@ -394,11 +440,13 @@ class Program
                 });
 
             AnsiConsole.MarkupLine($"[green]✓[/] Loaded {allPackages.Count} packages from marketplace");
+            logger.LogInformation("Loaded {Count} packages from marketplace", allPackages.Count);
             AnsiConsole.WriteLine();
         }
         catch (Exception ex)
         {
-            AnsiConsole.MarkupLine($"[yellow]⚠[/] Unable to load packages from API: {ex.Message}");
+            logger.LogWarning(ex, "Failed to load packages from API");
+            ErrorHandler.Warning($"Unable to load packages from API: {ex.Message}", logger);
             AnsiConsole.MarkupLine("[dim]Continuing with limited package selection...[/]");
             AnsiConsole.WriteLine();
             allPackages = new List<PagedPackagesPackage>();
@@ -423,8 +471,10 @@ class Program
     /// <summary>
     /// Generates a default script with minimal configuration
     /// </summary>
-    private static async Task GenerateDefaultScriptAsync(CommandLineOptions? options = null)
+    private static async Task GenerateDefaultScriptAsync(CommandLineOptions? options, ILogger logger)
     {
+        logger.LogInformation("Generating default script");
+
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
         AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
@@ -452,59 +502,57 @@ class Program
             RemoveComments = false
         };
 
-        var apiClient = new ApiClient(ApiBaseUrl);
+        var apiClient = new ApiClient(ApiBaseUrl, logger);
 
-        try
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating default installation script...", async ctx =>
+            {
+                return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+            });
+
+        logger.LogInformation("Default script generated successfully");
+
+        // Display the generated script in a panel
+        AnsiConsole.WriteLine();
+        var panel = new Panel(script)
+            .Header("[bold green]Generated Default Installation Script[/]")
+            .Border(BoxBorder.Double)
+            .BorderColor(Color.Green)
+            .Padding(1, 1);
+
+        AnsiConsole.Write(panel);
+
+        // Handle auto-run or interactive run
+        if (options?.AutoRun == true || !string.IsNullOrWhiteSpace(options?.RunDirectory))
         {
-            var script = await AnsiConsole.Status()
-                .Spinner(Spinner.Known.Star)
-                .SpinnerStyle(Style.Parse("green"))
-                .StartAsync("Generating default installation script...", async ctx =>
-                {
-                    return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
-                });
+            var targetDir = options?.RunDirectory ?? Directory.GetCurrentDirectory();
 
-            // Display the generated script in a panel
-            AnsiConsole.WriteLine();
-            var panel = new Panel(script)
-                .Header("[bold green]Generated Default Installation Script[/]")
-                .Border(BoxBorder.Double)
-                .BorderColor(Color.Green)
-                .Padding(1, 1);
+            // Validate and expand path
+            InputValidator.ValidateDirectoryPath(targetDir);
+            targetDir = Path.GetFullPath(targetDir);
 
-            AnsiConsole.Write(panel);
-
-            // Handle auto-run or interactive run
-            if (options?.AutoRun == true || !string.IsNullOrWhiteSpace(options?.RunDirectory))
+            if (!Directory.Exists(targetDir))
             {
-                var targetDir = options?.RunDirectory ?? Directory.GetCurrentDirectory();
-
-                // Expand path and verify it exists
-                targetDir = Path.GetFullPath(targetDir);
-                if (!Directory.Exists(targetDir))
-                {
-                    Directory.CreateDirectory(targetDir);
-                    AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
-                }
-
-                await RunScriptAsync(script, targetDir);
+                logger.LogInformation("Creating directory: {Directory}", targetDir);
+                Directory.CreateDirectory(targetDir);
+                AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
             }
-            else
-            {
-                // Option to save and run the script
-                await HandleScriptSaveAndRunAsync(script);
-            }
+
+            await RunScriptAsync(script, targetDir, logger);
         }
-        catch (Exception ex)
+        else
         {
-            AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
+            // Option to save and run the script
+            await HandleScriptSaveAndRunAsync(script, logger);
         }
     }
 
     /// <summary>
     /// Handles running or editing the generated script
     /// </summary>
-    private static async Task HandleScriptSaveAndRunAsync(string script)
+    private static async Task HandleScriptSaveAndRunAsync(string script, ILogger logger)
     {
         // Ask user what they want to do with the script
         var action = AnsiConsole.Prompt(
@@ -525,110 +573,121 @@ class Program
             }
             else
             {
-                // Expand path and verify it exists
+                // Validate and expand path
+                InputValidator.ValidateDirectoryPath(targetDir);
                 targetDir = Path.GetFullPath(targetDir);
+
                 if (!Directory.Exists(targetDir))
                 {
                     if (AnsiConsole.Confirm($"Directory [yellow]{targetDir}[/] doesn't exist. Create it?"))
                     {
+                        logger.LogInformation("Creating directory: {Directory}", targetDir);
                         Directory.CreateDirectory(targetDir);
                         AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
                     }
                     else
                     {
+                        logger.LogInformation("Script execution cancelled by user");
                         AnsiConsole.MarkupLine("[yellow]Script execution cancelled.[/]");
                         return;
                     }
                 }
             }
 
-            await RunScriptAsync(script, targetDir);
+            await RunScriptAsync(script, targetDir, logger);
         }
         else if (action == "Edit")
         {
             AnsiConsole.MarkupLine("\n[blue]Let's configure a custom script...[/]\n");
-            await RunCustomFlowAsync();
+            await RunCustomFlowAsync(logger);
         }
     }
 
     /// <summary>
     /// Executes the script content in the specified directory
     /// </summary>
-    private static async Task RunScriptAsync(string scriptContent, string workingDirectory)
+    private static async Task RunScriptAsync(string scriptContent, string workingDirectory, ILogger logger)
     {
-        try
+        logger.LogInformation("Executing script in directory: {Directory}", workingDirectory);
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[bold blue]Running script in:[/] {workingDirectory}");
+        AnsiConsole.WriteLine();
+
+        // Determine shell for script execution
+        string shell;
+        if (OperatingSystem.IsWindows())
         {
-            AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine($"[bold blue]Running script in:[/] {workingDirectory}");
-            AnsiConsole.WriteLine();
-
-            // Determine shell for script execution
-            string shell;
-            if (OperatingSystem.IsWindows())
-            {
-                shell = "cmd.exe";
-            }
-            else
-            {
-                shell = "/bin/bash";
-            }
-
-            var process = new System.Diagnostics.Process
-            {
-                StartInfo = new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = shell,
-                    WorkingDirectory = workingDirectory,
-                    UseShellExecute = false,
-                    RedirectStandardInput = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    CreateNoWindow = true
-                }
-            };
-
-            process.OutputDataReceived += (sender, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
-                {
-                    AnsiConsole.MarkupLine($"[dim]{e.Data.EscapeMarkup()}[/]");
-                }
-            };
-
-            process.ErrorDataReceived += (sender, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
-                {
-                    AnsiConsole.MarkupLine($"[red]{e.Data.EscapeMarkup()}[/]");
-                }
-            };
-
-            process.Start();
-
-            // Write the script content to stdin
-            await process.StandardInput.WriteAsync(scriptContent);
-            await process.StandardInput.FlushAsync();
-            process.StandardInput.Close();
-
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-
-            await process.WaitForExitAsync();
-
-            if (process.ExitCode == 0)
-            {
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine("[green]✓ Script executed successfully![/]");
-            }
-            else
-            {
-                AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine($"[yellow]⚠ Script exited with code {process.ExitCode}[/]");
-            }
+            shell = "cmd.exe";
         }
-        catch (Exception ex)
+        else
         {
-            AnsiConsole.MarkupLine($"[red]✗ Error running script: {ex.Message}[/]");
+            shell = "/bin/bash";
+        }
+
+        logger.LogDebug("Using shell: {Shell}", shell);
+
+        var process = new System.Diagnostics.Process
+        {
+            StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = shell,
+                WorkingDirectory = workingDirectory,
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            }
+        };
+
+        process.OutputDataReceived += (sender, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                logger.LogDebug("Script output: {Output}", e.Data);
+                AnsiConsole.MarkupLine($"[dim]{e.Data.EscapeMarkup()}[/]");
+            }
+        };
+
+        process.ErrorDataReceived += (sender, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                logger.LogWarning("Script error output: {Error}", e.Data);
+                AnsiConsole.MarkupLine($"[red]{e.Data.EscapeMarkup()}[/]");
+            }
+        };
+
+        process.Start();
+
+        // Write the script content to stdin
+        await process.StandardInput.WriteAsync(scriptContent);
+        await process.StandardInput.FlushAsync();
+        process.StandardInput.Close();
+
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        await process.WaitForExitAsync();
+
+        if (process.ExitCode == 0)
+        {
+            logger.LogInformation("Script executed successfully with exit code 0");
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[green]✓ Script executed successfully![/]");
+        }
+        else
+        {
+            logger.LogWarning("Script exited with non-zero code: {ExitCode}", process.ExitCode);
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[yellow]⚠ Script exited with code {process.ExitCode}[/]");
+
+            throw new ScriptExecutionException(
+                $"Script execution failed with exit code {process.ExitCode}",
+                process.ExitCode,
+                "Check the script output above for error details"
+            );
         }
     }
 
@@ -756,18 +815,20 @@ class Program
     /// <summary>
     /// For each selected package, fetch versions and let user select one
     /// </summary>
-    private static async Task<Dictionary<string, string>> SelectVersionsForPackagesAsync(List<string> packages)
+    private static async Task<Dictionary<string, string>> SelectVersionsForPackagesAsync(List<string> packages, ILogger logger)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 2:[/] Select Versions\n");
 
         var packageVersions = new Dictionary<string, string>();
-        var apiClient = new ApiClient(ApiBaseUrl);
+        var apiClient = new ApiClient(ApiBaseUrl, logger);
 
         foreach (var package in packages)
         {
             try
             {
+                logger.LogDebug("Fetching versions for package: {Package}", package);
+
                 // Fetch versions with spinner
                 var versions = await AnsiConsole.Status()
                     .Spinner(Spinner.Known.Dots)
@@ -776,6 +837,8 @@ class Program
                     {
                         return await apiClient.GetPackageVersionsAsync(package, includePrerelease: true);
                     });
+
+                logger.LogDebug("Found {Count} versions for package {Package}", versions.Count, package);
 
                 // Build version choices with special options first
                 var versionChoices = new List<string>
@@ -791,7 +854,7 @@ class Program
                 }
                 else
                 {
-                    AnsiConsole.MarkupLine($"[yellow]⚠ No specific versions found for {package}. Showing default options only.[/]");
+                    ErrorHandler.Warning($"No specific versions found for {package}. Showing default options only.", logger);
                 }
 
                 // Let user select a version
@@ -808,24 +871,27 @@ class Program
                     // No version specified means latest stable
                     packageVersions[package] = "";
                     AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} - Latest Stable");
+                    logger.LogInformation("Selected {Package} with latest stable version", package);
                 }
                 else if (selectedVersion == "Pre-release")
                 {
                     // Pre-release flag
                     packageVersions[package] = "--prerelease";
                     AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} - Pre-release");
+                    logger.LogInformation("Selected {Package} with pre-release version", package);
                 }
                 else
                 {
                     // Specific version selected
                     packageVersions[package] = selectedVersion;
                     AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} version {selectedVersion}");
+                    logger.LogInformation("Selected {Package} version {Version}", package, selectedVersion);
                 }
             }
             catch (Exception ex)
             {
-                AnsiConsole.MarkupLine($"[red]✗ Error fetching versions for {package}: {ex.Message}[/]");
-                AnsiConsole.MarkupLine($"[dim]Using latest stable for {package}[/]");
+                logger.LogWarning(ex, "Error fetching versions for package {Package}", package);
+                ErrorHandler.Warning($"Error fetching versions for {package}: {ex.Message}. Using latest stable.", logger);
                 packageVersions[package] = "";
             }
         }
@@ -870,8 +936,10 @@ class Program
     /// <summary>
     /// Generates a complete installation script using the API
     /// </summary>
-    private static async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions)
+    private static async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions, ILogger logger)
     {
+        logger.LogInformation("Generating complete installation script");
+
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 4:[/] Configure Project Options\n");
 
@@ -1006,39 +1074,37 @@ class Program
         // Confirm generation
         if (!AnsiConsole.Confirm("\nGenerate script with these settings?", true))
         {
+            logger.LogInformation("Script generation cancelled by user");
             AnsiConsole.MarkupLine("[yellow]Script generation cancelled.[/]");
             return;
         }
 
-        var apiClient = new ApiClient(ApiBaseUrl);
+        var apiClient = new ApiClient(ApiBaseUrl, logger);
 
-        try
-        {
-            var script = await AnsiConsole.Status()
-                .Spinner(Spinner.Known.Star)
-                .SpinnerStyle(Style.Parse("green"))
-                .StartAsync("Generating installation script...", async ctx =>
-                {
-                    return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
-                });
+        logger.LogInformation("Generating installation script via API");
 
-            // Display the generated script in a panel
-            AnsiConsole.WriteLine();
-            var panel = new Panel(script)
-                .Header("[bold green]Generated Installation Script[/]")
-                .Border(BoxBorder.Double)
-                .BorderColor(Color.Green)
-                .Padding(1, 1);
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+            });
 
-            AnsiConsole.Write(panel);
+        logger.LogInformation("Script generated successfully");
 
-            // Option to save and run the script
-            await HandleScriptSaveAndRunAsync(script);
-        }
-        catch (Exception ex)
-        {
-            AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
-        }
+        // Display the generated script in a panel
+        AnsiConsole.WriteLine();
+        var panel = new Panel(script)
+            .Header("[bold green]Generated Installation Script[/]")
+            .Border(BoxBorder.Double)
+            .BorderColor(Color.Green)
+            .Padding(1, 1);
+
+        AnsiConsole.Write(panel);
+
+        // Option to save and run the script
+        await HandleScriptSaveAndRunAsync(script, logger);
     }
 
     /// <summary>
@@ -1110,17 +1176,22 @@ class Program
 /// </summary>
 public class ApiClient
 {
-    private readonly HttpClient _httpClient;
+    private readonly ResilientHttpClient _resilientClient;
     private readonly string _baseUrl;
+    private readonly ILogger? _logger;
 
-    public ApiClient(string baseUrl)
+    public ApiClient(string baseUrl, ILogger? logger = null)
     {
         _baseUrl = baseUrl;
-        _httpClient = new HttpClient
+        _logger = logger;
+
+        var httpClient = new HttpClient
         {
             BaseAddress = new Uri(baseUrl),
             Timeout = TimeSpan.FromSeconds(90)
         };
+
+        _resilientClient = new ResilientHttpClient(httpClient, logger, maxRetries: 3);
     }
 
     /// <summary>
@@ -1128,51 +1199,55 @@ public class ApiClient
     /// </summary>
     public async Task<List<string>> GetPackageVersionsAsync(string packageId, bool includePrerelease = false)
     {
+        _logger?.LogInformation("Fetching package versions for {PackageId}", packageId);
+
+        var request = new PackageVersionRequest
+        {
+            PackageId = packageId,
+            IncludePrerelease = includePrerelease
+        };
+
+        var json = JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _resilientClient.PostAsync("/api/scriptgeneratorapi/getpackageversions", content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        _logger?.LogDebug("Received package versions response with length {Length}", responseContent.Length);
+
+        // Try to deserialize as a raw array first
         try
         {
-            var request = new PackageVersionRequest
+            var versions = JsonSerializer.Deserialize<List<string>>(responseContent);
+            if (versions != null)
             {
-                PackageId = packageId,
-                IncludePrerelease = includePrerelease
-            };
-
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/api/scriptgeneratorapi/getpackageversions", content);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"API request failed: {response.StatusCode} - {errorContent}");
+                _logger?.LogInformation("Found {Count} versions for package {PackageId}", versions.Count, packageId);
+                return versions;
             }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            // Try to deserialize as a raw array first
+        }
+        catch (JsonException)
+        {
+            // Fallback to object with 'versions' property
             try
             {
-                var versions = JsonSerializer.Deserialize<List<string>>(responseContent);
-                if (versions != null)
-                    return versions;
-            }
-            catch
-            {
-                // Fallback to object with 'versions' property
                 var result = JsonSerializer.Deserialize<PackageVersionResponse>(responseContent);
-                return result?.Versions ?? new List<string>();
+                var versionList = result?.Versions ?? new List<string>();
+                _logger?.LogInformation("Found {Count} versions for package {PackageId}", versionList.Count, packageId);
+                return versionList;
             }
+            catch (JsonException ex)
+            {
+                _logger?.LogError(ex, "Failed to deserialize package versions response");
+                throw new ApiException(
+                    $"Invalid response format when fetching versions for '{packageId}'",
+                    ex,
+                    null,
+                    "The API returned data in an unexpected format. Try again later or contact support."
+                );
+            }
+        }
 
-            return new List<string>();
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Failed to fetch versions for package '{packageId}': {ex.Message}", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Unexpected error fetching versions: {ex.Message}", ex);
-        }
+        return new List<string>();
     }
 
     /// <summary>
@@ -1180,36 +1255,27 @@ public class ApiClient
     /// </summary>
     public async Task<string> GenerateScriptAsync(ScriptRequest request)
     {
-        try
+        _logger?.LogInformation("Generating installation script via API");
+
+        var json = JsonSerializer.Serialize(request);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _resilientClient.PostAsync("/api/scriptgeneratorapi/generatescript", content);
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        _logger?.LogDebug("Received script response with length {Length}", responseContent.Length);
+
+        if (string.IsNullOrWhiteSpace(responseContent))
         {
-            var json = JsonSerializer.Serialize(request);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync("/api/scriptgeneratorapi/generatescript", content);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"API request failed: {response.StatusCode} - {errorContent}");
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-
-            // Log the raw response for debugging
-            AnsiConsole.MarkupLine($"[yellow]Raw script API response: {responseContent}[/]");
-
-            var result = responseContent;
-
-            return result ?? "# No script generated.";
+            _logger?.LogWarning("Received empty script response from API");
+            throw new ApiException(
+                "API returned an empty script",
+                null,
+                "The API did not return a valid script. Try again or check your configuration."
+            );
         }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Failed to generate script: {ex.Message}", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Unexpected error generating script: {ex.Message}", ex);
-        }
+
+        return responseContent;
     }
 
     /// <summary>
@@ -1217,33 +1283,35 @@ public class ApiClient
     /// </summary>
     public async Task<List<PagedPackagesPackage>> GetAllPackagesAsync()
     {
+        _logger?.LogInformation("Fetching all packages from marketplace");
+
+        var response = await _resilientClient.GetAsync("/api/scriptgeneratorapi/getallpackages");
+        var responseContent = await response.Content.ReadAsStringAsync();
+
+        _logger?.LogDebug("Received packages response with length {Length}", responseContent.Length);
+
         try
         {
-            var response = await _httpClient.GetAsync("/api/scriptgeneratorapi/getallpackages");
-
-            if (!response.IsSuccessStatusCode)
-            {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                throw new HttpRequestException($"API request failed: {response.StatusCode} - {errorContent}");
-            }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-
             var packages = JsonSerializer.Deserialize<List<PagedPackagesPackage>>(responseContent,
                 new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
 
-            return packages ?? new List<PagedPackagesPackage>();
+            var packageList = packages ?? new List<PagedPackagesPackage>();
+            _logger?.LogInformation("Successfully fetched {Count} packages from marketplace", packageList.Count);
+
+            return packageList;
         }
-        catch (HttpRequestException ex)
+        catch (JsonException ex)
         {
-            throw new Exception($"Failed to fetch all packages: {ex.Message}", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Unexpected error fetching all packages: {ex.Message}", ex);
+            _logger?.LogError(ex, "Failed to deserialize packages response");
+            throw new ApiException(
+                "Invalid response format when fetching packages",
+                ex,
+                null,
+                "The API returned data in an unexpected format. Try again later or contact support."
+            );
         }
     }
 }
@@ -1365,9 +1433,10 @@ public class CommandLineOptions
     public bool IncludePrerelease { get; set; }
     public bool AutoRun { get; set; }
     public string? RunDirectory { get; set; }
+    public bool VerboseMode { get; set; }
 
     /// <summary>
-    /// Checks if any configuration options are set (excluding help/version/default)
+    /// Checks if any configuration options are set (excluding help/version/default/verbose)
     /// </summary>
     public bool HasAnyOptions()
     {
@@ -1508,6 +1577,10 @@ public class CommandLineOptions
 
                 case "--run-dir":
                     options.RunDirectory = GetNextArgument(args, ref i);
+                    break;
+
+                case "--verbose":
+                    options.VerboseMode = true;
                     break;
 
                 default:
