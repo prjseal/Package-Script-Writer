@@ -14,6 +14,7 @@ class Program
     private const string ApiBaseUrl = "https://psw.codeshare.co.uk";
     private const string GetVersionsEndpoint = "/api/scriptgeneratorapi/getpackageversions";
     private const string GenerateScriptEndpoint = "/api/scriptgeneratorapi/generatescript";
+    private const string Version = "1.0.0-beta";
 
     // Popular Umbraco packages for quick selection
     private static readonly List<string> PopularPackages = new()
@@ -34,19 +35,33 @@ class Program
     {
         try
         {
-            // Display welcome banner
-            DisplayWelcomeBanner();
+            // Parse command-line arguments
+            var options = CommandLineOptions.Parse(args);
 
-            // Ask if user wants a default script (fast route)
-            var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
-
-            if (useDefaultScript)
+            // Handle help flag
+            if (options.ShowHelp)
             {
-                await GenerateDefaultScriptAsync();
+                DisplayHelp();
+                return;
+            }
+
+            // Handle version flag
+            if (options.ShowVersion)
+            {
+                DisplayVersion();
+                return;
+            }
+
+            // Determine if we should use CLI mode or interactive mode
+            bool useCLIMode = options.HasAnyOptions();
+
+            if (useCLIMode)
+            {
+                await RunCLIModeAsync(options);
             }
             else
             {
-                await RunCustomFlowAsync();
+                await RunInteractiveModeAsync();
             }
 
             // Display completion message
@@ -56,6 +71,250 @@ class Program
         {
             AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
             AnsiConsole.WriteException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Runs the tool in CLI mode using command-line flags
+    /// </summary>
+    private static async Task RunCLIModeAsync(CommandLineOptions options)
+    {
+        if (options.UseDefault)
+        {
+            await GenerateDefaultScriptAsync(options);
+        }
+        else
+        {
+            await GenerateCustomScriptFromOptionsAsync(options);
+        }
+    }
+
+    /// <summary>
+    /// Runs the tool in interactive mode
+    /// </summary>
+    private static async Task RunInteractiveModeAsync()
+    {
+        // Display welcome banner
+        DisplayWelcomeBanner();
+
+        // Ask if user wants a default script (fast route)
+        var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
+
+        if (useDefaultScript)
+        {
+            await GenerateDefaultScriptAsync();
+        }
+        else
+        {
+            await RunCustomFlowAsync();
+        }
+    }
+
+    /// <summary>
+    /// Displays help information with all available flags
+    /// </summary>
+    private static void DisplayHelp()
+    {
+        AnsiConsole.Write(
+            new FigletText("PSW CLI")
+                .LeftJustified()
+                .Color(Color.Blue));
+
+        AnsiConsole.MarkupLine("[dim]Package Script Writer - Interactive CLI[/]");
+        AnsiConsole.MarkupLine("[dim]By Paul Seal[/]\n");
+
+        var helpPanel = new Panel(
+            @"[bold yellow]USAGE:[/]
+  psw [options]
+
+[bold yellow]OPTIONS:[/]
+  [green]-h, --help[/]                    Show help information
+  [green]-v, --version[/]                 Show version information
+  [green]-d, --default[/]                 Generate a default script with minimal configuration
+
+[bold yellow]SCRIPT CONFIGURATION:[/]
+  [green]-p, --packages[/] <packages>     Comma-separated list of packages (e.g., ""uSync,Umbraco.Forms"")
+  [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
+  [green]-n, --project-name[/] <name>     Project name (default: MyUmbracoProject)
+  [green]-s, --solution[/]                Create a solution file
+  [green]    --solution-name[/] <name>    Solution name (used with --solution)
+
+[bold yellow]STARTER KIT:[/]
+  [green]-k, --starter-kit[/]             Include a starter kit
+  [green]    --starter-kit-package[/] <pkg> Starter kit package name
+
+[bold yellow]DOCKER:[/]
+  [green]    --dockerfile[/]              Include Dockerfile
+  [green]    --docker-compose[/]          Include Docker Compose file
+
+[bold yellow]UNATTENDED INSTALL:[/]
+  [green]-u, --unattended[/]              Use unattended install
+  [green]    --database-type[/] <type>    Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
+  [green]    --connection-string[/] <str> Connection string (for SQLServer/SQLAzure)
+  [green]    --admin-name[/] <name>       Admin user friendly name
+  [green]    --admin-email[/] <email>     Admin email
+  [green]    --admin-password[/] <pwd>    Admin password
+
+[bold yellow]OUTPUT OPTIONS:[/]
+  [green]-o, --oneliner[/]                Output as one-liner
+  [green]-r, --remove-comments[/]         Remove comments from script
+  [green]    --include-prerelease[/]      Include prerelease package versions
+
+[bold yellow]EXECUTION:[/]
+  [green]    --auto-run[/]                Automatically run the generated script
+  [green]    --run-dir[/] <directory>     Directory to run script in
+
+[bold yellow]EXAMPLES:[/]
+  Generate default script:
+    [cyan]psw --default[/]
+
+  Generate custom script with packages:
+    [cyan]psw --packages ""uSync,Umbraco.Forms"" --project-name MyProject[/]
+
+  Full configuration example:
+    [cyan]psw -p ""uSync"" -n MyProject -s --solution-name MySolution -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run[/]
+
+  Interactive mode (no flags):
+    [cyan]psw[/]")
+            .Header("[bold blue]Package Script Writer Help[/]")
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.Blue)
+            .Padding(1, 1);
+
+        AnsiConsole.Write(helpPanel);
+    }
+
+    /// <summary>
+    /// Displays version information
+    /// </summary>
+    private static void DisplayVersion()
+    {
+        AnsiConsole.Write(
+            new FigletText("PSW CLI")
+                .LeftJustified()
+                .Color(Color.Blue));
+
+        AnsiConsole.MarkupLine($"[bold]Version:[/] {Version}");
+        AnsiConsole.MarkupLine("[dim]Package Script Writer CLI Tool[/]");
+        AnsiConsole.MarkupLine("[dim]By Paul Seal[/]");
+        AnsiConsole.MarkupLine($"[dim]https://github.com/prjseal/Package-Script-Writer[/]");
+    }
+
+    /// <summary>
+    /// Generates a custom script from command-line options
+    /// </summary>
+    private static async Task GenerateCustomScriptFromOptionsAsync(CommandLineOptions options)
+    {
+        var apiClient = new ApiClient(ApiBaseUrl);
+        var model = new ScriptModel
+        {
+            TemplateName = "Umbraco.Templates",
+            TemplateVersion = options.TemplateVersion ?? "",
+            ProjectName = options.ProjectName ?? "MyUmbracoProject",
+            CreateSolutionFile = options.CreateSolution,
+            SolutionName = options.SolutionName,
+            IncludeStarterKit = options.IncludeStarterKit,
+            StarterKitPackage = options.StarterKitPackage,
+            IncludeDockerfile = options.IncludeDockerfile,
+            IncludeDockerCompose = options.IncludeDockerCompose,
+            CanIncludeDocker = options.IncludeDockerfile || options.IncludeDockerCompose,
+            UseUnattendedInstall = options.UseUnattended,
+            DatabaseType = options.DatabaseType,
+            ConnectionString = options.ConnectionString,
+            UserFriendlyName = options.AdminName,
+            UserEmail = options.AdminEmail,
+            UserPassword = options.AdminPassword,
+            OnelinerOutput = options.OnelinerOutput,
+            RemoveComments = options.RemoveComments
+        };
+
+        // Handle packages
+        if (!string.IsNullOrWhiteSpace(options.Packages))
+        {
+            var packages = options.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim())
+                .ToList();
+
+            if (packages.Count > 0)
+            {
+                // Fetch versions for each package
+                var packageVersions = new Dictionary<string, string>();
+
+                foreach (var package in packages)
+                {
+                    try
+                    {
+                        var versions = await apiClient.GetPackageVersionsAsync(package, options.IncludePrerelease);
+                        if (versions.Count > 0)
+                        {
+                            // Use the first version (latest)
+                            packageVersions[package] = versions[0];
+                            AnsiConsole.MarkupLine($"[green]✓[/] Selected {package} version {versions[0]}");
+                        }
+                        else
+                        {
+                            AnsiConsole.MarkupLine($"[yellow]⚠[/] No versions found for {package}, skipping...");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        AnsiConsole.MarkupLine($"[red]✗[/] Error fetching versions for {package}: {ex.Message}");
+                    }
+                }
+
+                // Build packages string in format: "Package1|Version1,Package2|Version2"
+                if (packageVersions.Count > 0)
+                {
+                    model.Packages = string.Join(",", packageVersions.Select(kvp => $"{kvp.Key}|{kvp.Value}"));
+                }
+            }
+        }
+
+        // Generate the script
+        try
+        {
+            var script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Star)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating installation script...", async ctx =>
+                {
+                    return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+                });
+
+            // Display the generated script
+            AnsiConsole.WriteLine();
+            var panel = new Panel(script)
+                .Header("[bold green]Generated Installation Script[/]")
+                .Border(BoxBorder.Double)
+                .BorderColor(Color.Green)
+                .Padding(1, 1);
+
+            AnsiConsole.Write(panel);
+
+            // Handle auto-run or interactive run
+            if (options.AutoRun || !string.IsNullOrWhiteSpace(options.RunDirectory))
+            {
+                var targetDir = options.RunDirectory ?? Directory.GetCurrentDirectory();
+
+                // Expand path and verify it exists
+                targetDir = Path.GetFullPath(targetDir);
+                if (!Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                    AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
+                }
+
+                await RunScriptAsync(script, targetDir);
+            }
+            else
+            {
+                // Option to save and run the script
+                await HandleScriptSaveAndRunAsync(script);
+            }
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
         }
     }
 
@@ -106,7 +365,7 @@ class Program
     /// <summary>
     /// Generates a default script with minimal configuration
     /// </summary>
-    private static async Task GenerateDefaultScriptAsync()
+    private static async Task GenerateDefaultScriptAsync(CommandLineOptions? options = null)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
@@ -151,8 +410,26 @@ class Program
 
             AnsiConsole.Write(panel);
 
-            // Option to save and run the script
-            await HandleScriptSaveAndRunAsync(script);
+            // Handle auto-run or interactive run
+            if (options?.AutoRun == true || !string.IsNullOrWhiteSpace(options?.RunDirectory))
+            {
+                var targetDir = options?.RunDirectory ?? Directory.GetCurrentDirectory();
+
+                // Expand path and verify it exists
+                targetDir = Path.GetFullPath(targetDir);
+                if (!Directory.Exists(targetDir))
+                {
+                    Directory.CreateDirectory(targetDir);
+                    AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
+                }
+
+                await RunScriptAsync(script, targetDir);
+            }
+            else
+            {
+                // Option to save and run the script
+                await HandleScriptSaveAndRunAsync(script);
+            }
         }
         catch (Exception ex)
         {
@@ -822,4 +1099,205 @@ public class ScriptResponse
 {
     [JsonPropertyName("script")]
     public string Script { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Command-line options parser and container
+/// </summary>
+public class CommandLineOptions
+{
+    public bool ShowHelp { get; set; }
+    public bool ShowVersion { get; set; }
+    public bool UseDefault { get; set; }
+    public string? Packages { get; set; }
+    public string? TemplateVersion { get; set; }
+    public string? ProjectName { get; set; }
+    public bool CreateSolution { get; set; }
+    public string? SolutionName { get; set; }
+    public bool IncludeStarterKit { get; set; }
+    public string? StarterKitPackage { get; set; }
+    public bool IncludeDockerfile { get; set; }
+    public bool IncludeDockerCompose { get; set; }
+    public bool UseUnattended { get; set; }
+    public string? DatabaseType { get; set; }
+    public string? ConnectionString { get; set; }
+    public string? AdminName { get; set; }
+    public string? AdminEmail { get; set; }
+    public string? AdminPassword { get; set; }
+    public bool OnelinerOutput { get; set; }
+    public bool RemoveComments { get; set; }
+    public bool IncludePrerelease { get; set; }
+    public bool AutoRun { get; set; }
+    public string? RunDirectory { get; set; }
+
+    /// <summary>
+    /// Checks if any configuration options are set (excluding help/version/default)
+    /// </summary>
+    public bool HasAnyOptions()
+    {
+        return UseDefault ||
+               !string.IsNullOrWhiteSpace(Packages) ||
+               !string.IsNullOrWhiteSpace(TemplateVersion) ||
+               !string.IsNullOrWhiteSpace(ProjectName) ||
+               CreateSolution ||
+               !string.IsNullOrWhiteSpace(SolutionName) ||
+               IncludeStarterKit ||
+               !string.IsNullOrWhiteSpace(StarterKitPackage) ||
+               IncludeDockerfile ||
+               IncludeDockerCompose ||
+               UseUnattended ||
+               !string.IsNullOrWhiteSpace(DatabaseType) ||
+               !string.IsNullOrWhiteSpace(ConnectionString) ||
+               !string.IsNullOrWhiteSpace(AdminName) ||
+               !string.IsNullOrWhiteSpace(AdminEmail) ||
+               !string.IsNullOrWhiteSpace(AdminPassword) ||
+               OnelinerOutput ||
+               RemoveComments ||
+               IncludePrerelease ||
+               AutoRun ||
+               !string.IsNullOrWhiteSpace(RunDirectory);
+    }
+
+    /// <summary>
+    /// Parses command-line arguments into options
+    /// </summary>
+    public static CommandLineOptions Parse(string[] args)
+    {
+        var options = new CommandLineOptions();
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            var arg = args[i];
+
+            switch (arg.ToLower())
+            {
+                case "-h":
+                case "--help":
+                    options.ShowHelp = true;
+                    break;
+
+                case "-v":
+                case "--version":
+                    options.ShowVersion = true;
+                    break;
+
+                case "-d":
+                case "--default":
+                    options.UseDefault = true;
+                    break;
+
+                case "-p":
+                case "--packages":
+                    options.Packages = GetNextArgument(args, ref i);
+                    break;
+
+                case "-t":
+                case "--template-version":
+                    options.TemplateVersion = GetNextArgument(args, ref i);
+                    break;
+
+                case "-n":
+                case "--project-name":
+                    options.ProjectName = GetNextArgument(args, ref i);
+                    break;
+
+                case "-s":
+                case "--solution":
+                    options.CreateSolution = true;
+                    break;
+
+                case "--solution-name":
+                    options.SolutionName = GetNextArgument(args, ref i);
+                    break;
+
+                case "-k":
+                case "--starter-kit":
+                    options.IncludeStarterKit = true;
+                    break;
+
+                case "--starter-kit-package":
+                    options.StarterKitPackage = GetNextArgument(args, ref i);
+                    break;
+
+                case "--dockerfile":
+                    options.IncludeDockerfile = true;
+                    break;
+
+                case "--docker-compose":
+                    options.IncludeDockerCompose = true;
+                    break;
+
+                case "-u":
+                case "--unattended":
+                    options.UseUnattended = true;
+                    break;
+
+                case "--database-type":
+                    options.DatabaseType = GetNextArgument(args, ref i);
+                    break;
+
+                case "--connection-string":
+                    options.ConnectionString = GetNextArgument(args, ref i);
+                    break;
+
+                case "--admin-name":
+                    options.AdminName = GetNextArgument(args, ref i);
+                    break;
+
+                case "--admin-email":
+                    options.AdminEmail = GetNextArgument(args, ref i);
+                    break;
+
+                case "--admin-password":
+                    options.AdminPassword = GetNextArgument(args, ref i);
+                    break;
+
+                case "-o":
+                case "--oneliner":
+                    options.OnelinerOutput = true;
+                    break;
+
+                case "-r":
+                case "--remove-comments":
+                    options.RemoveComments = true;
+                    break;
+
+                case "--include-prerelease":
+                    options.IncludePrerelease = true;
+                    break;
+
+                case "--auto-run":
+                    options.AutoRun = true;
+                    break;
+
+                case "--run-dir":
+                    options.RunDirectory = GetNextArgument(args, ref i);
+                    break;
+
+                default:
+                    // Unknown argument - ignore or warn
+                    if (arg.StartsWith("-"))
+                    {
+                        AnsiConsole.MarkupLine($"[yellow]Warning: Unknown option '{arg}' (use --help for available options)[/]");
+                    }
+                    break;
+            }
+        }
+
+        return options;
+    }
+
+    /// <summary>
+    /// Gets the next argument value from the args array
+    /// </summary>
+    private static string? GetNextArgument(string[] args, ref int index)
+    {
+        if (index + 1 < args.Length && !args[index + 1].StartsWith("-"))
+        {
+            index++;
+            return args[index];
+        }
+
+        return null;
+    }
 }

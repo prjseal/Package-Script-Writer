@@ -8,6 +8,7 @@ An interactive command-line interface for the Package Script Writer API, built w
 ## Features
 
 - 🎨 **Beautiful CLI Interface** - Built with Spectre.Console for a rich terminal experience
+- 🚀 **Dual Mode Operation** - Interactive mode OR command-line flags for automation
 - 📦 **Package Selection** - Multi-select from popular Umbraco packages or add custom ones
 - 🔢 **Version Selection** - Choose specific versions for each selected package
 - ⚡ **Progress Indicators** - Spinners and progress displays during API calls
@@ -24,6 +25,7 @@ An interactive command-line interface for the Package Script Writer API, built w
 - 📊 **Configuration Summary** - Review all settings before generating script
 - 🔒 **Secure Input** - Password fields are hidden during input
 - ✅ **Confirmation Prompts** - Prevent accidental operations
+- 🤖 **Automation Ready** - Use CLI flags for CI/CD pipelines and scripts
 
 ## Requirements
 
@@ -107,7 +109,117 @@ dotnet tool uninstall --global PackageScriptWriter.Cli
 
 ## Usage
 
-### Basic Workflow
+The CLI tool supports two modes of operation:
+1. **Interactive Mode** - Step-by-step prompts (no flags)
+2. **CLI Mode** - Command-line flags for automation
+
+### Command-Line Flags
+
+#### Quick Reference
+
+```bash
+# Show help
+psw --help
+psw -h
+
+# Show version
+psw --version
+psw -v
+
+# Generate default script
+psw --default
+psw -d
+
+# Generate custom script with packages
+psw -p "uSync,Umbraco.Forms" -n MyProject
+
+# Full automation example
+psw -p "uSync" -n MyProject -s --solution-name MySolution \
+    -u --database-type SQLite --admin-email admin@test.com \
+    --admin-password "MySecurePass123!" --auto-run
+```
+
+#### Available Flags
+
+**General Options:**
+- `-h, --help` - Display help information with all available flags
+- `-v, --version` - Display the tool version
+- `-d, --default` - Generate a default script with minimal configuration
+
+**Script Configuration:**
+- `-p, --packages <packages>` - Comma-separated list of packages (e.g., "uSync,Umbraco.Forms")
+- `-t, --template-version <version>` - Template version (Latest, LTS, or specific version like "14.3.0")
+- `-n, --project-name <name>` - Project name (default: MyUmbracoProject)
+- `-s, --solution` - Create a solution file
+- `--solution-name <name>` - Solution name (used with -s/--solution)
+
+**Starter Kit:**
+- `-k, --starter-kit` - Include a starter kit
+- `--starter-kit-package <package>` - Starter kit package name (e.g., "clean", "Articulate")
+
+**Docker:**
+- `--dockerfile` - Include Dockerfile
+- `--docker-compose` - Include Docker Compose file
+
+**Unattended Install:**
+- `-u, --unattended` - Use unattended install
+- `--database-type <type>` - Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
+- `--connection-string <string>` - Connection string (for SQLServer/SQLAzure)
+- `--admin-name <name>` - Admin user friendly name
+- `--admin-email <email>` - Admin email address
+- `--admin-password <password>` - Admin password (min 10 characters)
+
+**Output Options:**
+- `-o, --oneliner` - Output as one-liner
+- `-r, --remove-comments` - Remove comments from script
+- `--include-prerelease` - Include prerelease package versions
+
+**Execution:**
+- `--auto-run` - Automatically run the generated script
+- `--run-dir <directory>` - Directory to run script in
+
+#### CLI Examples
+
+**Example 1: Default Script**
+```bash
+psw --default
+```
+
+**Example 2: Simple Custom Script**
+```bash
+psw -p "uSync,Diplo.GodMode" -n MyBlog
+```
+
+**Example 3: Script with Solution**
+```bash
+psw -p "uSync" -n MyProject -s --solution-name MySolution
+```
+
+**Example 4: Full Automation with Unattended Install**
+```bash
+psw -p "uSync,Umbraco.Forms" \
+    -n MyUmbracoSite \
+    -t "14.3.0" \
+    -s --solution-name MyUmbracoSolution \
+    -u --database-type SQLite \
+    --admin-name "Site Administrator" \
+    --admin-email "admin@mysite.com" \
+    --admin-password "SecurePassword123!"
+```
+
+**Example 5: Docker-enabled Setup**
+```bash
+psw -p "uSync" -n MyDockerProject \
+    --dockerfile --docker-compose \
+    --auto-run --run-dir ./projects/docker-site
+```
+
+**Example 6: One-liner Output**
+```bash
+psw -p "uSync" -n QuickSite -o -r
+```
+
+### Interactive Mode Workflow
 
 1. **Start the CLI**:
 
@@ -304,19 +416,29 @@ src/
 ### Main Components
 
 1. **Program Class** - Entry point and orchestration
-   - `Main()` - Application entry point
+   - `Main()` - Application entry point with CLI argument parsing
+   - `RunCLIModeAsync()` - Executes tool in CLI mode with flags
+   - `RunInteractiveModeAsync()` - Executes tool in interactive mode
+   - `DisplayHelp()` - Shows comprehensive help with all flags
+   - `DisplayVersion()` - Shows version information
    - `DisplayWelcomeBanner()` - Shows ASCII art banner
+   - `GenerateCustomScriptFromOptionsAsync()` - Generates script from CLI options
    - `SelectPackagesAsync()` - Multi-select package prompt
    - `SelectVersionsForPackagesAsync()` - Version selection for each package
    - `DisplayFinalSelection()` - Shows selected packages in a table
    - `GenerateAndDisplayScriptAsync()` - Comprehensive configuration wizard for all options
    - `DisplayConfigurationSummary()` - Shows configuration summary table before generation
 
-2. **ApiClient Class** - API communication
+2. **CommandLineOptions Class** - CLI argument parser
+   - `Parse()` - Parses command-line arguments into options
+   - `HasAnyOptions()` - Checks if any configuration options are set
+   - Properties for all CLI flags (22+ options)
+
+3. **ApiClient Class** - API communication
    - `GetPackageVersionsAsync()` - Fetches package versions from NuGet
    - `GenerateScriptAsync()` - Generates installation script via API
 
-3. **Data Models** - Request/Response DTOs
+4. **Data Models** - Request/Response DTOs
    - `PackageVersionRequest/Response` - Package version lookup
    - `ScriptRequest/Response` - Script generation
    - `ScriptModel` - Complete configuration with all 17 options
