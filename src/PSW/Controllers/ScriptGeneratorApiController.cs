@@ -60,7 +60,9 @@ public class ScriptGeneratorApiController : ControllerBase
 
         var model = new PackagesViewModel(apiRequest);
 
-        return Ok(_scriptGeneratorService.GenerateScript(model));
+        var returnValue = _scriptGeneratorService.GenerateScript(model);
+
+        return Ok(returnValue);
     }
 
     /// <summary>

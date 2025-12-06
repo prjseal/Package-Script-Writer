@@ -440,7 +440,7 @@ public class ApiClient
         _httpClient = new HttpClient
         {
             BaseAddress = new Uri(baseUrl),
-            Timeout = TimeSpan.FromSeconds(30)
+            Timeout = TimeSpan.FromSeconds(90)
         };
     }
 
@@ -519,9 +519,9 @@ public class ApiClient
             // Log the raw response for debugging
             AnsiConsole.MarkupLine($"[yellow]Raw script API response: {responseContent}[/]");
 
-            var result = JsonSerializer.Deserialize<ScriptResponse>(responseContent);
+            var result = responseContent;
 
-            return result?.Script ?? "No script generated.";
+            return result ?? "# No script generated.";
         }
         catch (HttpRequestException ex)
         {
