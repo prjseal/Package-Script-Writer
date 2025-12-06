@@ -153,15 +153,10 @@ class Program
     }
 
     /// <summary>
-    /// Handles saving and optionally running the generated script
+    /// Handles optionally running the generated script
     /// </summary>
     private static async Task HandleScriptSaveAndRunAsync(string script)
     {
-        // Save script to file
-        var fileName = AnsiConsole.Ask<string>("\nEnter [green]file name[/]:", "install-script.sh");
-        await File.WriteAllTextAsync(fileName, script);
-        AnsiConsole.MarkupLine($"[green]✓ Script saved to {fileName}[/]");
-
         // Option to run the script
         if (AnsiConsole.Confirm("\nWould you like to run this script?"))
         {
@@ -193,14 +188,14 @@ class Program
                 }
             }
 
-            await RunScriptAsync(fileName, targetDir);
+            await RunScriptAsync(script, targetDir);
         }
     }
 
     /// <summary>
-    /// Executes the script file in the specified directory
+    /// Executes the script content in the specified directory
     /// </summary>
-    private static async Task RunScriptAsync(string scriptFileName, string workingDirectory)
+    private static async Task RunScriptAsync(string scriptContent, string workingDirectory)
     {
         try
         {
@@ -208,35 +203,15 @@ class Program
             AnsiConsole.MarkupLine($"[bold blue]Running script in:[/] {workingDirectory}");
             AnsiConsole.WriteLine();
 
-            // Make script executable on Unix-like systems
-            if (!OperatingSystem.IsWindows())
-            {
-                var chmodProcess = new System.Diagnostics.Process
-                {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "chmod",
-                        Arguments = $"+x {scriptFileName}",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true
-                    }
-                };
-                chmodProcess.Start();
-                await chmodProcess.WaitForExitAsync();
-            }
-
-            // Determine shell and script execution command
-            string shell, shellArgs;
+            // Determine shell for script execution
+            string shell;
             if (OperatingSystem.IsWindows())
             {
                 shell = "cmd.exe";
-                shellArgs = $"/c \"{scriptFileName}\"";
             }
             else
             {
                 shell = "/bin/bash";
-                shellArgs = scriptFileName;
             }
 
             var process = new System.Diagnostics.Process
@@ -244,9 +219,9 @@ class Program
                 StartInfo = new System.Diagnostics.ProcessStartInfo
                 {
                     FileName = shell,
-                    Arguments = shellArgs,
                     WorkingDirectory = workingDirectory,
                     UseShellExecute = false,
+                    RedirectStandardInput = true,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true
@@ -270,6 +245,12 @@ class Program
             };
 
             process.Start();
+
+            // Write the script content to stdin
+            await process.StandardInput.WriteAsync(scriptContent);
+            await process.StandardInput.FlushAsync();
+            process.StandardInput.Close();
+
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
