@@ -37,27 +37,37 @@ class Program
             // Display welcome banner
             DisplayWelcomeBanner();
 
-            // Step 1: Select packages
-            var selectedPackages = await SelectPackagesAsync();
+            // Ask if user wants a default script (fast route)
+            var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
 
-            if (selectedPackages.Count == 0)
+            if (useDefaultScript)
             {
-                AnsiConsole.MarkupLine("[yellow]No packages selected. Exiting...[/]");
-                return;
+                await GenerateDefaultScriptAsync();
             }
-
-            // Step 2: For each package, select version
-            var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages);
-
-            // Step 3: Display final selection
-            DisplayFinalSelection(packageVersions);
-
-            // Step 4: Optional - Generate script (if we want to call the generate endpoint)
-            var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
-
-            if (shouldGenerate)
+            else
             {
-                await GenerateAndDisplayScriptAsync(packageVersions);
+                // Step 1: Select packages
+                var selectedPackages = await SelectPackagesAsync();
+
+                if (selectedPackages.Count == 0)
+                {
+                    AnsiConsole.MarkupLine("[yellow]No packages selected. Exiting...[/]");
+                    return;
+                }
+
+                // Step 2: For each package, select version
+                var packageVersions = await SelectVersionsForPackagesAsync(selectedPackages);
+
+                // Step 3: Display final selection
+                DisplayFinalSelection(packageVersions);
+
+                // Step 4: Optional - Generate script (if we want to call the generate endpoint)
+                var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
+
+                if (shouldGenerate)
+                {
+                    await GenerateAndDisplayScriptAsync(packageVersions);
+                }
             }
 
             // Display completion message
@@ -83,6 +93,68 @@ class Program
         AnsiConsole.MarkupLine("[dim]Package Script Writer - Interactive CLI[/]");
         AnsiConsole.MarkupLine("[dim]By Paul Seal[/]");
         AnsiConsole.WriteLine();
+    }
+
+    /// <summary>
+    /// Generates a default script with minimal configuration
+    /// </summary>
+    private static async Task GenerateDefaultScriptAsync()
+    {
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
+        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco, no packages)[/]");
+        AnsiConsole.WriteLine();
+
+        // Create default script model
+        var model = new ScriptModel
+        {
+            TemplateName = "Umbraco.Templates",
+            TemplateVersion = "", // Latest stable
+            ProjectName = "MyUmbracoProject",
+            CreateSolutionFile = false,
+            IncludeStarterKit = false,
+            IncludeDockerfile = false,
+            IncludeDockerCompose = false,
+            CanIncludeDocker = false,
+            UseUnattendedInstall = false,
+            OnelinerOutput = false,
+            RemoveComments = false
+        };
+
+        var apiClient = new ApiClient(ApiBaseUrl);
+
+        try
+        {
+            var script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Star)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating default installation script...", async ctx =>
+                {
+                    return await apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+                });
+
+            // Display the generated script in a panel
+            AnsiConsole.WriteLine();
+            var panel = new Panel(script)
+                .Header("[bold green]Generated Default Installation Script[/]")
+                .Border(BoxBorder.Double)
+                .BorderColor(Color.Green)
+                .Padding(1, 1);
+
+            AnsiConsole.Write(panel);
+
+            // Option to save to file
+            if (AnsiConsole.Confirm("\nWould you like to save this script to a file?"))
+            {
+                var fileName = AnsiConsole.Ask<string>("Enter [green]file name[/]:", "install-script.sh");
+                await File.WriteAllTextAsync(fileName, script);
+                AnsiConsole.MarkupLine($"[green]✓ Script saved to {fileName}[/]");
+            }
+        }
+        catch (Exception ex)
+        {
+            AnsiConsole.MarkupLine($"[red]✗ Error generating script: {ex.Message}[/]");
+        }
     }
 
     /// <summary>
