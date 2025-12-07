@@ -101,9 +101,11 @@ public class PackageSelector
                 .OrderBy(p => p)
                 .ToList();
         }
-        else
+
+        // Fallback to popular packages if no valid packages found
+        if (packageChoices.Count == 0)
         {
-            // Fallback to popular packages if API call failed
+            _logger?.LogWarning("No packages with valid NuGetPackageId found, falling back to popular packages");
             packageChoices = ApiConfiguration.PopularPackages.ToList();
         }
 
@@ -129,11 +131,16 @@ public class PackageSelector
         while (continueAdding)
         {
             // Build autocomplete choices from allPackages
-            var packageChoices = _allPackages
-                .Where(p => !string.IsNullOrWhiteSpace(p.NuGetPackageId))
-                .Select(p => p.NuGetPackageId)
-                .OrderBy(p => p)
-                .ToList();
+            var packageChoices = new List<string>();
+
+            if (_allPackages.Count > 0)
+            {
+                packageChoices = _allPackages
+                    .Where(p => !string.IsNullOrWhiteSpace(p.NuGetPackageId))
+                    .Select(p => p.NuGetPackageId)
+                    .OrderBy(p => p)
+                    .ToList();
+            }
 
             string packageName;
 
@@ -150,6 +157,7 @@ public class PackageSelector
             else
             {
                 // Fallback to simple input if no packages loaded
+                _logger?.LogWarning("No packages with valid NuGetPackageId found for autocomplete, using simple input");
                 packageName = AnsiConsole.Ask<string>("Enter [green]package name[/]:", string.Empty);
             }
 
