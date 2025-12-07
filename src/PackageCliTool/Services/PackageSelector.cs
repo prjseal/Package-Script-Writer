@@ -303,4 +303,121 @@ public class PackageSelector
 
         return packageVersions;
     }
+
+    /// <summary>
+    /// Gets the list of available templates (hard coded for now)
+    /// </summary>
+    public Task<List<string>> GetTemplatesAsync()
+    {
+        _logger?.LogInformation("Fetching available templates");
+
+        var templates = new List<string>
+        {
+            "Umbraco.Templates",
+            "Umbraco.Community.Templates.Clean",
+            "Umbraco.Community.Templates.UmBootstrap"
+        };
+
+        _logger?.LogInformation("Loaded {Count} templates", templates.Count);
+        return Task.FromResult(templates);
+    }
+
+    /// <summary>
+    /// Allows user to select a template from available options
+    /// </summary>
+    public async Task<string> SelectTemplateAsync()
+    {
+        _logger?.LogInformation("User selecting template");
+
+        var templates = await GetTemplatesAsync();
+
+        var selectedTemplate = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Select [green]template[/]:")
+                .PageSize(10)
+                .MoreChoicesText("[grey](Move up and down to see more templates)[/]")
+                .AddChoices(templates));
+
+        AnsiConsole.MarkupLine($"[green]✓[/] Selected template: {selectedTemplate}");
+        _logger?.LogInformation("User selected template: {Template}", selectedTemplate);
+
+        return selectedTemplate;
+    }
+
+    /// <summary>
+    /// Allows user to select a version for the selected template
+    /// </summary>
+    public async Task<string> SelectTemplateVersionAsync(string templateName)
+    {
+        AnsiConsole.WriteLine();
+        _logger?.LogInformation("User selecting version for template: {Template}", templateName);
+
+        try
+        {
+            // Fetch versions with spinner
+            var versions = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync($"Fetching versions for [yellow]{templateName}[/]...", async ctx =>
+                {
+                    return await _apiClient.GetPackageVersionsAsync(templateName, includePrerelease: true);
+                });
+
+            _logger?.LogDebug("Found {Count} versions for template {Template}", versions.Count, templateName);
+
+            // Build version choices with special options first
+            var versionChoices = new List<string>
+            {
+                "Latest Stable",
+                "Pre-release"
+            };
+
+            // Add actual versions if available
+            if (versions.Count > 0)
+            {
+                versionChoices.AddRange(versions);
+            }
+            else
+            {
+                ErrorHandler.Warning($"No specific versions found for {templateName}. Showing default options only.", _logger);
+            }
+
+            // Let user select a version
+            var selectedVersion = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Select version for [green]{templateName}[/]:")
+                    .PageSize(10)
+                    .MoreChoicesText("[grey](Move up and down to see more versions)[/]")
+                    .AddChoices(versionChoices));
+
+            // Map the selection to the appropriate value
+            string versionValue;
+            if (selectedVersion == "Latest Stable")
+            {
+                versionValue = "";
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {templateName} - Latest Stable");
+                _logger?.LogInformation("Selected {Template} with latest stable version", templateName);
+            }
+            else if (selectedVersion == "Pre-release")
+            {
+                versionValue = "--prerelease";
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {templateName} - Pre-release");
+                _logger?.LogInformation("Selected {Template} with pre-release version", templateName);
+            }
+            else
+            {
+                versionValue = selectedVersion;
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {templateName} version {selectedVersion}");
+                _logger?.LogInformation("Selected {Template} version {Version}", templateName, selectedVersion);
+            }
+
+            return versionValue;
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Error fetching versions for template {Template}", templateName);
+            ErrorHandler.Warning($"Error fetching versions for {templateName}: {ex.Message}. Using latest stable.", _logger);
+            return "";
+        }
+    }
 }

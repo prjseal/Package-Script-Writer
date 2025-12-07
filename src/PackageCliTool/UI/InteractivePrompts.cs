@@ -11,10 +11,10 @@ public static class InteractivePrompts
     /// <summary>
     /// Prompts user for all script configuration options
     /// </summary>
-    public static ScriptModel PromptForScriptConfiguration(Dictionary<string, string> packageVersions)
+    public static ScriptModel PromptForScriptConfiguration(Dictionary<string, string> packageVersions, string? templateName = null, string? templateVersion = null)
     {
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Step 4:[/] Configure Project Options\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 7:[/] Configure Project Options\n");
 
         // Build packages string with proper format handling
         var packageParts = new List<string>();
@@ -41,30 +41,13 @@ public static class InteractivePrompts
         // Create a script model and populate it with user inputs
         var model = new ScriptModel
         {
-            TemplateName = "Umbraco.Templates",
+            TemplateName = templateName ?? "Umbraco.Templates",
+            TemplateVersion = templateVersion ?? "",
             Packages = packagesString
         };
 
         // Template and Project Configuration
         AnsiConsole.MarkupLine("[bold yellow]Template & Project Settings[/]\n");
-
-        model.TemplateVersion = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("Select [green]Umbraco template version[/]:")
-                .AddChoices(new[] { "Latest Stable", "Latest LTS", "14.3.0", "14.2.0", "14.1.0", "14.0.0", "13.5.2", "13.4.0", "13.3.0", "Custom..." }));
-
-        if (model.TemplateVersion == "Custom...")
-        {
-            model.TemplateVersion = AnsiConsole.Ask<string>("Enter [green]custom version[/]:");
-        }
-        else if (model.TemplateVersion == "Latest Stable")
-        {
-            model.TemplateVersion = "";
-        }
-        else if (model.TemplateVersion == "Latest LTS")
-        {
-            model.TemplateVersion = "LTS";
-        }
 
         model.ProjectName = AnsiConsole.Ask<string>("Enter [green]project name[/]:", "MyProject");
 
