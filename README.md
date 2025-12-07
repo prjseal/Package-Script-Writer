@@ -16,13 +16,20 @@
 
 ## 🎯 What is Package Script Writer?
 
-Package Script Writer is a web-based tool that helps Umbraco developers quickly generate installation scripts for new projects. Simply select your template, choose packages, configure your settings, and get a ready-to-run script!
+Package Script Writer helps Umbraco developers quickly generate installation scripts for new projects. Available as both a **web application** and a **CLI tool**, you can choose the interface that fits your workflow!
+
+**Web Application** - Visit [psw.codeshare.co.uk](https://psw.codeshare.co.uk) for a visual, browser-based experience
+
+**CLI Tool** - Install `psw` as a .NET global tool for terminal-based automation
+
+Simply select your template, choose packages, configure your settings, and get a ready-to-run script!
 
 **Perfect for**:
 - 🚀 Quick project setup
 - 👥 Team onboarding
 - 📚 Training and tutorials
 - 🔄 Consistent project configurations
+- 🤖 CI/CD automation (CLI)
 
 ---
 
@@ -82,6 +89,69 @@ dotnet watch run --project ./src/PSW/
 ```
 
 That's it! No database setup required - the application is completely stateless.
+
+---
+
+## 💻 CLI Tool
+
+**Package Script Writer CLI** (`psw`) is a powerful command-line interface that brings the full functionality of PSW to your terminal!
+
+[![NuGet](https://img.shields.io/nuget/v/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
+[![Downloads](https://img.shields.io/nuget/dt/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
+
+### Features
+
+- 🎨 **Beautiful Terminal UI** - Built with Spectre.Console for rich interactive experience
+- 🚀 **Dual Mode** - Interactive prompts OR command-line flags for automation
+- 🎯 **Template Selection** - Choose from Umbraco official & community templates
+- 📦 **Browse 150+ Packages** - Search and select from the Umbraco Marketplace
+- 🔄 **Resilient** - Automatic retry logic with exponential backoff
+- 📝 **Verbose Logging** - Detailed diagnostics with Serilog
+- 🤖 **CI/CD Ready** - Perfect for automation and scripts
+
+### Quick Install
+
+```bash
+# Install as a global .NET tool
+dotnet tool install --global PackageScriptWriter.Cli --prerelease
+
+# Run from anywhere
+psw
+```
+
+### Quick Examples
+
+**Interactive Mode:**
+```bash
+# Launch interactive prompts
+psw
+```
+
+**CLI Mode:**
+```bash
+# Generate default script
+psw --default
+
+# Custom script with packages
+psw -p "uSync,Diplo.GodMode" -n MyProject
+
+# Full automation with unattended install
+psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
+    -u --database-type SQLite --admin-email admin@test.com \
+    --admin-password "SecurePass123!" --auto-run
+```
+
+### Documentation
+
+📚 **Full CLI Documentation**: [src/PackageCliTool/README.md](src/PackageCliTool/README.md)
+
+Includes:
+- Complete installation guide
+- All command-line flags and options
+- Interactive workflow walkthrough
+- Code architecture and structure
+- Troubleshooting and logging
+- Development guide
 
 ---
 
@@ -237,13 +307,21 @@ dotnet watch run --project ./src/PSW/
 ```
 Package-Script-Writer/
 ├── src/
-│   ├── PSW/                        # Main application
+│   ├── PSW/                        # Main web application
 │   │   ├── Components/            # View Components
 │   │   ├── Controllers/           # MVC & API Controllers
 │   │   ├── Services/              # Business logic
 │   │   ├── Models/                # Data models
 │   │   ├── Views/                 # Razor views
 │   │   └── wwwroot/               # Static files (CSS, JS, images)
+│   ├── PackageCliTool/            # CLI tool (.NET Global Tool)
+│   │   ├── Configuration/         # API configuration
+│   │   ├── Services/              # API client & package selection
+│   │   ├── Workflows/             # CLI & interactive modes
+│   │   ├── UI/                    # Terminal UI components
+│   │   ├── Models/                # DTOs and options
+│   │   ├── Logging/               # Serilog setup
+│   │   └── Program.cs             # Entry point
 │   └── PSW.IntegrationTests/      # Integration test project
 │       ├── ScriptGeneratorApiTests.cs
 │       └── CustomWebApplicationFactory.cs
