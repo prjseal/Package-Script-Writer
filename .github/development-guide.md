@@ -502,7 +502,7 @@ public async Task Endpoint_WithInvalidData_ReturnsBadRequest()
 dotnet build ./src/PSW/PSW.csproj
 ```
 
-**Output**: `bin/Debug/net9.0/`
+**Output**: `bin/Debug/net10.0/`
 
 ---
 

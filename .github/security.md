@@ -365,7 +365,7 @@ dotnet add package <PackageName> --version <NewVersion>
 ```
 
 **Current Dependencies**:
-- ASP.NET Core 9.0 (Microsoft-maintained, regular security updates)
+- ASP.NET Core 10.0 (Microsoft-maintained, regular security updates)
 - System.Text.Json (Microsoft-maintained)
 - No third-party dependencies (minimal attack surface)
 
