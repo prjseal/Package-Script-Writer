@@ -45,6 +45,10 @@ public class CommandLineOptions
     public string? HistoryId { get; set; }  // ID or index of history entry
     public int HistoryLimit { get; set; } = 10;  // Number of entries to show
 
+    // Cache-related options
+    public bool NoCache { get; set; }  // Disable caching
+    public bool ClearCache { get; set; }  // Clear all cache
+
     /// <summary>
     /// Checks if this is a template command
     /// </summary>
@@ -281,6 +285,14 @@ public class CommandLineOptions
                     {
                         options.HistoryLimit = limit;
                     }
+                    break;
+
+                case "--no-cache":
+                    options.NoCache = true;
+                    break;
+
+                case "--clear-cache":
+                    options.ClearCache = true;
                     break;
 
                 default:

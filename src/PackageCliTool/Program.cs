@@ -45,8 +45,24 @@ class Program
                 return;
             }
 
+            // Initialize cache service (1-hour TTL, disabled if --no-cache is set)
+            var cacheService = new CacheService(ttlHours: 1, enabled: !options.NoCache, logger: logger);
+
+            // Handle clear cache flag
+            if (options.ClearCache)
+            {
+                cacheService.Clear();
+                AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
+
+                // If only clearing cache, exit
+                if (!options.HasAnyOptions() && !options.IsTemplateCommand() && !options.IsHistoryCommand())
+                {
+                    return;
+                }
+            }
+
             // Initialize services
-            var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger);
+            var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService);
             var packageSelector = new PackageSelector(apiClient, logger);
             var scriptExecutor = new ScriptExecutor(logger);
             var templateService = new TemplateService(logger: logger);

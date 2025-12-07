@@ -104,6 +104,10 @@ public static class ConsoleDisplay
   [green]-r, --remove-comments[/]         Remove comments from script
   [green]    --include-prerelease[/]      Include prerelease package versions
 
+[bold yellow]CACHE OPTIONS:[/]
+  [green]    --no-cache[/]                Disable API response caching (bypass cache)
+  [green]    --clear-cache[/]             Clear all cached API responses
+
 [bold yellow]EXECUTION:[/]
   [green]    --auto-run[/]                Automatically run the generated script
   [green]    --run-dir[/] <directory>     Directory to run script in
@@ -160,7 +164,17 @@ public static class ConsoleDisplay
     [cyan]psw history stats[/]
 
   Clear all history:
-    [cyan]psw history clear[/]")
+    [cyan]psw history clear[/]
+
+[bold yellow]CACHE EXAMPLES:[/]
+  Clear the cache:
+    [cyan]psw --clear-cache[/]
+
+  Generate script without using cache:
+    [cyan]psw --default --no-cache[/]
+
+  Clear cache and generate fresh script:
+    [cyan]psw --clear-cache --packages \"\"uSync\"\" --project-name MyProject[/]")
             .Header("[bold blue]Package Script Writer Help[/]")
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Blue)
