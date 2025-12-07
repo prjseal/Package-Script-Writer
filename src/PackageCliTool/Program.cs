@@ -49,11 +49,16 @@ class Program
             var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger);
             var packageSelector = new PackageSelector(apiClient, logger);
             var scriptExecutor = new ScriptExecutor(logger);
+            var templateService = new TemplateService(logger: logger);
 
+            // Check if this is a template command
+            if (options.IsTemplateCommand())
+            {
+                var templateWorkflow = new TemplateWorkflow(templateService, apiClient, scriptExecutor, logger);
+                await templateWorkflow.RunAsync(options);
+            }
             // Determine if we should use CLI mode or interactive mode
-            bool useCLIMode = options.HasAnyOptions();
-
-            if (useCLIMode)
+            else if (options.HasAnyOptions())
             {
                 var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, logger);
                 await cliWorkflow.RunAsync(options);

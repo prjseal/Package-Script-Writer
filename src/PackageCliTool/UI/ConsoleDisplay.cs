@@ -39,11 +39,28 @@ public static class ConsoleDisplay
         var helpPanel = new Panel(
             @"[bold yellow]USAGE:[/]
   psw [options]
+  psw template <command> [options]
 
 [bold yellow]OPTIONS:[/]
   [green]-h, --help[/]                    Show help information
   [green]-v, --version[/]                 Show version information
   [green]-d, --default[/]                 Generate a default script with minimal configuration
+
+[bold yellow]TEMPLATE COMMANDS:[/]
+  [green]template save[/] <name>          Save current configuration as a template
+  [green]template load[/] <name>          Load and execute a template
+  [green]template list[/]                 List all available templates
+  [green]template show[/] <name>          Show template details
+  [green]template delete[/] <name>        Delete a template
+  [green]template export[/] <name>        Export template to file
+  [green]template import[/] <file>        Import template from file
+  [green]template validate[/] <file>      Validate template file
+
+[bold yellow]TEMPLATE OPTIONS:[/]
+  [green]    --template-description[/] <desc> Template description
+  [green]    --template-tags[/] <tags>   Comma-separated tags
+  [green]    --template-file[/] <path>   Template file path
+  [green]    --set[/] <key=value>        Override template values
 
 [bold yellow]SCRIPT CONFIGURATION:[/]
   [green]-p, --packages[/] <packages>     Comma-separated list of packages with optional versions
@@ -97,7 +114,26 @@ public static class ConsoleDisplay
     [cyan]psw -p ""uSync|17.0.0"" -n MyProject -s --solution-name MySolution -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run[/]
 
   Interactive mode (no flags):
-    [cyan]psw[/]")
+    [cyan]psw[/]
+
+[bold yellow]TEMPLATE EXAMPLES:[/]
+  Save current configuration as template:
+    [cyan]psw template save my-blog --template-description ""My blog setup"" --template-tags ""blog,umbraco14""[/]
+
+  List all templates:
+    [cyan]psw template list[/]
+
+  Load and use a template:
+    [cyan]psw template load my-blog[/]
+
+  Load template with overrides:
+    [cyan]psw template load my-blog --project-name NewBlog --set AutoRun=true[/]
+
+  Export template to file:
+    [cyan]psw template export my-blog --template-file my-blog.yaml[/]
+
+  Import template from file:
+    [cyan]psw template import my-blog.yaml[/]")
             .Header("[bold blue]Package Script Writer Help[/]")
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Blue)

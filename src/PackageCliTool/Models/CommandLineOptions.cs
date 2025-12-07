@@ -32,8 +32,24 @@ public class CommandLineOptions
     public string? RunDirectory { get; set; }
     public bool VerboseMode { get; set; }
 
+    // Template-related options
+    public string? TemplateCommand { get; set; }  // save, load, list, show, delete, export, import
+    public string? TemplateName { get; set; }
+    public string? TemplateDescription { get; set; }
+    public string? TemplateFile { get; set; }
+    public List<string> TemplateTags { get; set; } = new();
+    public Dictionary<string, string> TemplateOverrides { get; set; } = new();
+
     /// <summary>
-    /// Checks if any configuration options are set (excluding help/version/default/verbose)
+    /// Checks if this is a template command
+    /// </summary>
+    public bool IsTemplateCommand()
+    {
+        return !string.IsNullOrWhiteSpace(TemplateCommand);
+    }
+
+    /// <summary>
+    /// Checks if any configuration options are set (excluding help/version/default/verbose/template)
     /// </summary>
     public bool HasAnyOptions()
     {
@@ -180,9 +196,74 @@ public class CommandLineOptions
                     options.VerboseMode = true;
                     break;
 
+                // Template commands
+                case "template":
+                    // Next argument should be the subcommand (save, load, list, etc.)
+                    if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                    {
+                        i++;
+                        options.TemplateCommand = args[i];
+
+                        // Get template name if next argument is not a flag
+                        if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                        {
+                            i++;
+                            options.TemplateName = args[i];
+                        }
+                    }
+                    break;
+
+                case "--template-name":
+                    options.TemplateName = GetNextArgument(args, ref i);
+                    break;
+
+                case "--template-description":
+                    options.TemplateDescription = GetNextArgument(args, ref i);
+                    break;
+
+                case "--template-file":
+                    options.TemplateFile = GetNextArgument(args, ref i);
+                    break;
+
+                case "--template-tags":
+                    var tags = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(tags))
+                    {
+                        options.TemplateTags = tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                            .Select(t => t.Trim())
+                            .ToList();
+                    }
+                    break;
+
+                case "--set":
+                    // Format: --set key=value
+                    var setValue = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(setValue) && setValue.Contains('='))
+                    {
+                        var parts = setValue.Split('=', 2);
+                        options.TemplateOverrides[parts[0].Trim()] = parts[1].Trim();
+                    }
+                    break;
+
                 default:
+                    // Check if this is a template subcommand without explicit "template" prefix
+                    if (!arg.StartsWith("-") && i == 0)
+                    {
+                        var validCommands = new[] { "save", "load", "list", "show", "delete", "export", "import", "validate" };
+                        if (validCommands.Contains(arg.ToLower()))
+                        {
+                            options.TemplateCommand = arg.ToLower();
+
+                            // Get template name if next argument is not a flag
+                            if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                            {
+                                i++;
+                                options.TemplateName = args[i];
+                            }
+                        }
+                    }
                     // Unknown argument - ignore or warn
-                    if (arg.StartsWith("-"))
+                    else if (arg.StartsWith("-"))
                     {
                         AnsiConsole.MarkupLine($"[yellow]Warning: Unknown option '{arg}' (use --help for available options)[/]");
                     }
