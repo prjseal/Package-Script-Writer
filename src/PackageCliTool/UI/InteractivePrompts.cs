@@ -66,9 +66,9 @@ public static class InteractivePrompts
             model.TemplateVersion = "LTS";
         }
 
-        model.ProjectName = AnsiConsole.Ask<string>("Enter [green]project name[/]:", "MyUmbracoProject");
+        model.ProjectName = AnsiConsole.Ask<string>("Enter [green]project name[/]:", "MyProject");
 
-        model.CreateSolutionFile = AnsiConsole.Confirm("Create a [green]solution file[/]?", false);
+        model.CreateSolutionFile = AnsiConsole.Confirm("Create a [green]solution file[/]?", true);
 
         if (model.CreateSolutionFile)
         {
@@ -79,7 +79,7 @@ public static class InteractivePrompts
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold yellow]Starter Kit Options[/]\n");
 
-        model.IncludeStarterKit = AnsiConsole.Confirm("Include a [green]starter kit[/]?", false);
+        model.IncludeStarterKit = AnsiConsole.Confirm("Include a [green]starter kit[/]?", true);
 
         if (model.IncludeStarterKit)
         {
@@ -112,7 +112,7 @@ public static class InteractivePrompts
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold yellow]Unattended Install Options[/]\n");
 
-        model.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install[/]?", false);
+        model.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install[/]?", true);
 
         if (model.UseUnattendedInstall)
         {
@@ -131,7 +131,8 @@ public static class InteractivePrompts
             model.UserPassword = AnsiConsole.Prompt(
                 new TextPrompt<string>("Enter [green]admin password[/] (min 10 characters):")
                     .PromptStyle("red")
-                    .Secret());
+                    .Secret()
+                    .DefaultValue("1234567890"));
         }
 
         // Output Format Options

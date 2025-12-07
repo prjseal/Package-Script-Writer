@@ -67,7 +67,7 @@ public static class LoggerSetup
     /// <summary>
     /// Creates a logger with the specified category name
     /// </summary>
-    public static ILogger CreateLogger(string categoryName)
+    public static Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)
     {
         if (_loggerFactory == null)
         {

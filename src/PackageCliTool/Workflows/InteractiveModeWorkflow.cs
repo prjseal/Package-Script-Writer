@@ -93,7 +93,7 @@ public class InteractiveModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating default installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+                return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Default script generated successfully");
@@ -171,7 +171,7 @@ public class InteractiveModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+                return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Script generated successfully");

@@ -89,7 +89,7 @@ public class ApiClient
     /// <summary>
     /// Generates an installation script using the API
     /// </summary>
-    public async Task<string> GenerateScriptAsync(ScriptRequest request)
+    public async Task<string> GenerateScriptAsync(ScriptModel request)
     {
         _logger?.LogInformation("Generating installation script via API");
 

@@ -51,7 +51,7 @@ public static class ConsoleDisplay
                                    Or just package names: ""uSync,Umbraco.Forms"" (uses latest)
                                    Example: ""uSync|17.0.0,clean|7.0.1""
   [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
-  [green]-n, --project-name[/] <name>     Project name (default: MyUmbracoProject)
+  [green]-n, --project-name[/] <name>     Project name (default: MyProject)
   [green]-s, --solution[/]                Create a solution file
   [green]    --solution-name[/] <name>    Solution name (used with --solution)
 

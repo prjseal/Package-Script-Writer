@@ -155,7 +155,7 @@ psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
   - Or just package names: `"uSync,Umbraco.Forms"` (automatically uses latest version)
   - Mix both formats: `"uSync|17.0.0,Umbraco.Forms"` (first uses specific version, second uses latest)
 - `-t, --template-version <version>` - Template version (Latest, LTS, or specific version like "14.3.0")
-- `-n, --project-name <name>` - Project name (default: MyUmbracoProject)
+- `-n, --project-name <name>` - Project name (default: MyProject)
 - `-s, --solution` - Create a solution file
 - `--solution-name <name>` - Solution name (used with -s/--solution)
 
@@ -348,7 +348,7 @@ Select Umbraco template version:
   14.3.0
   ...
 
-Enter project name [MyUmbracoProject]: MyBlog
+Enter project name [MyProject]: MyBlog
 
 Create a solution file? (y/n): y
 Enter solution name [MyBlog]: MyBlog

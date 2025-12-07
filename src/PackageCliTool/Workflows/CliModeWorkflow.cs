@@ -82,7 +82,7 @@ public class CliModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating default installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+                return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Default script generated successfully");
@@ -100,7 +100,7 @@ public class CliModeWorkflow
     {
         _logger?.LogInformation("Generating custom script from command-line options");
 
-        var projectName = options.ProjectName ?? "MyUmbracoProject";
+        var projectName = options.ProjectName ?? "MyProject";
 
         // Validate inputs
         InputValidator.ValidateProjectName(projectName);
@@ -197,7 +197,7 @@ public class CliModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(new ScriptRequest { Model = model });
+                return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Script generated successfully");

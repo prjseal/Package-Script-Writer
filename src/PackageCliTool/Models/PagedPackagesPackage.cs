@@ -8,7 +8,7 @@ namespace PackageCliTool.Models;
 public class PagedPackagesPackage
 {
     [JsonPropertyName("category")]
-    public string Category { get; set; } = string.Empty;
+    public Category Category { get; set; }
 
     [JsonPropertyName("certifiedToWorkOnUmbracoCloud")]
     public bool CertifiedToWorkOnUmbracoCloud { get; set; }
