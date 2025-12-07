@@ -154,6 +154,26 @@ public static class InputValidator
     }
 
     /// <summary>
+    /// Checks if a string is a valid NuGet package ID
+    /// </summary>
+    /// <param name="packageId">The package ID to validate</param>
+    /// <returns>True if the package ID is valid, false otherwise</returns>
+    public static bool IsValidNuGetPackageId(string packageId)
+    {
+        if (string.IsNullOrWhiteSpace(packageId))
+        {
+            return false;
+        }
+
+        // NuGet package IDs should follow these rules:
+        // - Only contain letters, numbers, dots, hyphens, and underscores
+        // - Must not start or end with a dot
+        // - Must not contain consecutive dots
+        var packageRegex = new Regex(@"^[A-Za-z0-9_\-]+([\.][A-Za-z0-9_\-]+)*$");
+        return packageRegex.IsMatch(packageId);
+    }
+
+    /// <summary>
     /// Validates a version string
     /// </summary>
     public static void ValidateVersion(string version)
