@@ -1,0 +1,172 @@
+name: Release - Publish CLI Tool to NuGet.org
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish-cli-tool:
+    runs-on: windows-latest
+    permissions:
+      contents: write # Allow uploading release assets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Extract version from release tag
+        id: version
+        shell: pwsh
+        run: |
+          $releaseTag = "${{ github.event.release.tag_name }}"
+          Write-Host "Release tag: $releaseTag"
+
+          # Remove 'v' prefix if present (e.g., v1.0.0 -> 1.0.0)
+          $version = $releaseTag -replace '^v', ''
+
+          # Validate version format
+          if ($version -notmatch '^\d+\.\d+\.\d+(-.*)?$') {
+            Write-Error "Invalid version format: $version. Expected format: X.Y.Z or X.Y.Z-suffix"
+            exit 1
+          }
+
+          Write-Host "Extracted version: $version"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+          # Determine if it's a prerelease
+          $isPrerelease = if (${{ github.event.release.prerelease }} -eq 'true' -or $version -match '-') { 'true' } else { 'false' }
+          echo "is_prerelease=$isPrerelease" >> $env:GITHUB_OUTPUT
+          Write-Host "Is prerelease: $isPrerelease"
+
+      - name: Display version info
+        shell: pwsh
+        run: |
+          Write-Host "═══════════════════════════════════════"
+          Write-Host "📦 CLI Tool Release Information"
+          Write-Host "═══════════════════════════════════════"
+          Write-Host "Release Tag:    ${{ github.event.release.tag_name }}"
+          Write-Host "Version:        ${{ steps.version.outputs.version }}"
+          Write-Host "Prerelease:     ${{ steps.version.outputs.is_prerelease }}"
+          Write-Host "Release Name:   ${{ github.event.release.name }}"
+          Write-Host "═══════════════════════════════════════"
+
+      - name: Restore dependencies
+        shell: pwsh
+        run: |
+          Write-Host "Restoring dependencies for CLI tool..."
+          dotnet restore ./src/PackageCliTool/PackageCliTool.csproj
+
+      - name: Build CLI tool
+        shell: pwsh
+        run: |
+          Write-Host "Building CLI tool..."
+          dotnet build ./src/PackageCliTool/PackageCliTool.csproj `
+            --configuration Release `
+            --no-restore `
+            /p:Version="${{ steps.version.outputs.version }}"
+
+      - name: Pack CLI tool
+        shell: pwsh
+        run: |
+          Write-Host "Packing CLI tool..."
+
+          # Create output directory
+          New-Item -ItemType Directory -Force -Path "./artifacts/nuget" | Out-Null
+
+          # Pack the CLI tool with the version from the release
+          dotnet pack ./src/PackageCliTool/PackageCliTool.csproj `
+            --configuration Release `
+            --no-build `
+            --output "./artifacts/nuget" `
+            /p:Version="${{ steps.version.outputs.version }}" `
+            /p:PackageVersion="${{ steps.version.outputs.version }}"
+
+          Write-Host "Package created successfully!"
+          Get-ChildItem "./artifacts/nuget/*.nupkg" | ForEach-Object {
+            Write-Host "  📦 $($_.Name)"
+          }
+
+      - name: Upload NuGet package as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-nuget-package-${{ steps.version.outputs.version }}
+          path: ./artifacts/nuget/*.nupkg
+          if-no-files-found: error
+
+      - name: Publish to NuGet.org
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          Write-Host "Publishing CLI tool to NuGet.org..."
+
+          $packages = Get-ChildItem "./artifacts/nuget/*.nupkg"
+
+          foreach ($package in $packages) {
+            Write-Host "Publishing $($package.Name)..."
+
+            dotnet nuget push $package.FullName `
+              --api-key $env:NUGET_API_KEY `
+              --source https://api.nuget.org/v3/index.json `
+              --skip-duplicate
+
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ Successfully published $($package.Name)"
+            } else {
+              Write-Error "❌ Failed to publish $($package.Name)"
+              exit 1
+            }
+          }
+
+          Write-Host "All packages published successfully!"
+
+      - name: Add package to release assets
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Write-Host "Adding package to release assets..."
+
+          $releaseTag = "${{ github.event.release.tag_name }}"
+          $packages = Get-ChildItem "./artifacts/nuget/*.nupkg"
+
+          foreach ($package in $packages) {
+            Write-Host "Uploading $($package.Name) to release $releaseTag..."
+
+            gh release upload $releaseTag $package.FullName --clobber
+
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✅ Successfully uploaded $($package.Name) to release"
+            } else {
+              Write-Warning "⚠️ Failed to upload $($package.Name) to release"
+            }
+          }
+
+      - name: Release Summary
+        if: always()
+        shell: pwsh
+        run: |
+          Write-Host ""
+          Write-Host "═══════════════════════════════════════"
+          Write-Host "📊 Release Summary"
+          Write-Host "═══════════════════════════════════════"
+          Write-Host "Package:        PackageScriptWriter.Cli"
+          Write-Host "Version:        ${{ steps.version.outputs.version }}"
+          Write-Host "Release Tag:    ${{ github.event.release.tag_name }}"
+          Write-Host "Prerelease:     ${{ steps.version.outputs.is_prerelease }}"
+          Write-Host "Release URL:    ${{ github.event.release.html_url }}"
+          Write-Host "═══════════════════════════════════════"
+          Write-Host "✅ CLI tool published to NuGet.org"
+          Write-Host "📦 Package attached to GitHub release"
+          Write-Host "═══════════════════════════════════════"
+          Write-Host ""
+          Write-Host "To install the CLI tool globally:"
+          Write-Host "  dotnet tool install --global PackageScriptWriter.Cli --version ${{ steps.version.outputs.version }}"
+          Write-Host ""
