@@ -3,6 +3,7 @@ using Spectre.Console;
 using PackageCliTool.Models;
 using PackageCliTool.Configuration;
 using PackageCliTool.Logging;
+using PackageCliTool.Validation;
 
 namespace PackageCliTool.Services;
 
@@ -120,7 +121,7 @@ public class PackageSelector
     }
 
     /// <summary>
-    /// Search for packages with autocomplete
+    /// Search for packages using a search term
     /// </summary>
     private async Task<List<string>> SearchForPackagesAsync()
     {
@@ -129,51 +130,88 @@ public class PackageSelector
 
         while (continueAdding)
         {
-            // Build autocomplete choices from allPackages
-            var packageChoices = new List<string>();
+            // Ask user to enter a search term
+            var searchTerm = AnsiConsole.Ask<string>("Enter [green]search term[/] to find packages:");
 
-            if (_allPackages.Count > 0)
+            if (string.IsNullOrWhiteSpace(searchTerm))
             {
-                packageChoices = _allPackages
-                    .Where(p => !string.IsNullOrWhiteSpace(p.PackageId))
-                    .OrderBy(p => p.PackageId)
-                    .Select(p => p.PackageId)
-                    .ToList();
+                AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
+                continue;
             }
 
-            string packageName;
+            searchTerm = searchTerm.Trim();
+            _logger?.LogInformation("Searching for packages with term: {SearchTerm}", searchTerm);
 
-            if (packageChoices.Count > 0)
+            // Search packages using LINQ - check Title, PackageId, and authors (case-insensitive)
+            var matchingPackages = _allPackages
+                .Where(p =>
+                    (!string.IsNullOrWhiteSpace(p.Title) && p.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(p.PackageId) && p.PackageId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrWhiteSpace(p.authors) && p.authors.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                )
+                .Select(p => new
+                {
+                    p.PackageId,
+                    p.Title,
+                    p.authors,
+                    DisplayText = $"{p.PackageId} - {p.Title ?? "No title"} (by {p.authors ?? "Unknown"})"
+                })
+                .OrderBy(p => p.PackageId)
+                .ToList();
+
+            _logger?.LogInformation("Found {Count} matching packages", matchingPackages.Count);
+
+            if (matchingPackages.Count > 0)
             {
-                // Use TextPrompt with autocomplete
-                packageName = AnsiConsole.Prompt(
-                    new TextPrompt<string>("Enter [green]package name[/] (or type to search):")
-                        .AllowEmpty()
-                        .ShowDefaultValue(false)
-                        .DefaultValue("")
-                        .AddChoices(packageChoices));
+                // Show matching packages in a select prompt (paged to 10)
+                var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
+
+                var selectedDisplay = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title($"Found [green]{matchingPackages.Count}[/] matching package(s). Select one:")
+                        .PageSize(10)
+                        .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+                        .AddChoices(displayChoices));
+
+                // Extract the PackageId from the selected display text
+                var selectedPackage = matchingPackages.First(p => p.DisplayText == selectedDisplay);
+                selectedPackages.Add(selectedPackage.PackageId);
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {selectedPackage.PackageId}");
+                _logger?.LogInformation("User selected package: {PackageId}", selectedPackage.PackageId);
             }
             else
             {
-                // Fallback to simple input if no packages loaded
-                _logger?.LogWarning("No packages with valid NuGetPackageId found for autocomplete, using simple input");
-                packageName = AnsiConsole.Ask<string>("Enter [green]package name[/]:", string.Empty);
-            }
+                // No matches found
+                AnsiConsole.MarkupLine($"[yellow]No packages found matching '{searchTerm}'.[/]");
+                _logger?.LogInformation("No packages found matching search term: {SearchTerm}", searchTerm);
 
-            if (!string.IsNullOrWhiteSpace(packageName))
-            {
-                selectedPackages.Add(packageName.Trim());
-                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {packageName.Trim()}");
+                // Check if the search term is a valid NuGet package ID
+                if (InputValidator.IsValidNuGetPackageId(searchTerm))
+                {
+                    AnsiConsole.MarkupLine("[dim]The search term appears to be a valid NuGet package ID.[/]");
+                    var addAnyway = AnsiConsole.Confirm($"Would you like to add [green]{searchTerm}[/] as a package anyway?", true);
+
+                    if (addAnyway)
+                    {
+                        selectedPackages.Add(searchTerm);
+                        AnsiConsole.MarkupLine($"[green]✓[/] Added package: {searchTerm}");
+                        _logger?.LogInformation("User added package not in marketplace: {PackageId}", searchTerm);
+                    }
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("[dim]The search term is not a valid NuGet package ID format.[/]");
+                }
             }
 
             // Ask if they want to add another package
             if (selectedPackages.Count > 0)
             {
-                continueAdding = AnsiConsole.Confirm("Add another package?", false);
+                continueAdding = AnsiConsole.Confirm("Search for another package?", false);
             }
             else
             {
-                continueAdding = AnsiConsole.Confirm("No packages added yet. Add a package?", true);
+                continueAdding = AnsiConsole.Confirm("No packages added yet. Search for a package?", true);
             }
         }
 
