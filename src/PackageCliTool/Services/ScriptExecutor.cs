@@ -27,6 +27,9 @@ public class ScriptExecutor
         AnsiConsole.MarkupLine($"[bold blue]Running script in:[/] {workingDirectory}");
         AnsiConsole.WriteLine();
 
+        // Filter script content to handle comment lines
+        var filteredScript = FilterScriptContent(scriptContent);
+
         // Determine shell for script execution
         string shell;
         if (OperatingSystem.IsWindows())
@@ -59,7 +62,7 @@ public class ScriptExecutor
             if (!string.IsNullOrEmpty(e.Data))
             {
                 _logger?.LogDebug("Script output: {Output}", e.Data);
-                AnsiConsole.MarkupLine($"[dim]{e.Data.EscapeMarkup()}[/]");
+                AnsiConsole.WriteLine(e.Data);
             }
         };
 
@@ -74,8 +77,8 @@ public class ScriptExecutor
 
         process.Start();
 
-        // Write the script content to stdin
-        await process.StandardInput.WriteAsync(scriptContent);
+        // Write the filtered script content to stdin
+        await process.StandardInput.WriteAsync(filteredScript);
         await process.StandardInput.FlushAsync();
         process.StandardInput.Close();
 
@@ -102,5 +105,34 @@ public class ScriptExecutor
                 "Check the script output above for error details"
             );
         }
+    }
+
+    /// <summary>
+    /// Filters script content to remove comment lines and display them separately
+    /// </summary>
+    private string FilterScriptContent(string scriptContent)
+    {
+        var lines = scriptContent.Split(new[] { '\r', '\n' }, StringSplitOptions.None);
+        var filteredLines = new List<string>();
+
+        foreach (var line in lines)
+        {
+            var trimmedLine = line.TrimStart();
+
+            // Check if line is a comment (starts with #)
+            if (trimmedLine.StartsWith('#'))
+            {
+                // Display comment to console but don't execute it
+                _logger?.LogDebug("Skipping comment line: {Line}", line);
+                AnsiConsole.MarkupLine($"[grey]{line.EscapeMarkup()}[/]");
+            }
+            else
+            {
+                // Include non-comment lines in the filtered script
+                filteredLines.Add(line);
+            }
+        }
+
+        return string.Join(Environment.NewLine, filteredLines);
     }
 }
