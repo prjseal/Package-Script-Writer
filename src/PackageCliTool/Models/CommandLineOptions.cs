@@ -40,12 +40,25 @@ public class CommandLineOptions
     public List<string> TemplateTags { get; set; } = new();
     public Dictionary<string, string> TemplateOverrides { get; set; } = new();
 
+    // History-related options
+    public string? HistoryCommand { get; set; }  // list, show, rerun, delete, clear, stats
+    public string? HistoryId { get; set; }  // ID or index of history entry
+    public int HistoryLimit { get; set; } = 10;  // Number of entries to show
+
     /// <summary>
     /// Checks if this is a template command
     /// </summary>
     public bool IsTemplateCommand()
     {
         return !string.IsNullOrWhiteSpace(TemplateCommand);
+    }
+
+    /// <summary>
+    /// Checks if this is a history command
+    /// </summary>
+    public bool IsHistoryCommand()
+    {
+        return !string.IsNullOrWhiteSpace(HistoryCommand);
     }
 
     /// <summary>
@@ -245,12 +258,40 @@ public class CommandLineOptions
                     }
                     break;
 
+                // History commands
+                case "history":
+                    // Next argument should be the subcommand (list, show, rerun, etc.)
+                    if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                    {
+                        i++;
+                        options.HistoryCommand = args[i];
+
+                        // Get history ID/index if next argument is not a flag
+                        if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                        {
+                            i++;
+                            options.HistoryId = args[i];
+                        }
+                    }
+                    break;
+
+                case "--history-limit":
+                    var limitStr = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(limitStr) && int.TryParse(limitStr, out int limit))
+                    {
+                        options.HistoryLimit = limit;
+                    }
+                    break;
+
                 default:
-                    // Check if this is a template subcommand without explicit "template" prefix
+                    // Check if this is a template or history subcommand without explicit prefix
                     if (!arg.StartsWith("-") && i == 0)
                     {
-                        var validCommands = new[] { "save", "load", "list", "show", "delete", "export", "import", "validate" };
-                        if (validCommands.Contains(arg.ToLower()))
+                        var templateCommands = new[] { "save", "load", "export", "import", "validate" };
+                        var historyCommands = new[] { "list", "show", "delete", "rerun", "clear", "stats" };
+
+                        // Check if it's a template command (some overlap, so check context)
+                        if (templateCommands.Contains(arg.ToLower()))
                         {
                             options.TemplateCommand = arg.ToLower();
 

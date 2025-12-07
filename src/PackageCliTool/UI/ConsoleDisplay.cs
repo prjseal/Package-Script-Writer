@@ -62,6 +62,17 @@ public static class ConsoleDisplay
   [green]    --template-file[/] <path>   Template file path
   [green]    --set[/] <key=value>        Override template values
 
+[bold yellow]HISTORY COMMANDS:[/]
+  [green]history list[/]                  List recent script generation history
+  [green]history show[/] <#>              Show details of a history entry
+  [green]history rerun[/] <#>             Regenerate and re-run a script from history
+  [green]history delete[/] <#>            Delete a history entry
+  [green]history clear[/]                 Clear all history
+  [green]history stats[/]                 Show history statistics
+
+[bold yellow]HISTORY OPTIONS:[/]
+  [green]    --history-limit[/] <count>  Number of entries to show (default: 10)
+
 [bold yellow]SCRIPT CONFIGURATION:[/]
   [green]-p, --packages[/] <packages>     Comma-separated list of packages with optional versions
                                    Format: ""Package1|Version1,Package2|Version2""
@@ -133,7 +144,23 @@ public static class ConsoleDisplay
     [cyan]psw template export my-blog --template-file my-blog.yaml[/]
 
   Import template from file:
-    [cyan]psw template import my-blog.yaml[/]")
+    [cyan]psw template import my-blog.yaml[/]
+
+[bold yellow]HISTORY EXAMPLES:[/]
+  List recent scripts:
+    [cyan]psw history list[/]
+
+  Show details of a specific entry:
+    [cyan]psw history show 3[/]
+
+  Re-run a previous script:
+    [cyan]psw history rerun 1[/]
+
+  View statistics:
+    [cyan]psw history stats[/]
+
+  Clear all history:
+    [cyan]psw history clear[/]")
             .Header("[bold blue]Package Script Writer Help[/]")
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Blue)

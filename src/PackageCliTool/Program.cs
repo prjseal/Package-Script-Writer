@@ -50,9 +50,16 @@ class Program
             var packageSelector = new PackageSelector(apiClient, logger);
             var scriptExecutor = new ScriptExecutor(logger);
             var templateService = new TemplateService(logger: logger);
+            var historyService = new HistoryService(logger: logger);
 
+            // Check if this is a history command
+            if (options.IsHistoryCommand())
+            {
+                var historyWorkflow = new HistoryWorkflow(historyService, apiClient, scriptExecutor, logger);
+                await historyWorkflow.RunAsync(options);
+            }
             // Check if this is a template command
-            if (options.IsTemplateCommand())
+            else if (options.IsTemplateCommand())
             {
                 var templateWorkflow = new TemplateWorkflow(templateService, apiClient, scriptExecutor, logger);
                 await templateWorkflow.RunAsync(options);
