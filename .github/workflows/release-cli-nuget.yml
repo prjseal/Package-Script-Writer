@@ -93,11 +93,13 @@ jobs:
             Write-Host "  📦 $($_.Name)"
           }
 
-      - name: Upload NuGet package as artifact
+      - name: Upload NuGet packages as artifacts
         uses: actions/upload-artifact@v4
         with:
           name: cli-nuget-package-${{ steps.version.outputs.version }}
-          path: ./artifacts/nuget/*.nupkg
+          path: |
+            ./artifacts/nuget/*.nupkg
+            ./artifacts/nuget/*.snupkg
           if-no-files-found: error
 
       - name: Publish to NuGet.org
@@ -107,6 +109,7 @@ jobs:
         run: |
           Write-Host "Publishing CLI tool to NuGet.org..."
 
+          # Publish main package (.nupkg)
           $packages = Get-ChildItem "./artifacts/nuget/*.nupkg"
 
           foreach ($package in $packages) {
@@ -123,6 +126,28 @@ jobs:
               Write-Error "❌ Failed to publish $($package.Name)"
               exit 1
             }
+          }
+
+          # Publish symbol package (.snupkg) if it exists
+          $symbolPackages = Get-ChildItem "./artifacts/nuget/*.snupkg" -ErrorAction SilentlyContinue
+
+          if ($symbolPackages) {
+            foreach ($symbolPackage in $symbolPackages) {
+              Write-Host "Publishing symbols $($symbolPackage.Name)..."
+
+              dotnet nuget push $symbolPackage.FullName `
+                --api-key $env:NUGET_API_KEY `
+                --source https://api.nuget.org/v3/index.json `
+                --skip-duplicate
+
+              if ($LASTEXITCODE -eq 0) {
+                Write-Host "✅ Successfully published $($symbolPackage.Name)"
+              } else {
+                Write-Warning "⚠️ Failed to publish $($symbolPackage.Name) (non-critical)"
+              }
+            }
+          } else {
+            Write-Host "ℹ️ No symbol packages found (this is optional)"
           }
 
           Write-Host "All packages published successfully!"
