@@ -242,21 +242,43 @@ public class HistoryWorkflow
         AnsiConsole.MarkupLine($"[dim]Original timestamp: {entry.Timestamp.ToLocalTime():yyyy-MM-dd HH:mm}[/]");
         AnsiConsole.WriteLine();
 
-        var confirm = AnsiConsole.Confirm("Regenerate and execute this script?", true);
+        // Display current configuration
+        DisplayScriptConfiguration(entry.ScriptModel);
+        AnsiConsole.WriteLine();
 
-        if (!confirm)
+        // Ask if user wants to modify before re-running
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("What would you like to do?")
+                .AddChoices(new[] {
+                    "Run with same configuration",
+                    "Modify configuration first",
+                    "Cancel"
+                }));
+
+        if (action == "Cancel")
         {
             AnsiConsole.MarkupLine("[yellow]Re-run cancelled.[/]");
             return;
         }
 
-        // Regenerate the script using the same model
+        var scriptModel = entry.ScriptModel;
+
+        if (action == "Modify configuration first")
+        {
+            scriptModel = ModifyScriptModel(entry.ScriptModel);
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[green]✓ Configuration updated[/]");
+            AnsiConsole.WriteLine();
+        }
+
+        // Regenerate the script using the (possibly modified) model
         var script = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Regenerating installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(entry.ScriptModel);
+                return await _apiClient.GenerateScriptAsync(scriptModel);
             });
 
         _logger?.LogInformation("Script regenerated successfully");
@@ -422,5 +444,167 @@ public class HistoryWorkflow
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine($"[dim]Success Rate: {successRate:F1}%[/]");
         }
+    }
+
+    /// <summary>
+    /// Displays the script configuration in a table
+    /// </summary>
+    private void DisplayScriptConfiguration(ScriptModel model)
+    {
+        var table = new Table()
+            .Border(TableBorder.Rounded)
+            .BorderColor(Color.Yellow)
+            .Title("[bold yellow]Current Configuration[/]");
+
+        table.AddColumn("[bold]Setting[/]");
+        table.AddColumn("[bold]Value[/]");
+
+        table.AddRow("Project Name", model.ProjectName ?? "N/A");
+        table.AddRow("Template", $"{model.TemplateName} @ {model.TemplateVersion ?? "Latest"}");
+
+        if (!string.IsNullOrWhiteSpace(model.Packages))
+        {
+            table.AddRow("Packages", model.Packages);
+        }
+
+        if (model.CreateSolutionFile)
+        {
+            table.AddRow("Solution", model.SolutionName ?? model.ProjectName ?? "Yes");
+        }
+
+        if (model.IncludeStarterKit)
+        {
+            table.AddRow("Starter Kit", model.StarterKitPackage ?? "Yes");
+        }
+
+        if (model.IncludeDockerfile || model.IncludeDockerCompose)
+        {
+            var dockerOpts = new List<string>();
+            if (model.IncludeDockerfile) dockerOpts.Add("Dockerfile");
+            if (model.IncludeDockerCompose) dockerOpts.Add("Docker Compose");
+            table.AddRow("Docker", string.Join(", ", dockerOpts));
+        }
+
+        if (model.UseUnattendedInstall)
+        {
+            table.AddRow("Unattended Install", "Yes");
+            table.AddRow("Database", model.DatabaseType ?? "N/A");
+            table.AddRow("Admin Email", model.UserEmail ?? "N/A");
+        }
+
+        AnsiConsole.Write(table);
+    }
+
+    /// <summary>
+    /// Allows user to modify script model values interactively
+    /// </summary>
+    private ScriptModel ModifyScriptModel(ScriptModel original)
+    {
+        // Create a copy to modify
+        var model = new ScriptModel
+        {
+            TemplateName = original.TemplateName,
+            TemplateVersion = original.TemplateVersion,
+            ProjectName = original.ProjectName,
+            CreateSolutionFile = original.CreateSolutionFile,
+            SolutionName = original.SolutionName,
+            Packages = original.Packages,
+            IncludeStarterKit = original.IncludeStarterKit,
+            StarterKitPackage = original.StarterKitPackage,
+            IncludeDockerfile = original.IncludeDockerfile,
+            IncludeDockerCompose = original.IncludeDockerCompose,
+            CanIncludeDocker = original.CanIncludeDocker,
+            UseUnattendedInstall = original.UseUnattendedInstall,
+            DatabaseType = original.DatabaseType,
+            ConnectionString = original.ConnectionString,
+            UserFriendlyName = original.UserFriendlyName,
+            UserEmail = original.UserEmail,
+            UserPassword = original.UserPassword,
+            OnelinerOutput = original.OnelinerOutput,
+            RemoveComments = original.RemoveComments
+        };
+
+        AnsiConsole.MarkupLine("[bold yellow]Modify Configuration[/]");
+        AnsiConsole.MarkupLine("[dim]Press Enter to keep current value, or type new value[/]\n");
+
+        // Project Name
+        var newProjectName = AnsiConsole.Ask<string>(
+            $"Project Name [{model.ProjectName}]:",
+            model.ProjectName ?? "");
+        if (!string.IsNullOrWhiteSpace(newProjectName))
+        {
+            model.ProjectName = newProjectName;
+        }
+
+        // Template Version
+        var changeTemplate = AnsiConsole.Confirm("Change template version?", false);
+        if (changeTemplate)
+        {
+            var newVersion = AnsiConsole.Ask<string>(
+                $"Template Version [{model.TemplateVersion ?? "Latest"}]:",
+                model.TemplateVersion ?? "");
+            model.TemplateVersion = newVersion;
+        }
+
+        // Packages
+        var changePackages = AnsiConsole.Confirm("Change packages?", false);
+        if (changePackages)
+        {
+            var newPackages = AnsiConsole.Ask<string>(
+                $"Packages (comma-separated) [{model.Packages ?? "None"}]:",
+                model.Packages ?? "");
+            model.Packages = newPackages;
+        }
+
+        // Solution
+        var changeSolution = AnsiConsole.Confirm("Change solution settings?", false);
+        if (changeSolution)
+        {
+            model.CreateSolutionFile = AnsiConsole.Confirm("Create solution file?", model.CreateSolutionFile);
+            if (model.CreateSolutionFile)
+            {
+                var newSolutionName = AnsiConsole.Ask<string>(
+                    $"Solution Name [{model.SolutionName ?? model.ProjectName}]:",
+                    model.SolutionName ?? model.ProjectName ?? "");
+                model.SolutionName = newSolutionName;
+            }
+        }
+
+        // Starter Kit
+        var changeStarterKit = AnsiConsole.Confirm("Change starter kit?", false);
+        if (changeStarterKit)
+        {
+            model.IncludeStarterKit = AnsiConsole.Confirm("Include starter kit?", model.IncludeStarterKit);
+            if (model.IncludeStarterKit)
+            {
+                var newStarterKit = AnsiConsole.Ask<string>(
+                    $"Starter Kit Package [{model.StarterKitPackage ?? "clean"}]:",
+                    model.StarterKitPackage ?? "clean");
+                model.StarterKitPackage = newStarterKit;
+            }
+        }
+
+        // Database
+        if (model.UseUnattendedInstall)
+        {
+            var changeDatabase = AnsiConsole.Confirm("Change database settings?", false);
+            if (changeDatabase)
+            {
+                var newDbType = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Select database type:")
+                        .AddChoices(new[] { "SQLite", "LocalDb", "SQLServer", "SQLAzure", "SQLCE" })
+                        .HighlightStyle(new Style(Color.Green)));
+                model.DatabaseType = newDbType;
+
+                if (newDbType == "SQLServer" || newDbType == "SQLAzure")
+                {
+                    var newConnStr = AnsiConsole.Ask<string>("Connection string:");
+                    model.ConnectionString = newConnStr;
+                }
+            }
+        }
+
+        return model;
     }
 }
