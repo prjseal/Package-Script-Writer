@@ -63,7 +63,7 @@ public class PackageSelector
         var selectionMode = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("How would you like to add packages?")
-                .AddChoices(new[] { "Select from list", "Search for package", "None - skip packages" }));
+                .AddChoices(new[] { "Select from popular packages", "Search for package", "None - skip packages" }));
 
         var selectedPackages = new List<string>();
 
@@ -73,7 +73,7 @@ public class PackageSelector
             return selectedPackages;
         }
 
-        if (selectionMode == "Select from list")
+        if (selectionMode == "Select from popular packages")
         {
             selectedPackages = await SelectPackagesFromListAsync();
         }
@@ -96,16 +96,15 @@ public class PackageSelector
         {
             // Use all packages from the API
             packageChoices = _allPackages
-                .Where(p => !string.IsNullOrWhiteSpace(p.NuGetPackageId))
-                .Select(p => p.NuGetPackageId)
-                .OrderBy(p => p)
+                .Where(p => !string.IsNullOrWhiteSpace(p.PackageId))
+                .Select(p => p.PackageId)
                 .ToList();
         }
 
         // Fallback to popular packages if no valid packages found
         if (packageChoices.Count == 0)
         {
-            _logger?.LogWarning("No packages with valid NuGetPackageId found, falling back to popular packages");
+            _logger?.LogWarning("No packages with valid PackageId found, falling back to popular packages");
             packageChoices = ApiConfiguration.PopularPackages.ToList();
         }
 
@@ -136,9 +135,9 @@ public class PackageSelector
             if (_allPackages.Count > 0)
             {
                 packageChoices = _allPackages
-                    .Where(p => !string.IsNullOrWhiteSpace(p.NuGetPackageId))
-                    .Select(p => p.NuGetPackageId)
-                    .OrderBy(p => p)
+                    .Where(p => !string.IsNullOrWhiteSpace(p.PackageId))
+                    .OrderBy(p => p.PackageId)
+                    .Select(p => p.PackageId)
                     .ToList();
             }
 

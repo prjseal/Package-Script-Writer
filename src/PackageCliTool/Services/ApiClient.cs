@@ -135,9 +135,13 @@ public class ApiClient
                 });
 
             var packageList = packages ?? new List<PagedPackagesPackage>();
-            _logger?.LogInformation("Successfully fetched {Count} packages from marketplace", packageList.Count);
+            var distinctPackages = packageList
+                .GroupBy(p => p.PackageId)
+                .Select(g => g.First())
+                .ToList();
+            _logger?.LogInformation("Successfully fetched {Count} packages from marketplace", distinctPackages.Count);
 
-            return packageList;
+            return distinctPackages;
         }
         catch (JsonException ex)
         {
