@@ -6,7 +6,7 @@ Welcome to the complete technical documentation for the Package Script Writer pr
 
 ## 🌟 Project Overview
 
-**Package Script Writer** is a web-based utility that generates installation scripts for Umbraco CMS projects. Built with ASP.NET Core 9.0, it provides a streamlined interface for developers to create customized Umbraco project setup scripts.
+**Package Script Writer** is a web-based utility that generates installation scripts for Umbraco CMS projects. Built with ASP.NET Core 10.0, it provides a streamlined interface for developers to create customized Umbraco project setup scripts.
 
 ### Key Features
 
@@ -222,7 +222,7 @@ See the [Development Guide](development-guide.md) for detailed setup instruction
 
 | Category | Technology | Version |
 |----------|-----------|---------|
-| **Framework** | ASP.NET Core | 9.0 |
+| **Framework** | ASP.NET Core | 10.0 |
 | **Language** | C# | 13 |
 | **Frontend** | Razor Pages | - |
 | **JavaScript** | Vanilla JS | ES6+ |

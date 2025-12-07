@@ -186,7 +186,7 @@ src/PSW/
 
 | Category | Technology | Purpose |
 |----------|-----------|---------|
-| **Framework** | ASP.NET Core 9.0 | Web application framework |
+| **Framework** | ASP.NET Core 10.0 | Web application framework |
 | **Language** | C# 13 | Primary programming language |
 | **Frontend** | Razor Pages | Server-side rendering |
 | **JavaScript** | Vanilla JS (740+ lines) | Client-side interactivity |
