@@ -131,27 +131,35 @@ public class InteractiveModeWorkflow
         // Step 2: For each package, select version
         var packageVersions = await _packageSelector.SelectVersionsForPackagesAsync(selectedPackages);
 
-        // Step 3: Display final selection
+        // Step 3: Select template
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Template\n");
+        var templateName = await _packageSelector.SelectTemplateAsync();
+
+        // Step 4: Select template version
+        var templateVersion = await _packageSelector.SelectTemplateVersionAsync(templateName);
+
+        // Step 5: Display final selection
         ConfigurationDisplay.DisplayFinalSelection(packageVersions);
 
-        // Step 4: Optional - Generate script
+        // Step 6: Optional - Generate script
         var shouldGenerate2 = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
 
         if (shouldGenerate2)
         {
-            await GenerateAndDisplayScriptAsync(packageVersions);
+            await GenerateAndDisplayScriptAsync(packageVersions, templateName, templateVersion);
         }
     }
 
     /// <summary>
     /// Generates a complete installation script using the API
     /// </summary>
-    private async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions)
+    private async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions, string? templateName = null, string? templateVersion = null)
     {
         _logger?.LogInformation("Generating complete installation script");
 
         // Prompt for configuration
-        var model = InteractivePrompts.PromptForScriptConfiguration(packageVersions);
+        var model = InteractivePrompts.PromptForScriptConfiguration(packageVersions, templateName, templateVersion);
 
         // Display configuration summary
         ConfigurationDisplay.DisplayConfigurationSummary(model, packageVersions);
