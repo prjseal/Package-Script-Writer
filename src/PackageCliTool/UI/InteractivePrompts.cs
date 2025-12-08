@@ -14,7 +14,7 @@ public static class InteractivePrompts
     /// <summary>
     /// Prompts user for all script configuration options
     /// </summary>
-    public static async Task<ScriptModel> PromptForScriptConfigurationAsync(Dictionary<string, string> packageVersions, ApiClient apiClient, ILogger? logger = null, string? templateName = null, string? templateVersion = null)
+    public static async Task<ScriptModel> PromptForScriptConfigurationAsync(Dictionary<string, string> packageVersions, ApiClient apiClient, ILogger? logger = null, string? templateName = null, string? templateVersion = null, ScriptModel? existingModel = null)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 7:[/] Configure Project Options\n");
@@ -52,20 +52,20 @@ public static class InteractivePrompts
         // Template and Project Configuration
         AnsiConsole.MarkupLine("[bold yellow]Template & Project Settings[/]\n");
 
-        model.ProjectName = AnsiConsole.Ask<string>("Enter [green]project name[/]:", "MyProject");
+        model.ProjectName = AnsiConsole.Ask<string>("Enter [green]project name[/]:", existingModel?.ProjectName ?? "MyProject");
 
-        model.CreateSolutionFile = AnsiConsole.Confirm("Create a [green]solution file[/]?", true);
+        model.CreateSolutionFile = AnsiConsole.Confirm("Create a [green]solution file[/]?", existingModel?.CreateSolutionFile ?? true);
 
         if (model.CreateSolutionFile)
         {
-            model.SolutionName = AnsiConsole.Ask<string>("Enter [green]solution name[/]:", model.ProjectName);
+            model.SolutionName = AnsiConsole.Ask<string>("Enter [green]solution name[/]:", existingModel?.SolutionName ?? model.ProjectName);
         }
 
         // Starter Kit Configuration
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold yellow]Starter Kit Options[/]\n");
 
-        model.IncludeStarterKit = AnsiConsole.Confirm("Include a [green]starter kit[/]?", true);
+        model.IncludeStarterKit = AnsiConsole.Confirm("Include a [green]starter kit[/]?", existingModel?.IncludeStarterKit ?? true);
 
         if (model.IncludeStarterKit)
         {
@@ -149,43 +149,53 @@ public static class InteractivePrompts
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold yellow]Docker Options[/]\n");
 
-        model.IncludeDockerfile = AnsiConsole.Confirm("Include [green]Dockerfile[/]?", false);
-        model.IncludeDockerCompose = AnsiConsole.Confirm("Include [green]Docker Compose[/]?", false);
+        model.IncludeDockerfile = AnsiConsole.Confirm("Include [green]Dockerfile[/]?", existingModel?.IncludeDockerfile ?? false);
+        model.IncludeDockerCompose = AnsiConsole.Confirm("Include [green]Docker Compose[/]?", existingModel?.IncludeDockerCompose ?? false);
         model.CanIncludeDocker = model.IncludeDockerfile || model.IncludeDockerCompose;
 
         // Unattended Install Configuration
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold yellow]Unattended Install Options[/]\n");
 
-        model.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install[/]?", true);
+        model.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install[/]?", existingModel?.UseUnattendedInstall ?? true);
 
         if (model.UseUnattendedInstall)
         {
-            model.DatabaseType = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("Select [green]database type[/]:")
-                    .AddChoices(new[] { "SQLite", "LocalDb", "SQLServer", "SQLAzure", "SQLCE" }));
+            var databaseChoices = new[] { "SQLite", "LocalDb", "SQLServer", "SQLAzure", "SQLCE" };
+            var defaultDatabase = existingModel?.DatabaseType ?? "SQLite";
+
+            var dbPrompt = new SelectionPrompt<string>()
+                .Title("Select [green]database type[/]:")
+                .AddChoices(databaseChoices);
+
+            // Set default if it exists in choices
+            if (databaseChoices.Contains(defaultDatabase))
+            {
+                dbPrompt = dbPrompt.HighlightStyle(new Style(Color.Green));
+            }
+
+            model.DatabaseType = AnsiConsole.Prompt(dbPrompt);
 
             if (model.DatabaseType == "SQLServer" || model.DatabaseType == "SQLAzure")
             {
-                model.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:");
+                model.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:", existingModel?.ConnectionString ?? string.Empty);
             }
 
-            model.UserFriendlyName = AnsiConsole.Ask<string>("Enter [green]admin user friendly name[/]:", "Administrator");
-            model.UserEmail = AnsiConsole.Ask<string>("Enter [green]admin email[/]:", "admin@example.com");
+            model.UserFriendlyName = AnsiConsole.Ask<string>("Enter [green]admin user friendly name[/]:", existingModel?.UserFriendlyName ?? "Administrator");
+            model.UserEmail = AnsiConsole.Ask<string>("Enter [green]admin email[/]:", existingModel?.UserEmail ?? "admin@example.com");
             model.UserPassword = AnsiConsole.Prompt(
                 new TextPrompt<string>("Enter [green]admin password[/] (min 10 characters):")
                     .PromptStyle("red")
                     .Secret()
-                    .DefaultValue("1234567890"));
+                    .DefaultValue(existingModel?.UserPassword ?? "1234567890"));
         }
 
         // Output Format Options
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold yellow]Output Format Options[/]\n");
 
-        model.OnelinerOutput = AnsiConsole.Confirm("Output as [green]one-liner[/]?", false);
-        model.RemoveComments = AnsiConsole.Confirm("Remove [green]comments[/] from script?", false);
+        model.OnelinerOutput = AnsiConsole.Confirm("Output as [green]one-liner[/]?", existingModel?.OnelinerOutput ?? false);
+        model.RemoveComments = AnsiConsole.Confirm("Remove [green]comments[/] from script?", existingModel?.RemoveComments ?? false);
 
         return model;
     }
