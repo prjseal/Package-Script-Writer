@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using PackageCliTool.Models.History;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 using PackageCliTool.Exceptions;
 
 namespace PackageCliTool.Services;
@@ -107,7 +107,7 @@ public class HistoryService
     /// </summary>
     public HistoryEntry AddEntry(
         string scriptContent,
-        ScriptModel scriptModel,
+        GeneratorApiRequest scriptModel,
         string? templateName = null,
         string? description = null,
         List<string>? tags = null)
@@ -115,7 +115,7 @@ public class HistoryService
         var entry = new HistoryEntry
         {
             ScriptContent = scriptContent,
-            ScriptModel = scriptModel,
+            GeneratorApiRequest? = scriptModel,
             TemplateName = templateName,
             Description = description,
             Tags = tags ?? new List<string>()

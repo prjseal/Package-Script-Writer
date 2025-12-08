@@ -1,5 +1,5 @@
 using Spectre.Console;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 using PackageCliTool.Services;
 using PackageCliTool.Logging;
 using Microsoft.Extensions.Logging;
@@ -14,7 +14,7 @@ public static class InteractivePrompts
     /// <summary>
     /// Prompts user for all script configuration options
     /// </summary>
-    public static async Task<ScriptModel> PromptForScriptConfigurationAsync(Dictionary<string, string> packageVersions, ApiClient apiClient, ILogger? logger = null, string? templateName = null, string? templateVersion = null, ScriptModel? existingModel = null)
+    public static async Task<GeneratorApiRequest> PromptForScriptConfigurationAsync(Dictionary<string, string> packageVersions, ApiClient apiClient, ILogger? logger = null, string? templateName = null, string? templateVersion = null, GeneratorApiRequest? existingModel = null)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 7:[/] Configure Project Options\n");
@@ -42,7 +42,7 @@ public static class InteractivePrompts
         var packagesString = string.Join(",", packageParts);
 
         // Create a script model and populate it with user inputs
-        var model = new ScriptModel
+        var model = new GeneratorApiRequest
         {
             TemplateName = templateName ?? "Umbraco.Templates",
             TemplateVersion = templateVersion ?? "",
@@ -151,7 +151,6 @@ public static class InteractivePrompts
 
         model.IncludeDockerfile = AnsiConsole.Confirm("Include [green]Dockerfile[/]?", existingModel?.IncludeDockerfile ?? false);
         model.IncludeDockerCompose = AnsiConsole.Confirm("Include [green]Docker Compose[/]?", existingModel?.IncludeDockerCompose ?? false);
-        model.CanIncludeDocker = model.IncludeDockerfile || model.IncludeDockerCompose;
 
         // Unattended Install Configuration
         AnsiConsole.WriteLine();

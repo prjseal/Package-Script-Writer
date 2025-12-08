@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Models;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 using PackageCliTool.Services;
 using PackageCliTool.UI;
 using PackageCliTool.Validation;
@@ -61,7 +61,7 @@ public class CliModeWorkflow
         AnsiConsole.WriteLine();
 
         // Create default script model matching website defaults
-        var model = new ScriptModel
+        var model = new GeneratorApiRequest
         {
             TemplateName = "Umbraco.Templates",
             TemplateVersion = "", // Latest stable
@@ -72,7 +72,6 @@ public class CliModeWorkflow
             StarterKitPackage = "clean",
             IncludeDockerfile = false,
             IncludeDockerCompose = false,
-            CanIncludeDocker = false,
             UseUnattendedInstall = true,
             DatabaseType = "SQLite",
             UserEmail = "admin@example.com",
@@ -116,7 +115,7 @@ public class CliModeWorkflow
         InputValidator.ValidateDatabaseType(options.DatabaseType);
         InputValidator.ValidateConnectionString(options.ConnectionString, options.DatabaseType);
 
-        var model = new ScriptModel
+        var model = new GeneratorApiRequest
         {
             TemplateName = "Umbraco.Templates",
             TemplateVersion = options.TemplateVersion ?? "",
@@ -127,7 +126,6 @@ public class CliModeWorkflow
             StarterKitPackage = options.StarterKitPackage,
             IncludeDockerfile = options.IncludeDockerfile,
             IncludeDockerCompose = options.IncludeDockerCompose,
-            CanIncludeDocker = options.IncludeDockerfile || options.IncludeDockerCompose,
             UseUnattendedInstall = options.UseUnattended,
             DatabaseType = options.DatabaseType,
             ConnectionString = options.ConnectionString,

@@ -1,5 +1,5 @@
 using Spectre.Console;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 
 namespace PackageCliTool.UI;
 
@@ -45,7 +45,7 @@ public static class ConfigurationDisplay
     /// <summary>
     /// Displays a summary of the configuration before generating the script
     /// </summary>
-    public static void DisplayConfigurationSummary(ScriptModel model, Dictionary<string, string> packageVersions)
+    public static void DisplayConfigurationSummary(GeneratorApiRequest model, Dictionary<string, string> packageVersions)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Configuration Summary[/]\n");

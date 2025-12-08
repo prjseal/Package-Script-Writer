@@ -1,4 +1,4 @@
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 
 namespace PackageCliTool.Models.History;
 
@@ -25,7 +25,7 @@ public class HistoryEntry
     /// <summary>
     /// The script model used to generate the script
     /// </summary>
-    public ScriptModel ScriptModel { get; set; } = new();
+    public GeneratorApiRequest ScriptModel { get; set; } = new();
 
     /// <summary>
     /// Template name if generated from a template
@@ -72,7 +72,7 @@ public class HistoryEntry
             return $"From template: {TemplateName}";
         }
 
-        return $"{ScriptModel.ProjectName ?? "Script"} - {Timestamp:yyyy-MM-dd HH:mm}";
+        return $"{GeneratorApiRequest?.ProjectName ?? "Script"} - {Timestamp:yyyy-MM-dd HH:mm}";
     }
 
     /// <summary>
@@ -82,9 +82,9 @@ public class HistoryEntry
     {
         var parts = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(ScriptModel.ProjectName))
+        if (!string.IsNullOrWhiteSpace(GeneratorApiRequest?.ProjectName))
         {
-            parts.Add($"Project: {ScriptModel.ProjectName}");
+            parts.Add($"Project: {GeneratorApiRequest?.ProjectName}");
         }
 
         if (!string.IsNullOrWhiteSpace(TemplateName))
