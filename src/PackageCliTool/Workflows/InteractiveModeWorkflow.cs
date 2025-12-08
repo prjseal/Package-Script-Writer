@@ -103,7 +103,9 @@ public class InteractiveModeWorkflow
         ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
 
         // Option to save and run the script
-        await HandleScriptSaveAndRunAsync(script);
+        // Create empty packageVersions dict since default script has no packages
+        var packageVersions = new Dictionary<string, string>();
+        await HandleScriptSaveAndRunAsync(script, model, packageVersions);
     }
 
     /// <summary>
