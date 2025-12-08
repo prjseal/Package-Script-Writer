@@ -1,9 +1,11 @@
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Models;
 using PackageCliTool.Configuration;
 using PackageCliTool.Logging;
 using PackageCliTool.Validation;
+using PSW.Shared.Services;
 
 namespace PackageCliTool.Services;
 
@@ -13,12 +15,16 @@ namespace PackageCliTool.Services;
 public class PackageSelector
 {
     private readonly ApiClient _apiClient;
+    private readonly IPackageService _packageService;
+    private readonly IMemoryCache _memoryCache;
     private readonly ILogger? _logger;
     private List<PagedPackagesPackage> _allPackages = new();
 
-    public PackageSelector(ApiClient apiClient, ILogger? logger = null)
+    public PackageSelector(ApiClient apiClient, IPackageService packageService, IMemoryCache memoryCache, ILogger? logger = null)
     {
         _apiClient = apiClient;
+        _packageService = packageService;
+        _memoryCache = memoryCache;
         _logger = logger;
     }
 
@@ -51,6 +57,25 @@ public class PackageSelector
             AnsiConsole.WriteLine();
             _allPackages = new List<PagedPackagesPackage>();
         }
+    }
+
+    /// <summary>
+    /// Gets package versions directly from NuGet API (synchronous with caching)
+    /// </summary>
+    private List<string> GetPackageVersions(string packageId)
+    {
+        int cacheTime = 60;
+        var packageUniqueId = packageId.ToLower();
+
+        var packageVersions = _memoryCache.GetOrCreate(
+            packageId + "_Versions",
+            cacheEntry =>
+            {
+                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
+                return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{packageUniqueId}/index.json");
+            });
+
+        return packageVersions ?? new List<string>();
     }
 
     /// <summary>
@@ -221,7 +246,7 @@ public class PackageSelector
     /// <summary>
     /// For each selected package, fetch versions and let user select one
     /// </summary>
-    public async Task<Dictionary<string, string>> SelectVersionsForPackagesAsync(List<string> packages)
+    public Dictionary<string, string> SelectVersionsForPackages(List<string> packages)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 2:[/] Select Versions\n");
@@ -234,13 +259,13 @@ public class PackageSelector
             {
                 _logger?.LogDebug("Fetching versions for package: {Package}", package);
 
-                // Fetch versions with spinner
-                var versions = await AnsiConsole.Status()
+                // Fetch versions with spinner (synchronous)
+                var versions = AnsiConsole.Status()
                     .Spinner(Spinner.Known.Dots)
                     .SpinnerStyle(Style.Parse("green"))
-                    .StartAsync($"Fetching versions for [yellow]{package}[/]...", async ctx =>
+                    .Start($"Fetching versions for [yellow]{package}[/]...", ctx =>
                     {
-                        return await _apiClient.GetPackageVersionsAsync(package, includePrerelease: true);
+                        return GetPackageVersions(package);
                     });
 
                 _logger?.LogDebug("Found {Count} versions for package {Package}", versions.Count, package);
@@ -347,20 +372,20 @@ public class PackageSelector
     /// <summary>
     /// Allows user to select a version for the selected template
     /// </summary>
-    public async Task<string> SelectTemplateVersionAsync(string templateName)
+    public string SelectTemplateVersion(string templateName)
     {
         AnsiConsole.WriteLine();
         _logger?.LogInformation("User selecting version for template: {Template}", templateName);
 
         try
         {
-            // Fetch versions with spinner
-            var versions = await AnsiConsole.Status()
+            // Fetch versions with spinner (synchronous)
+            var versions = AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
-                .StartAsync($"Fetching versions for [yellow]{templateName}[/]...", async ctx =>
+                .Start($"Fetching versions for [yellow]{templateName}[/]...", ctx =>
                 {
-                    return await _apiClient.GetPackageVersionsAsync(templateName, includePrerelease: true);
+                    return GetPackageVersions(templateName);
                 });
 
             _logger?.LogDebug("Found {Count} versions for template {Template}", versions.Count, templateName);

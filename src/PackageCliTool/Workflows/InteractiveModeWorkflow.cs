@@ -139,7 +139,7 @@ public class InteractiveModeWorkflow
         }
 
         // Step 2: For each package, select version
-        var packageVersions = await _packageSelector.SelectVersionsForPackagesAsync(selectedPackages);
+        var packageVersions = _packageSelector.SelectVersionsForPackages(selectedPackages);
 
         // Step 3: Select template
         AnsiConsole.WriteLine();
@@ -147,7 +147,7 @@ public class InteractiveModeWorkflow
         var templateName = await _packageSelector.SelectTemplateAsync();
 
         // Step 4: Select template version
-        var templateVersion = await _packageSelector.SelectTemplateVersionAsync(templateName);
+        var templateVersion = _packageSelector.SelectTemplateVersion(templateName);
 
         // Step 5: Display final selection
         ConfigurationDisplay.DisplayFinalSelection(packageVersions);

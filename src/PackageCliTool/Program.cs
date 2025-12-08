@@ -1,4 +1,5 @@
 
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -71,6 +72,8 @@ class Program
             var serviceProvider = services.BuildServiceProvider();
 
             var scriptGeneratorService = serviceProvider.GetRequiredService<IScriptGeneratorService>();
+            var packageService = serviceProvider.GetRequiredService<IPackageService>();
+            var memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
 
             // Handle help flag
             if (options.ShowHelp)
@@ -104,7 +107,7 @@ class Program
 
             // Initialize services that depend on configuration
             var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService);
-            var packageSelector = new PackageSelector(apiClient, logger);
+            var packageSelector = new PackageSelector(apiClient, packageService, memoryCache, logger);
             var scriptExecutor = new ScriptExecutor(logger);
             var templateService = new TemplateService(logger: logger);
             var historyService = new HistoryService(logger: logger);
