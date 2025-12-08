@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Services;
 using PackageCliTool.UI;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 using PackageCliTool.Logging;
 using PackageCliTool.Validation;
 using PackageCliTool.Extensions;
@@ -74,7 +74,7 @@ public class InteractiveModeWorkflow
         AnsiConsole.WriteLine();
 
         // Create default script model matching website defaults
-        var model = new ScriptModel
+        var model = new GeneratorApiRequest
         {
             TemplateName = "Umbraco.Templates",
             TemplateVersion = "", // Latest stable
@@ -85,7 +85,6 @@ public class InteractiveModeWorkflow
             StarterKitPackage = "clean",
             IncludeDockerfile = false,
             IncludeDockerCompose = false,
-            CanIncludeDocker = false,
             UseUnattendedInstall = true,
             DatabaseType = "SQLite",
             UserEmail = "admin@example.com",
@@ -164,7 +163,7 @@ public class InteractiveModeWorkflow
     /// <summary>
     /// Generates a complete installation script using the API
     /// </summary>
-    private async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions, string? templateName = null, string? templateVersion = null, ScriptModel? existingModel = null)
+    private async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions, string? templateName = null, string? templateVersion = null, GeneratorApiRequest? existingModel = null)
     {
         _logger?.LogInformation("Generating complete installation script");
 
@@ -204,7 +203,7 @@ public class InteractiveModeWorkflow
     /// <summary>
     /// Handles running or editing the generated script
     /// </summary>
-    private async Task HandleScriptSaveAndRunAsync(string script, ScriptModel? scriptModel = null, Dictionary<string, string>? packageVersions = null, string? templateName = null, string? templateVersion = null)
+    private async Task HandleScriptSaveAndRunAsync(string script, GeneratorApiRequest? scriptModel = null, Dictionary<string, string>? packageVersions = null, string? templateName = null, string? templateVersion = null)
     {
         // Ask user what they want to do with the script
         var action = InteractivePrompts.PromptForScriptAction();
@@ -290,7 +289,7 @@ public class InteractiveModeWorkflow
     /// <summary>
     /// Saves the current script configuration as a template
     /// </summary>
-    private async Task SaveAsTemplateAsync(ScriptModel? scriptModel, Dictionary<string, string>? packageVersions)
+    private async Task SaveAsTemplateAsync(GeneratorApiRequest? scriptModel, Dictionary<string, string>? packageVersions)
     {
         if (scriptModel == null || packageVersions == null)
         {
@@ -325,7 +324,7 @@ public class InteractiveModeWorkflow
         }
 
         // Create template from script model
-        var template = _templateService.FromScriptModel(
+        var template = _templateService.FromGeneratorApiRequest(
             scriptModel,
             packageVersions,
             templateName,

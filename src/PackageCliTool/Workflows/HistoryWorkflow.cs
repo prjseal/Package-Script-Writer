@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using PackageCliTool.Models;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 using PackageCliTool.Services;
 using Spectre.Console;
 
@@ -108,7 +108,7 @@ public class HistoryWorkflow
             table.AddRow(
                 index.ToString(),
                 entry.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm"),
-                entry.ScriptModel.ProjectName ?? "[dim]N/A[/]",
+                entry.GeneratorApiRequest?.ProjectName ?? "[dim]N/A[/]",
                 entry.TemplateName ?? "[dim]None[/]",
                 statusText,
                 entry.Description ?? "[dim]-[/]"
@@ -156,7 +156,7 @@ public class HistoryWorkflow
 
         metadataTable.AddRow("ID", entry.Id);
         metadataTable.AddRow("Timestamp", entry.Timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"));
-        metadataTable.AddRow("Project Name", entry.ScriptModel.ProjectName ?? "N/A");
+        metadataTable.AddRow("Project Name", entry.GeneratorApiRequest?.ProjectName ?? "N/A");
         metadataTable.AddRow("Template", entry.TemplateName ?? "None");
         metadataTable.AddRow("Description", entry.Description ?? "N/A");
         metadataTable.AddRow("Tags", entry.Tags.Count > 0 ? string.Join(", ", entry.Tags) : "None");
@@ -184,18 +184,18 @@ public class HistoryWorkflow
         configTable.AddColumn("[bold]Setting[/]");
         configTable.AddColumn("[bold]Value[/]");
 
-        configTable.AddRow("Template Name", entry.ScriptModel.TemplateName);
-        configTable.AddRow("Template Version", entry.ScriptModel.TemplateVersion ?? "Latest");
-        configTable.AddRow("Solution", entry.ScriptModel.CreateSolutionFile ? entry.ScriptModel.SolutionName ?? "Yes" : "No");
+        configTable.AddRow("Template Name", entry.GeneratorApiRequest?.TemplateName);
+        configTable.AddRow("Template Version", entry.GeneratorApiRequest?.TemplateVersion ?? "Latest");
+        configTable.AddRow("Solution", entry.GeneratorApiRequest?.CreateSolutionFile ? entry.GeneratorApiRequest?.SolutionName ?? "Yes" : "No");
 
-        if (!string.IsNullOrWhiteSpace(entry.ScriptModel.Packages))
+        if (!string.IsNullOrWhiteSpace(entry.GeneratorApiRequest?.Packages))
         {
-            configTable.AddRow("Packages", entry.ScriptModel.Packages);
+            configTable.AddRow("Packages", entry.GeneratorApiRequest?.Packages);
         }
 
-        configTable.AddRow("Starter Kit", entry.ScriptModel.IncludeStarterKit ? entry.ScriptModel.StarterKitPackage ?? "Yes" : "No");
-        configTable.AddRow("Docker", entry.ScriptModel.IncludeDockerfile || entry.ScriptModel.IncludeDockerCompose ? "Yes" : "No");
-        configTable.AddRow("Unattended", entry.ScriptModel.UseUnattendedInstall ? $"Yes ({entry.ScriptModel.DatabaseType})" : "No");
+        configTable.AddRow("Starter Kit", entry.GeneratorApiRequest?.IncludeStarterKit ? entry.GeneratorApiRequest?.StarterKitPackage ?? "Yes" : "No");
+        configTable.AddRow("Docker", entry.GeneratorApiRequest?.IncludeDockerfile || entry.GeneratorApiRequest?.IncludeDockerCompose ? "Yes" : "No");
+        configTable.AddRow("Unattended", entry.GeneratorApiRequest?.UseUnattendedInstall ? $"Yes ({entry.GeneratorApiRequest?.DatabaseType})" : "No");
 
         AnsiConsole.Write(configTable);
         AnsiConsole.WriteLine();
@@ -242,7 +242,7 @@ public class HistoryWorkflow
         AnsiConsole.WriteLine();
 
         // Display current configuration
-        DisplayScriptConfiguration(entry.ScriptModel);
+        DisplayScriptConfiguration(entry.GeneratorApiRequest?);
         AnsiConsole.WriteLine();
 
         // Ask if user wants to modify before re-running
@@ -261,11 +261,11 @@ public class HistoryWorkflow
             return;
         }
 
-        var scriptModel = entry.ScriptModel;
+        var scriptModel = entry.GeneratorApiRequest?;
 
         if (action == "Modify configuration first")
         {
-            scriptModel = ModifyScriptModel(entry.ScriptModel);
+            scriptModel = ModifyGeneratorApiRequest?(entry.GeneratorApiRequest?);
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[green]✓ Configuration updated[/]");
             AnsiConsole.WriteLine();
@@ -332,7 +332,7 @@ public class HistoryWorkflow
             // Update history with new execution info
             var newEntry = _historyService.AddEntry(
                 script,
-                entry.ScriptModel,
+                entry.GeneratorApiRequest?,
                 entry.TemplateName,
                 $"Re-run of: {entry.GetDisplayName()}",
                 entry.Tags
@@ -448,7 +448,7 @@ public class HistoryWorkflow
     /// <summary>
     /// Displays the script configuration in a table
     /// </summary>
-    private void DisplayScriptConfiguration(ScriptModel model)
+    private void DisplayScriptConfiguration(GeneratorApiRequest model)
     {
         var table = new Table()
             .Border(TableBorder.Rounded)
@@ -497,10 +497,10 @@ public class HistoryWorkflow
     /// <summary>
     /// Allows user to modify script model values interactively
     /// </summary>
-    private ScriptModel ModifyScriptModel(ScriptModel original)
+    private GeneratorApiRequest? ModifyGeneratorApiRequest?(GeneratorApiRequest? original)
     {
         // Create a copy to modify
-        var model = new ScriptModel
+        var model = new GeneratorApiRequest
         {
             TemplateName = original.TemplateName,
             TemplateVersion = original.TemplateVersion,
@@ -512,7 +512,6 @@ public class HistoryWorkflow
             StarterKitPackage = original.StarterKitPackage,
             IncludeDockerfile = original.IncludeDockerfile,
             IncludeDockerCompose = original.IncludeDockerCompose,
-            CanIncludeDocker = original.CanIncludeDocker,
             UseUnattendedInstall = original.UseUnattendedInstall,
             DatabaseType = original.DatabaseType,
             ConnectionString = original.ConnectionString,

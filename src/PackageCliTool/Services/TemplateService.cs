@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using PackageCliTool.Models.Templates;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 using PackageCliTool.Exceptions;
 
 namespace PackageCliTool.Services;
@@ -204,9 +204,9 @@ public class TemplateService
     }
 
     /// <summary>
-    /// Converts a Template to a ScriptModel for API generation
+    /// Converts a Template to a GeneratorApiRequest? for API generation
     /// </summary>
-    public ScriptModel ToScriptModel(Template template, Dictionary<string, object>? overrides = null)
+    public GeneratorApiRequest? ToGeneratorApiRequest(Template template, Dictionary<string, object>? overrides = null)
     {
         var config = template.Configuration;
 
@@ -216,7 +216,7 @@ public class TemplateService
             config = ApplyOverrides(config, overrides);
         }
 
-        var model = new ScriptModel
+        var model = new GeneratorApiRequest
         {
             TemplateName = config.Template.Name,
             TemplateVersion = config.Template.Version,
@@ -228,7 +228,6 @@ public class TemplateService
             StarterKitPackage = config.StarterKit.Package,
             IncludeDockerfile = config.Docker.Dockerfile,
             IncludeDockerCompose = config.Docker.DockerCompose,
-            CanIncludeDocker = config.Docker.Dockerfile || config.Docker.DockerCompose,
             UseUnattendedInstall = config.Unattended.Enabled,
             DatabaseType = config.Unattended.Database.Type,
             ConnectionString = config.Unattended.Database.ConnectionString,
@@ -315,9 +314,9 @@ public class TemplateService
     }
 
     /// <summary>
-    /// Creates a Template from a ScriptModel and package versions
+    /// Creates a Template from a GeneratorApiRequest? and package versions
     /// </summary>
-    public Template FromScriptModel(ScriptModel scriptModel, Dictionary<string, string> packageVersions, string templateName, string? description = null)
+    public Template FromGeneratorApiRequest(GeneratorApiRequest scriptModel, Dictionary<string, string> packageVersions, string templateName, string? description = null)
     {
         var template = new Template
         {

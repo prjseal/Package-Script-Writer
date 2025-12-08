@@ -2,7 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using PackageCliTool.Models;
-using PackageCliTool.Models.Api;
+using PSW.Shared.Models;
 using PackageCliTool.Exceptions;
 
 namespace PackageCliTool.Services;
@@ -61,10 +61,9 @@ public class ApiClient
 
         _logger?.LogInformation("Fetching package versions for {PackageId} from API", packageId);
 
-        var request = new PackageVersionRequest
+        var request = new PackageVersionsApiRequest
         {
-            PackageId = packageId,
-            IncludePrerelease = includePrerelease
+            PackageId = packageId
         };
 
         var json = JsonSerializer.Serialize(request);
@@ -125,7 +124,7 @@ public class ApiClient
     /// <summary>
     /// Generates an installation script using the API
     /// </summary>
-    public async Task<string> GenerateScriptAsync(ScriptModel request)
+    public async Task<string> GenerateScriptAsync(GeneratorApiRequest? request)
     {
         _logger?.LogInformation("Generating installation script via API");
 

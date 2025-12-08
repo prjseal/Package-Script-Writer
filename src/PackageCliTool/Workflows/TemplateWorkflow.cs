@@ -191,7 +191,7 @@ public class TemplateWorkflow
         }
 
         // Convert template to script model
-        var scriptModel = _templateService.ToScriptModel(template, overrides.Count > 0 ? overrides : null);
+        var scriptModel = _templateService.ToGeneratorApiRequest(template, overrides.Count > 0 ? overrides : null);
 
         // Handle password prompt if needed
         if (scriptModel.UseUnattendedInstall && string.IsNullOrWhiteSpace(scriptModel.UserPassword))
