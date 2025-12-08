@@ -247,21 +247,6 @@ public class InteractiveModeWorkflow
                 await HandleScriptSaveAndRunAsync(script, packageVersions, templateName, templateVersion);
             }
         }
-        else if (action == "← Back")
-        {
-            // Go back to regenerate the script with different configuration
-            if (packageVersions != null)
-            {
-                AnsiConsole.MarkupLine("\n[blue]Going back to reconfigure the script...[/]\n");
-                _logger?.LogInformation("User chose to go back and reconfigure");
-                await GenerateAndDisplayScriptAsync(packageVersions, templateName, templateVersion);
-            }
-            else
-            {
-                AnsiConsole.MarkupLine("[yellow]Cannot go back from here. Use 'Start over' instead.[/]");
-                await HandleScriptSaveAndRunAsync(script, packageVersions, templateName, templateVersion);
-            }
-        }
         else if (action == "Start over")
         {
             AnsiConsole.MarkupLine("\n[blue]Starting over...[/]\n");
