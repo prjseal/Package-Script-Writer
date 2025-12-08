@@ -39,7 +39,7 @@ public class PackageSelector
                     return await _apiClient.GetAllPackagesAsync();
                 });
 
-            AnsiConsole.MarkupLine($"[green]✓[/] Loaded {_allPackages.Count} packages from marketplace");
+            AnsiConsole.MarkupLine($"Loaded [cyan]{_allPackages.Count}[/] packages from marketplace");
             _logger?.LogInformation("Loaded {Count} packages from marketplace", _allPackages.Count);
             AnsiConsole.WriteLine();
         }

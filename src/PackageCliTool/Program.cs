@@ -45,15 +45,43 @@ class Program
                 return;
             }
 
+            // Initialize cache service (1-hour TTL, disabled if --no-cache is set)
+            var cacheService = new CacheService(ttlHours: 1, enabled: !options.NoCache, logger: logger);
+
+            // Handle clear cache flag
+            if (options.ClearCache)
+            {
+                cacheService.Clear();
+                AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
+
+                // If only clearing cache, exit
+                if (!options.HasAnyOptions() && !options.IsTemplateCommand() && !options.IsHistoryCommand())
+                {
+                    return;
+                }
+            }
+
             // Initialize services
-            var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger);
+            var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService);
             var packageSelector = new PackageSelector(apiClient, logger);
             var scriptExecutor = new ScriptExecutor(logger);
+            var templateService = new TemplateService(logger: logger);
+            var historyService = new HistoryService(logger: logger);
 
+            // Check if this is a history command
+            if (options.IsHistoryCommand())
+            {
+                var historyWorkflow = new HistoryWorkflow(historyService, apiClient, scriptExecutor, logger);
+                await historyWorkflow.RunAsync(options);
+            }
+            // Check if this is a template command
+            else if (options.IsTemplateCommand())
+            {
+                var templateWorkflow = new TemplateWorkflow(templateService, apiClient, scriptExecutor, logger);
+                await templateWorkflow.RunAsync(options);
+            }
             // Determine if we should use CLI mode or interactive mode
-            bool useCLIMode = options.HasAnyOptions();
-
-            if (useCLIMode)
+            else if (options.HasAnyOptions())
             {
                 var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, logger);
                 await cliWorkflow.RunAsync(options);

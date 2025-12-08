@@ -15,11 +15,13 @@ public class ApiClient
     private readonly ResilientHttpClient _resilientClient;
     private readonly string _baseUrl;
     private readonly ILogger? _logger;
+    private readonly CacheService? _cacheService;
 
-    public ApiClient(string baseUrl, ILogger? logger = null)
+    public ApiClient(string baseUrl, ILogger? logger = null, CacheService? cacheService = null)
     {
         _baseUrl = baseUrl;
         _logger = logger;
+        _cacheService = cacheService;
 
         var httpClient = new HttpClient
         {
@@ -35,7 +37,29 @@ public class ApiClient
     /// </summary>
     public async Task<List<string>> GetPackageVersionsAsync(string packageId, bool includePrerelease = false)
     {
-        _logger?.LogInformation("Fetching package versions for {PackageId}", packageId);
+        // Generate cache key
+        var cacheKey = $"package_versions_{packageId}_{includePrerelease}";
+
+        // Check cache first
+        var cachedResponse = _cacheService?.Get(cacheKey, CacheType.Package);
+        if (cachedResponse != null)
+        {
+            _logger?.LogDebug("Using cached package versions for {PackageId}", packageId);
+            try
+            {
+                var cachedVersions = JsonSerializer.Deserialize<List<string>>(cachedResponse);
+                if (cachedVersions != null)
+                {
+                    return cachedVersions;
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger?.LogWarning(ex, "Failed to deserialize cached package versions, fetching fresh data");
+            }
+        }
+
+        _logger?.LogInformation("Fetching package versions for {PackageId} from API", packageId);
 
         var request = new PackageVersionRequest
         {
@@ -51,14 +75,20 @@ public class ApiClient
 
         _logger?.LogDebug("Received package versions response with length {Length}", responseContent.Length);
 
+        List<string> versions;
+
         // Try to deserialize as a raw array first
         try
         {
-            var versions = JsonSerializer.Deserialize<List<string>>(responseContent);
-            if (versions != null)
+            var deserializedVersions = JsonSerializer.Deserialize<List<string>>(responseContent);
+            if (deserializedVersions != null)
             {
+                versions = deserializedVersions;
                 _logger?.LogInformation("Found {Count} versions for package {PackageId}", versions.Count, packageId);
-                return versions;
+            }
+            else
+            {
+                versions = new List<string>();
             }
         }
         catch (JsonException)
@@ -67,9 +97,8 @@ public class ApiClient
             try
             {
                 var result = JsonSerializer.Deserialize<PackageVersionResponse>(responseContent);
-                var versionList = result?.Versions ?? new List<string>();
-                _logger?.LogInformation("Found {Count} versions for package {PackageId}", versionList.Count, packageId);
-                return versionList;
+                versions = result?.Versions ?? new List<string>();
+                _logger?.LogInformation("Found {Count} versions for package {PackageId}", versions.Count, packageId);
             }
             catch (JsonException ex)
             {
@@ -83,7 +112,14 @@ public class ApiClient
             }
         }
 
-        return new List<string>();
+        // Cache the successful response
+        if (versions.Any())
+        {
+            var versionsJson = JsonSerializer.Serialize(versions);
+            _cacheService?.Set(cacheKey, versionsJson, CacheType.Package);
+        }
+
+        return versions;
     }
 
     /// <summary>
@@ -119,7 +155,35 @@ public class ApiClient
     /// </summary>
     public async Task<List<PagedPackagesPackage>> GetAllPackagesAsync()
     {
-        _logger?.LogInformation("Fetching all packages from marketplace");
+        // Generate cache key
+        var cacheKey = "all_packages";
+
+        // Check cache first
+        var cachedResponse = _cacheService?.Get(cacheKey, CacheType.Package);
+        if (cachedResponse != null)
+        {
+            _logger?.LogDebug("Using cached package list");
+            try
+            {
+                var cachedPackages = JsonSerializer.Deserialize<List<PagedPackagesPackage>>(cachedResponse,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                if (cachedPackages != null)
+                {
+                    _logger?.LogInformation("Loaded {Count} packages from cache", cachedPackages.Count);
+                    return cachedPackages;
+                }
+            }
+            catch (JsonException ex)
+            {
+                _logger?.LogWarning(ex, "Failed to deserialize cached packages, fetching fresh data");
+            }
+        }
+
+        _logger?.LogInformation("Fetching all packages from marketplace API");
 
         var response = await _resilientClient.GetAsync("/api/scriptgeneratorapi/getallpackages");
         var responseContent = await response.Content.ReadAsStringAsync();
@@ -140,6 +204,17 @@ public class ApiClient
                 .Select(g => g.First())
                 .ToList();
             _logger?.LogInformation("Successfully fetched {Count} packages from marketplace", distinctPackages.Count);
+
+            // Cache the successful response
+            if (distinctPackages.Any())
+            {
+                var packagesJson = JsonSerializer.Serialize(distinctPackages,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                _cacheService?.Set(cacheKey, packagesJson, CacheType.Package);
+            }
 
             return distinctPackages;
         }
