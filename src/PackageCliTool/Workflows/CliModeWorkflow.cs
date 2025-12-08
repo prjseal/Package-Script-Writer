@@ -82,10 +82,10 @@ public class CliModeWorkflow
             RemoveComments = false
         };
 
-        var script = await AnsiConsole.Status()
+        var script = AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
             .SpinnerStyle(Style.Parse("green"))
-            .StartAsync("Generating default installation script...", async ctx =>
+            .Start("Generating default installation script...", ctx =>
             {
                 return _scriptGeneratorService.GenerateScript(model.ToViewModel());
                 //return await _apiClient.GenerateScriptAsync(model);
@@ -198,10 +198,10 @@ public class CliModeWorkflow
         // Generate the script
         _logger?.LogInformation("Generating installation script via API");
 
-        var script = await AnsiConsole.Status()
+        var script = AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
             .SpinnerStyle(Style.Parse("green"))
-            .StartAsync("Generating installation script...", async ctx =>
+            .Start("Generating installation script...", ctx =>
             {
                 return _scriptGeneratorService.GenerateScript(model.ToViewModel());
                 //return await _apiClient.GenerateScriptAsync(model);
