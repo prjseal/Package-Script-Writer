@@ -281,5 +281,24 @@ public class CliModeWorkflow
         {
             AnsiConsole.MarkupLine("[yellow]Please re-run the tool with different options to edit the script.[/]");
         }
+        else if (action == "Copy to clipboard")
+        {
+            await ClipboardHelper.CopyToClipboardAsync(script, _logger);
+
+            // Ask if they want to do something else with the script
+            var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
+            if (continueAction)
+            {
+                await HandleInteractiveScriptActionAsync(script);
+            }
+        }
+        else if (action == "← Back")
+        {
+            AnsiConsole.MarkupLine("[yellow]Cannot go back in CLI mode. Please re-run the tool with different options.[/]");
+        }
+        else if (action == "Start over")
+        {
+            AnsiConsole.MarkupLine("[yellow]To start over, please re-run the tool with different command-line options.[/]");
+        }
     }
 }

@@ -1,5 +1,8 @@
 using Spectre.Console;
 using PackageCliTool.Models.Api;
+using PackageCliTool.Services;
+using PackageCliTool.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace PackageCliTool.UI;
 
@@ -11,7 +14,7 @@ public static class InteractivePrompts
     /// <summary>
     /// Prompts user for all script configuration options
     /// </summary>
-    public static ScriptModel PromptForScriptConfiguration(Dictionary<string, string> packageVersions, string? templateName = null, string? templateVersion = null)
+    public static async Task<ScriptModel> PromptForScriptConfigurationAsync(Dictionary<string, string> packageVersions, ApiClient apiClient, ILogger? logger = null, string? templateName = null, string? templateVersion = null)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 7:[/] Configure Project Options\n");
@@ -66,14 +69,13 @@ public static class InteractivePrompts
 
         if (model.IncludeStarterKit)
         {
-            model.StarterKitPackage = AnsiConsole.Prompt(
+            // Select the starter kit package
+            var starterKitName = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Select [green]starter kit[/]:")
                     .AddChoices(new[]
                     {
                         "clean",
-                        "clean --version 4.1.0 (Umbraco 13)",
-                        "clean --version 3.1.4 (Umbraco 9-12)",
                         "Articulate",
                         "Portfolio",
                         "LittleNorth.Igloo",
@@ -81,6 +83,66 @@ public static class InteractivePrompts
                         "Umbraco.TheStarterKit",
                         "uSkinnedSiteBuilder"
                     }));
+
+            // Fetch and select version for the starter kit
+            try
+            {
+                logger?.LogDebug("Fetching versions for starter kit: {StarterKit}", starterKitName);
+
+                var versions = await AnsiConsole.Status()
+                    .Spinner(Spinner.Known.Dots)
+                    .SpinnerStyle(Style.Parse("green"))
+                    .StartAsync($"Fetching versions for [yellow]{starterKitName}[/]...", async ctx =>
+                    {
+                        return await apiClient.GetPackageVersionsAsync(starterKitName, includePrerelease: true);
+                    });
+
+                logger?.LogDebug("Found {Count} versions for starter kit {StarterKit}", versions.Count, starterKitName);
+
+                // Build version choices with special options first
+                var versionChoices = new List<string>
+                {
+                    "Latest Stable"
+                };
+
+                // Add actual versions if available
+                if (versions.Count > 0)
+                {
+                    versionChoices.AddRange(versions);
+                }
+                else
+                {
+                    ErrorHandler.Warning($"No specific versions found for {starterKitName}. Using latest stable.", logger);
+                }
+
+                // Let user select a version
+                var selectedVersion = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title($"Select version for [green]{starterKitName}[/]:")
+                        .PageSize(12)
+                        .MoreChoicesText("[grey](Move up and down to see more versions)[/]")
+                        .AddChoices(versionChoices));
+
+                // Build the starter kit package string
+                if (selectedVersion == "Latest Stable")
+                {
+                    model.StarterKitPackage = starterKitName;
+                    AnsiConsole.MarkupLine($"[green]✓[/] Selected {starterKitName} - Latest Stable");
+                    logger?.LogInformation("Selected {StarterKit} with latest stable version", starterKitName);
+                }
+                else
+                {
+                    model.StarterKitPackage = $"{starterKitName} --version {selectedVersion}";
+                    AnsiConsole.MarkupLine($"[green]✓[/] Selected {starterKitName} version {selectedVersion}");
+                    logger?.LogInformation("Selected {StarterKit} version {Version}", starterKitName, selectedVersion);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "Error fetching versions for starter kit {StarterKit}", starterKitName);
+                ErrorHandler.Warning($"Error fetching versions for {starterKitName}: {ex.Message}. Using latest stable.", logger);
+                model.StarterKitPackage = starterKitName;
+            }
         }
 
         // Docker Configuration
@@ -136,7 +198,7 @@ public static class InteractivePrompts
         return AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("\nWhat would you like to do with this script?")
-                .AddChoices(new[] { "Edit", "Run" }));
+                .AddChoices(new[] { "Run", "Edit", "Copy to clipboard", "← Back", "Start over" }));
     }
 
     /// <summary>

@@ -159,7 +159,7 @@ public class InteractiveModeWorkflow
         _logger?.LogInformation("Generating complete installation script");
 
         // Prompt for configuration
-        var model = InteractivePrompts.PromptForScriptConfiguration(packageVersions, templateName, templateVersion);
+        var model = await InteractivePrompts.PromptForScriptConfigurationAsync(packageVersions, _apiClient, _logger, templateName, templateVersion);
 
         // Display configuration summary
         ConfigurationDisplay.DisplayConfigurationSummary(model, packageVersions);
@@ -187,13 +187,13 @@ public class InteractiveModeWorkflow
         ConsoleDisplay.DisplayGeneratedScript(script);
 
         // Option to save and run the script
-        await HandleScriptSaveAndRunAsync(script);
+        await HandleScriptSaveAndRunAsync(script, packageVersions, templateName, templateVersion);
     }
 
     /// <summary>
     /// Handles running or editing the generated script
     /// </summary>
-    private async Task HandleScriptSaveAndRunAsync(string script)
+    private async Task HandleScriptSaveAndRunAsync(string script, Dictionary<string, string>? packageVersions = null, string? templateName = null, string? templateVersion = null)
     {
         // Ask user what they want to do with the script
         var action = InteractivePrompts.PromptForScriptAction();
@@ -235,6 +235,38 @@ public class InteractiveModeWorkflow
         {
             AnsiConsole.MarkupLine("\n[blue]Let's configure a custom script...[/]\n");
             await RunCustomFlowAsync();
+        }
+        else if (action == "Copy to clipboard")
+        {
+            await ClipboardHelper.CopyToClipboardAsync(script, _logger);
+
+            // Ask if they want to do something else with the script
+            var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
+            if (continueAction)
+            {
+                await HandleScriptSaveAndRunAsync(script, packageVersions, templateName, templateVersion);
+            }
+        }
+        else if (action == "← Back")
+        {
+            // Go back to regenerate the script with different configuration
+            if (packageVersions != null)
+            {
+                AnsiConsole.MarkupLine("\n[blue]Going back to reconfigure the script...[/]\n");
+                _logger?.LogInformation("User chose to go back and reconfigure");
+                await GenerateAndDisplayScriptAsync(packageVersions, templateName, templateVersion);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[yellow]Cannot go back from here. Use 'Start over' instead.[/]");
+                await HandleScriptSaveAndRunAsync(script, packageVersions, templateName, templateVersion);
+            }
+        }
+        else if (action == "Start over")
+        {
+            AnsiConsole.MarkupLine("\n[blue]Starting over...[/]\n");
+            _logger?.LogInformation("User chose to start over");
+            await RunAsync();
         }
     }
 }
