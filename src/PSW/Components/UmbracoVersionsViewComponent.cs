@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
-using PSW.Configuration;
-using PSW.Models;
+using PSW.Shared.Configuration;
+using PSW.Shared.Models;
 
 namespace PSW.Components;
 

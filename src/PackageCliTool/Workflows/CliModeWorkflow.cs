@@ -6,6 +6,8 @@ using PackageCliTool.Services;
 using PackageCliTool.UI;
 using PackageCliTool.Validation;
 using PackageCliTool.Logging;
+using PSW.Shared.Services;
+using PackageCliTool.Extensions;
 
 namespace PackageCliTool.Workflows;
 
@@ -17,14 +19,17 @@ public class CliModeWorkflow
     private readonly ApiClient _apiClient;
     private readonly ScriptExecutor _scriptExecutor;
     private readonly ILogger? _logger;
+    private readonly IScriptGeneratorService _scriptGeneratorService;
 
     public CliModeWorkflow(
         ApiClient apiClient,
         ScriptExecutor scriptExecutor,
+        IScriptGeneratorService scriptGeneratorService,
         ILogger? logger = null)
     {
         _apiClient = apiClient;
         _scriptExecutor = scriptExecutor;
+        _scriptGeneratorService = scriptGeneratorService;
         _logger = logger;
     }
 
@@ -82,7 +87,8 @@ public class CliModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating default installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(model);
+                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
+                //return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Default script generated successfully");
@@ -197,7 +203,8 @@ public class CliModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(model);
+                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
+                //return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Script generated successfully");

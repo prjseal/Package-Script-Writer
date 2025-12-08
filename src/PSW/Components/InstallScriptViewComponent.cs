@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-using PSW.Models;
+using PSW.Shared.Models;
 
 namespace PSW.Components;
 

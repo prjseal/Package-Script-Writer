@@ -1,6 +1,5 @@
+using PSW.Shared.Models;
 using System.Net;
-using System.Net.Http.Json;
-using PSW.Models;
 
 namespace PSW.IntegrationTests;
 

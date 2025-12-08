@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-using PSW.Configuration;
-using PSW.Models;
+using PSW.Shared.Configuration;
+using PSW.Shared.Models;
 
 namespace PSW.Controllers;
 
@@ -54,7 +53,7 @@ public class ScriptGeneratorApiController : ControllerBase
         }
 
         apiRequest.StarterKitPackage = !string.IsNullOrWhiteSpace(apiRequest.StarterKitPackage) ? apiRequest.StarterKitPackage : DefaultValues.StarterKitPackage;
-        apiRequest.ProjectName = !string.IsNullOrWhiteSpace(apiRequest.ProjectName) ? apiRequest.ProjectName : (apiRequest.CreateSolutionFile || apiRequest.TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true ? PSW.Constants.DefaultValues.ProjectName : "");
+        apiRequest.ProjectName = !string.IsNullOrWhiteSpace(apiRequest.ProjectName) ? apiRequest.ProjectName : (apiRequest.CreateSolutionFile || apiRequest.TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true ? PSW.Shared.Constants.DefaultValues.ProjectName : "");
         apiRequest.SolutionName = !string.IsNullOrWhiteSpace(apiRequest.SolutionName) ? apiRequest.SolutionName : DefaultValues.SolutionName;
         apiRequest.DatabaseType = !string.IsNullOrWhiteSpace(apiRequest.DatabaseType) ? apiRequest.DatabaseType : DefaultValues.DatabaseType;
         apiRequest.ConnectionString = !string.IsNullOrWhiteSpace(apiRequest.ConnectionString) ? apiRequest.ConnectionString : DefaultValues.ConnectionString;

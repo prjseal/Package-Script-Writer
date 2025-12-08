@@ -5,12 +5,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
-using PSW.Configuration;
-using PSW.Models;
+using PSW.Shared.Configuration;
+using PSW.Shared.Constants;
+using PSW.Shared.Models;
+using PSW.Shared.Services;
 
-using static PSW.Models.PackageFeed;
+using static PSW.Shared.Models.PackageFeed;
 
-using PagedPackagesPackage = PSW.Models.PagedPackagesPackage;
+using PagedPackagesPackage = PSW.Shared.Models.PagedPackagesPackage;
 
 namespace PSW.Controllers;
 

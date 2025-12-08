@@ -5,6 +5,8 @@ using PackageCliTool.UI;
 using PackageCliTool.Models.Api;
 using PackageCliTool.Logging;
 using PackageCliTool.Validation;
+using PackageCliTool.Extensions;
+using PSW.Shared.Services;
 
 namespace PackageCliTool.Workflows;
 
@@ -18,17 +20,20 @@ public class InteractiveModeWorkflow
     private readonly ScriptExecutor _scriptExecutor;
     private readonly TemplateService _templateService;
     private readonly ILogger? _logger;
+    private readonly IScriptGeneratorService _scriptGeneratorService;
 
     public InteractiveModeWorkflow(
         ApiClient apiClient,
         PackageSelector packageSelector,
         ScriptExecutor scriptExecutor,
+        IScriptGeneratorService scriptGeneratorService,
         ILogger? logger = null)
     {
         _apiClient = apiClient;
         _packageSelector = packageSelector;
         _scriptExecutor = scriptExecutor;
         _templateService = new TemplateService(logger: logger);
+        _scriptGeneratorService = scriptGeneratorService;
         _logger = logger;
     }
 
@@ -95,7 +100,8 @@ public class InteractiveModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating default installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(model);
+                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
+                //return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Default script generated successfully");
@@ -183,7 +189,8 @@ public class InteractiveModeWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(model);
+                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
+                //return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Script generated successfully");
