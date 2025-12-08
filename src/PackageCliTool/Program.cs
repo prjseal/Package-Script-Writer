@@ -55,6 +55,9 @@ class Program
             // Make IConfiguration available if needed elsewhere
             services.AddSingleton<IConfiguration>(configuration);
 
+            services.AddMemoryCache();
+            services.AddHttpClient();
+
             services.Configure<PSWConfig>(
                 configuration.GetSection(PSWConfig.SectionName));
 
@@ -66,6 +69,8 @@ class Program
 
             // Build the service provider
             var serviceProvider = services.BuildServiceProvider();
+
+            var scriptGeneratorService = serviceProvider.GetRequiredService<IScriptGeneratorService>();
 
             // Handle help flag
             if (options.ShowHelp)
@@ -119,7 +124,7 @@ class Program
             // Determine if we should use CLI mode or interactive mode
             else if (options.HasAnyOptions())
             {
-                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, logger);
+                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, scriptGeneratorService, logger);
                 await cliWorkflow.RunAsync(options);
             }
             else
@@ -134,6 +139,7 @@ class Program
                             apiClient,
                             packageSelector,
                             scriptExecutor,
+                            scriptGeneratorService,
                             logger);
                         await interactiveWorkflow.RunAsync();
                         keepRunning = false; // Exit loop on normal completion
