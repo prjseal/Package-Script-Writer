@@ -315,6 +315,112 @@ public class TemplateService
     }
 
     /// <summary>
+    /// Creates a Template from a ScriptModel and package versions
+    /// </summary>
+    public Template FromScriptModel(ScriptModel scriptModel, Dictionary<string, string> packageVersions, string templateName, string? description = null)
+    {
+        var template = new Template
+        {
+            Metadata = new TemplateMetadata
+            {
+                Name = templateName,
+                Description = description ?? $"Template created from interactive script generation",
+                Author = Environment.UserName,
+                Created = DateTime.UtcNow,
+                Modified = DateTime.UtcNow,
+                Version = "1.0.0"
+            },
+            Configuration = new TemplateConfiguration
+            {
+                Template = new TemplateInfo
+                {
+                    Name = scriptModel.TemplateName,
+                    Version = scriptModel.TemplateVersion ?? ""
+                },
+                Project = new ProjectInfo
+                {
+                    Name = scriptModel.ProjectName,
+                    CreateSolution = scriptModel.CreateSolutionFile,
+                    SolutionName = scriptModel.SolutionName
+                },
+                Packages = ConvertPackageVersionsToConfigs(packageVersions),
+                StarterKit = new StarterKitConfig
+                {
+                    Enabled = scriptModel.IncludeStarterKit,
+                    Package = scriptModel.StarterKitPackage
+                },
+                Docker = new DockerConfig
+                {
+                    Dockerfile = scriptModel.IncludeDockerfile,
+                    DockerCompose = scriptModel.IncludeDockerCompose
+                },
+                Unattended = new UnattendedConfig
+                {
+                    Enabled = scriptModel.UseUnattendedInstall,
+                    Database = new DatabaseConfig
+                    {
+                        Type = scriptModel.DatabaseType ?? "SQLite",
+                        ConnectionString = scriptModel.ConnectionString
+                    },
+                    Admin = new AdminConfig
+                    {
+                        Name = scriptModel.UserFriendlyName ?? "Administrator",
+                        Email = scriptModel.UserEmail ?? "admin@example.com",
+                        Password = "<prompt>" // Don't save actual password
+                    }
+                },
+                Output = new OutputConfig
+                {
+                    Oneliner = scriptModel.OnelinerOutput,
+                    RemoveComments = scriptModel.RemoveComments,
+                    IncludePrerelease = false
+                },
+                Execution = new ExecutionConfig
+                {
+                    AutoRun = false,
+                    RunDirectory = "."
+                }
+            }
+        };
+
+        return template;
+    }
+
+    /// <summary>
+    /// Converts packageVersions dictionary to PackageConfig list
+    /// </summary>
+    private List<PackageConfig> ConvertPackageVersionsToConfigs(Dictionary<string, string> packageVersions)
+    {
+        var packages = new List<PackageConfig>();
+
+        foreach (var (packageName, version) in packageVersions)
+        {
+            string versionValue;
+
+            if (string.IsNullOrEmpty(version))
+            {
+                versionValue = "latest";
+            }
+            else if (version == "--prerelease")
+            {
+                versionValue = "prerelease";
+            }
+            else
+            {
+                versionValue = version;
+            }
+
+            packages.Add(new PackageConfig
+            {
+                Name = packageName,
+                Version = versionValue
+            });
+        }
+
+        return packages;
+    }
+
+    /// <summary>
     /// Gets all template names
     /// </summary>
     private List<string> GetTemplateNames()

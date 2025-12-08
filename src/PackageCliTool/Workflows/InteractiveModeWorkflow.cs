@@ -16,6 +16,7 @@ public class InteractiveModeWorkflow
     private readonly ApiClient _apiClient;
     private readonly PackageSelector _packageSelector;
     private readonly ScriptExecutor _scriptExecutor;
+    private readonly TemplateService _templateService;
     private readonly ILogger? _logger;
 
     public InteractiveModeWorkflow(
@@ -27,6 +28,7 @@ public class InteractiveModeWorkflow
         _apiClient = apiClient;
         _packageSelector = packageSelector;
         _scriptExecutor = scriptExecutor;
+        _templateService = new TemplateService(logger: logger);
         _logger = logger;
     }
 
@@ -187,13 +189,13 @@ public class InteractiveModeWorkflow
         ConsoleDisplay.DisplayGeneratedScript(script);
 
         // Option to save and run the script
-        await HandleScriptSaveAndRunAsync(script, packageVersions, templateName, templateVersion);
+        await HandleScriptSaveAndRunAsync(script, model, packageVersions, templateName, templateVersion);
     }
 
     /// <summary>
     /// Handles running or editing the generated script
     /// </summary>
-    private async Task HandleScriptSaveAndRunAsync(string script, Dictionary<string, string>? packageVersions = null, string? templateName = null, string? templateVersion = null)
+    private async Task HandleScriptSaveAndRunAsync(string script, ScriptModel? scriptModel = null, Dictionary<string, string>? packageVersions = null, string? templateName = null, string? templateVersion = null)
     {
         // Ask user what they want to do with the script
         var action = InteractivePrompts.PromptForScriptAction();
@@ -244,7 +246,18 @@ public class InteractiveModeWorkflow
             var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
             if (continueAction)
             {
-                await HandleScriptSaveAndRunAsync(script, packageVersions, templateName, templateVersion);
+                await HandleScriptSaveAndRunAsync(script, scriptModel, packageVersions, templateName, templateVersion);
+            }
+        }
+        else if (action == "Save as template")
+        {
+            await SaveAsTemplateAsync(scriptModel, packageVersions);
+
+            // Ask if they want to do something else with the script
+            var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
+            if (continueAction)
+            {
+                await HandleScriptSaveAndRunAsync(script, scriptModel, packageVersions, templateName, templateVersion);
             }
         }
         else if (action == "Start over")
@@ -252,6 +265,87 @@ public class InteractiveModeWorkflow
             AnsiConsole.MarkupLine("\n[blue]Starting over...[/]\n");
             _logger?.LogInformation("User chose to start over");
             await RunAsync();
+        }
+    }
+
+    /// <summary>
+    /// Saves the current script configuration as a template
+    /// </summary>
+    private async Task SaveAsTemplateAsync(ScriptModel? scriptModel, Dictionary<string, string>? packageVersions)
+    {
+        if (scriptModel == null || packageVersions == null)
+        {
+            AnsiConsole.MarkupLine("[yellow]Cannot save template - script configuration not available.[/]");
+            return;
+        }
+
+        _logger?.LogInformation("Saving script configuration as template");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Save as Template[/]\n");
+
+        // Prompt for template name
+        var templateName = AnsiConsole.Ask<string>("Enter [green]template name[/]:");
+
+        // Prompt for description
+        var description = AnsiConsole.Ask<string>(
+            "Enter [green]template description[/] (optional):",
+            string.Empty);
+
+        // Prompt for tags
+        var tagsInput = AnsiConsole.Ask<string>(
+            "Enter [green]tags[/] (comma-separated, optional):",
+            string.Empty);
+
+        List<string> tags = new List<string>();
+        if (!string.IsNullOrWhiteSpace(tagsInput))
+        {
+            tags = tagsInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim())
+                .ToList();
+        }
+
+        // Create template from script model
+        var template = _templateService.FromScriptModel(
+            scriptModel,
+            packageVersions,
+            templateName,
+            string.IsNullOrWhiteSpace(description) ? null : description);
+
+        // Add tags if provided
+        if (tags.Count > 0)
+        {
+            template.Metadata.Tags = tags;
+        }
+
+        // Check if template already exists
+        if (_templateService.TemplateExists(templateName))
+        {
+            var overwrite = AnsiConsole.Confirm(
+                $"Template [yellow]{templateName}[/] already exists. Overwrite?",
+                false);
+
+            if (!overwrite)
+            {
+                AnsiConsole.MarkupLine("[yellow]Template save cancelled.[/]");
+                return;
+            }
+        }
+
+        // Save template
+        try
+        {
+            await _templateService.SaveTemplateAsync(template);
+            AnsiConsole.MarkupLine($"[green]✓ Template saved:[/] {templateName}");
+            _logger?.LogInformation("Template saved successfully: {Name}", templateName);
+
+            // Show helpful message
+            AnsiConsole.MarkupLine($"[dim]You can load this template with: psw template load {templateName}[/]");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to save template: {Name}", templateName);
+            AnsiConsole.MarkupLine($"[red]✗ Failed to save template:[/] {ex.Message}");
         }
     }
 }
