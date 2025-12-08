@@ -156,12 +156,12 @@ public class InteractiveModeWorkflow
     /// <summary>
     /// Generates a complete installation script using the API
     /// </summary>
-    private async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions, string? templateName = null, string? templateVersion = null)
+    private async Task GenerateAndDisplayScriptAsync(Dictionary<string, string> packageVersions, string? templateName = null, string? templateVersion = null, ScriptModel? existingModel = null)
     {
         _logger?.LogInformation("Generating complete installation script");
 
-        // Prompt for configuration
-        var model = await InteractivePrompts.PromptForScriptConfigurationAsync(packageVersions, _apiClient, _logger, templateName, templateVersion);
+        // Prompt for configuration (with existing model values as defaults if editing)
+        var model = await InteractivePrompts.PromptForScriptConfigurationAsync(packageVersions, _apiClient, _logger, templateName, templateVersion, existingModel);
 
         // Display configuration summary
         ConfigurationDisplay.DisplayConfigurationSummary(model, packageVersions);
@@ -235,8 +235,18 @@ public class InteractiveModeWorkflow
         }
         else if (action == "Edit")
         {
-            AnsiConsole.MarkupLine("\n[blue]Let's configure a custom script...[/]\n");
-            await RunCustomFlowAsync();
+            AnsiConsole.MarkupLine("\n[blue]Editing script configuration...[/]\n");
+
+            if (scriptModel != null && packageVersions != null)
+            {
+                // Edit with existing values as defaults
+                await GenerateAndDisplayScriptAsync(packageVersions, templateName, templateVersion, scriptModel);
+            }
+            else
+            {
+                // Fallback to starting from scratch
+                await RunCustomFlowAsync();
+            }
         }
         else if (action == "Copy to clipboard")
         {
