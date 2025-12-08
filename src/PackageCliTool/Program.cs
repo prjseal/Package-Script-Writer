@@ -1,12 +1,17 @@
-using Spectre.Console;
-using PackageCliTool.Models;
-using PackageCliTool.Logging;
-using PackageCliTool.Exceptions;
-using PackageCliTool.Services;
-using PackageCliTool.Workflows;
-using PackageCliTool.UI;
-using PackageCliTool.Configuration;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using PackageCliTool.Configuration;
+using PackageCliTool.Logging;
+using PackageCliTool.Models;
+using PackageCliTool.Services;
+using PackageCliTool.UI;
+using PackageCliTool.Workflows;
+using PSW.Shared.Configuration;
+using PSW.Shared.Services;
+using Spectre.Console;
 
 namespace PackageCliTool;
 
@@ -30,6 +35,37 @@ class Program
             logger = LoggerSetup.CreateLogger("Program");
 
             logger.LogInformation("PSW CLI started with {ArgCount} arguments", args.Length);
+
+            // -----------------------------
+            // CONFIGURATION: load appsettings next to the exe/DLL
+            // -----------------------------
+            var baseDir = AppContext.BaseDirectory;
+            var environmentName = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") ?? "Production";
+
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(baseDir)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+                .Build();
+
+            // -----------------------------
+            // DI container + Options binding
+            // -----------------------------
+            var services = new ServiceCollection();
+
+            // Make IConfiguration available if needed elsewhere
+            services.AddSingleton<IConfiguration>(configuration);
+
+            services.Configure<PSWConfig>(
+                configuration.GetSection(PSWConfig.SectionName));
+
+            // Your services (register as before)
+            services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
+            services.AddScoped<IPackageService, MarketplacePackageService>();
+            services.AddScoped<IQueryStringService, QueryStringService>();
+            services.AddScoped<IUmbracoVersionService, UmbracoVersionService>();
+
+            // Build the service provider
+            var serviceProvider = services.BuildServiceProvider();
 
             // Handle help flag
             if (options.ShowHelp)
@@ -61,7 +97,7 @@ class Program
                 }
             }
 
-            // Initialize services
+            // Initialize services that depend on configuration
             var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService);
             var packageSelector = new PackageSelector(apiClient, logger);
             var scriptExecutor = new ScriptExecutor(logger);
