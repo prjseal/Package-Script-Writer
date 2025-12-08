@@ -1,5 +1,5 @@
-using PSW.Configuration;
 using PSW.Middleware;
+using PSW.Shared.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,4 +1,2 @@
-﻿global using PSW;
-global using PSW.Constants;
-global using PSW.Enums;
-global using PSW.Services;
+﻿global using PSW.Shared.Constants;
+global using PSW.Shared.Services;

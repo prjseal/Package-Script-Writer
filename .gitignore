@@ -28,3 +28,5 @@
 /src/PackageCliTool/bin
 /src/PSW.IntegrationTests/bin
 /src/PSW.IntegrationTests/obj
+/src/PSW.Shared/obj
+/src/PSW.Shared/bin
