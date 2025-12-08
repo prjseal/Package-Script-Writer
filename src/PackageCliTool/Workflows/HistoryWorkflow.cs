@@ -1,9 +1,8 @@
 using Microsoft.Extensions.Logging;
-using Spectre.Console;
 using PackageCliTool.Models;
-using PackageCliTool.Models.History;
+using PackageCliTool.Models.Api;
 using PackageCliTool.Services;
-using PackageCliTool.Exceptions;
+using Spectre.Console;
 
 namespace PackageCliTool.Workflows;
 
@@ -421,7 +420,7 @@ public class HistoryWorkflow
 
         var table = new Table()
             .Border(TableBorder.Rounded)
-            .BorderColor(Color.Cyan)
+            .BorderColor(Color.Aqua)
             .Title("[bold cyan]History Statistics[/]");
 
         table.AddColumn("[bold]Metric[/]");

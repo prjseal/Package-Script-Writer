@@ -1,5 +1,6 @@
+﻿using PackageCliTool.Configuration;
 using Spectre.Console;
-using PackageCliTool.Configuration;
+using System.Text;
 
 namespace PackageCliTool.UI;
 
@@ -38,8 +39,8 @@ public static class ConsoleDisplay
 
         var helpPanel = new Panel(
             @"[bold yellow]USAGE:[/]
-  psw [options]
-  psw template <command> [options]
+  psw [[options]]
+  psw template <command> [[options]]
 
 [bold yellow]OPTIONS:[/]
   [green]-h, --help[/]                    Show help information
@@ -174,7 +175,7 @@ public static class ConsoleDisplay
     [cyan]psw --default --no-cache[/]
 
   Clear cache and generate fresh script:
-    [cyan]psw --clear-cache --packages \"\"uSync\"\" --project-name MyProject[/]")
+    [cyan]psw --clear-cache --packages ""uSync"" --project-name MyProject[/]")
             .Header("[bold blue]Package Script Writer Help[/]")
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Blue)
@@ -202,15 +203,113 @@ public static class ConsoleDisplay
     /// <summary>
     /// Displays the generated script in a panel
     /// </summary>
-    public static void DisplayGeneratedScript(string script, string title = "Generated Installation Script")
+
+public static void DisplayGeneratedScript(string script, string title = "Generated Installation Script")
     {
+        // Colors:
+        // Comments: #41535b -> rgb(65,83,91)
+        // Quotes:   #55b5db -> rgb(85,181,219)
+        const string CommentColorOpen = "[rgb(65,83,91)]";
+        const string QuoteColorOpen   = "[rgb(85,181,219)]";
+        const string CloseTag         = "[/]";
+
+        static string ColorizeLine(string line)
+        {
+            var sb = new StringBuilder(line.Length + 32);
+
+            // Base coloring: only for comment lines. Non-comment lines use the terminal's default color.
+            bool isComment = line.TrimStart().StartsWith("#");
+            bool baseOpened = false;
+
+            if (isComment)
+            {
+                sb.Append(CommentColorOpen);
+                baseOpened = true;
+            }
+
+            bool inQuote = false;
+            char quoteChar = '\0';
+            char prev = '\0';
+
+            var chunk = new StringBuilder();
+
+            void FlushChunk()
+            {
+                if (chunk.Length > 0)
+                {
+                    sb.Append(Markup.Escape(chunk.ToString()));
+                    chunk.Clear();
+                }
+            }
+
+            foreach (char c in line)
+            {
+                bool isQuoteCandidate = c == '"' || c == '\'';
+                bool escaped = prev == '\\';
+
+                if (isQuoteCandidate && !escaped)
+                {
+                    // We reached a quote character
+                    FlushChunk();
+
+                    if (!inQuote)
+                    {
+                        // Start quoted section (include opening quote)
+                        inQuote = true;
+                        quoteChar = c;
+                        sb.Append(QuoteColorOpen);
+                        sb.Append(Markup.Escape(c.ToString()));
+                    }
+                    else if (quoteChar == c)
+                    {
+                        // End quoted section (include closing quote)
+                        sb.Append(Markup.Escape(c.ToString()));
+                        sb.Append(CloseTag); // back to base (comment color if opened) or default
+                        inQuote = false;
+                        quoteChar = '\0';
+                    }
+                    else
+                    {
+                        // Different quote while inside a quote -> treat as normal char
+                        chunk.Append(c);
+                    }
+                }
+                else
+                {
+                    chunk.Append(c);
+                }
+
+                prev = c;
+            }
+
+            // Flush remaining characters
+            FlushChunk();
+
+            // If line ends inside a quote, close the quote color for valid markup
+            if (inQuote)
+                sb.Append(CloseTag);
+
+            // Close base color only if we opened it (i.e., comment line)
+            if (baseOpened)
+                sb.Append(CloseTag);
+
+            return sb.ToString();
+        }
+
+        var lines = (script ?? string.Empty).Replace("\r\n", "\n").Split('\n');
+        var markup = new StringBuilder(script?.Length ?? 0 + lines.Length * 8);
+        foreach (var line in lines)
+            markup.AppendLine(ColorizeLine(line));
+
         AnsiConsole.WriteLine();
-        var panel = new Panel(script)
-            .Header($"[bold green]{title}[/]")
-            .Border(BoxBorder.Double)
-            .BorderColor(Color.Green)
-            .Padding(1, 1);
+        var panel = new Panel(new Markup(markup.ToString()))
+            .Header($"[bold cyan]{Markup.Escape(title)}[/]")
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.Grey)
+            .Padding(4, 2);
 
         AnsiConsole.Write(panel);
     }
+
+
 }
