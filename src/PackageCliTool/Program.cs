@@ -88,12 +88,29 @@ class Program
             }
             else
             {
-                var interactiveWorkflow = new InteractiveModeWorkflow(
-                    apiClient,
-                    packageSelector,
-                    scriptExecutor,
-                    logger);
-                await interactiveWorkflow.RunAsync();
+                // Interactive mode with Ctrl+C restart support
+                var keepRunning = true;
+                while (keepRunning)
+                {
+                    try
+                    {
+                        var interactiveWorkflow = new InteractiveModeWorkflow(
+                            apiClient,
+                            packageSelector,
+                            scriptExecutor,
+                            logger);
+                        await interactiveWorkflow.RunAsync();
+                        keepRunning = false; // Exit loop on normal completion
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // User pressed Ctrl+C - restart the workflow
+                        logger?.LogInformation("User pressed Ctrl+C, restarting interactive mode");
+                        AnsiConsole.Clear();
+                        AnsiConsole.MarkupLine("\n[yellow]↻ Restarting...[/]\n");
+                        await Task.Delay(500); // Brief pause before restart
+                    }
+                }
             }
 
             // Display completion message

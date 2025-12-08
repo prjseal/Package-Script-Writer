@@ -21,6 +21,7 @@ public static class ConsoleDisplay
 
         AnsiConsole.MarkupLine("[dim]Package Script Writer - Interactive CLI[/]");
         AnsiConsole.MarkupLine("[dim]By Paul Seal[/]");
+        AnsiConsole.MarkupLine("[dim]Press Ctrl+C at any time to start over[/]");
         AnsiConsole.WriteLine();
     }
 

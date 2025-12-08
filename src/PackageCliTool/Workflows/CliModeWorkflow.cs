@@ -292,10 +292,6 @@ public class CliModeWorkflow
                 await HandleInteractiveScriptActionAsync(script);
             }
         }
-        else if (action == "← Back")
-        {
-            AnsiConsole.MarkupLine("[yellow]Cannot go back in CLI mode. Please re-run the tool with different options.[/]");
-        }
         else if (action == "Start over")
         {
             AnsiConsole.MarkupLine("[yellow]To start over, please re-run the tool with different command-line options.[/]");
