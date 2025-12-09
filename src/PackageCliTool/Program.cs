@@ -135,6 +135,8 @@ class Program
             var scriptExecutor = new ScriptExecutor(logger);
             var templateService = new TemplateService(logger: logger);
             var historyService = new HistoryService(logger: logger);
+            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
+            var versionCheckService = new VersionCheckService(httpClientFactory.CreateClient(), logger);
 
             // Check if this is a history command
             if (options.IsHistoryCommand())
@@ -167,6 +169,7 @@ class Program
                             packageSelector,
                             scriptExecutor,
                             scriptGeneratorService,
+                            versionCheckService,
                             logger);
                         await interactiveWorkflow.RunAsync();
                         keepRunning = false; // Exit loop on normal completion
