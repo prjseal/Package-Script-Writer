@@ -109,6 +109,7 @@ public static class ConsoleDisplay
 [bold yellow]CACHE OPTIONS:[/]
   [green]    --no-cache[/]                Disable API response caching (bypass cache)
   [green]    --clear-cache[/]             Clear all cached API responses
+  [green]    --update-packages[/]         Update package list cache from marketplace
 
 [bold yellow]EXECUTION:[/]
   [green]    --auto-run[/]                Automatically run the generated script
@@ -171,6 +172,9 @@ public static class ConsoleDisplay
 [bold yellow]CACHE EXAMPLES:[/]
   Clear the cache:
     [cyan]psw --clear-cache[/]
+
+  Update package list from marketplace:
+    [cyan]psw --update-packages[/]
 
   Generate script without using cache:
     [cyan]psw --default --no-cache[/]

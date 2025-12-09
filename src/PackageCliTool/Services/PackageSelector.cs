@@ -17,36 +17,39 @@ public class PackageSelector
     private readonly ApiClient _apiClient;
     private readonly IPackageService _packageService;
     private readonly IMemoryCache _memoryCache;
+    private readonly PackageCacheService _packageCacheService;
     private readonly ILogger? _logger;
     private List<PSW.Shared.Models.PagedPackagesPackage> _allPackages = new();
 
-    public PackageSelector(ApiClient apiClient, IPackageService packageService, IMemoryCache memoryCache, ILogger? logger = null)
+    public PackageSelector(ApiClient apiClient, IPackageService packageService, IMemoryCache memoryCache, PackageCacheService packageCacheService, ILogger? logger = null)
     {
         _apiClient = apiClient;
         _packageService = packageService;
         _memoryCache = memoryCache;
+        _packageCacheService = packageCacheService;
         _logger = logger;
     }
 
     /// <summary>
     /// Populates the allPackages list from Umbraco Marketplace
     /// </summary>
-    public void PopulateAllPackages()
+    /// <param name="forceUpdate">Force update from marketplace even if cache exists</param>
+    public void PopulateAllPackages(bool forceUpdate = false)
     {
         try
         {
-            _logger?.LogInformation("Fetching available packages from Umbraco Marketplace");
+            _logger?.LogInformation("Fetching available packages (forceUpdate: {ForceUpdate})", forceUpdate);
 
             _allPackages = AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
                 .Start("Loading available packages...", ctx =>
                 {
-                    return GetAllPackagesFromMarketplace();
+                    return GetAllPackagesFromMarketplace(forceUpdate);
                 });
 
-            AnsiConsole.MarkupLine($"Loaded [cyan]{_allPackages.Count}[/] packages from marketplace");
-            _logger?.LogInformation("Loaded {Count} packages from marketplace", _allPackages.Count);
+            AnsiConsole.MarkupLine($"Loaded [cyan]{_allPackages.Count}[/] packages");
+            _logger?.LogInformation("Loaded {Count} packages", _allPackages.Count);
             AnsiConsole.WriteLine();
         }
         catch (Exception ex)
@@ -60,21 +63,32 @@ public class PackageSelector
     }
 
     /// <summary>
-    /// Gets all packages from Umbraco Marketplace (synchronous with caching)
+    /// Gets all packages from Umbraco Marketplace (with file-based caching)
     /// </summary>
-    private List<PSW.Shared.Models.PagedPackagesPackage> GetAllPackagesFromMarketplace()
+    /// <param name="forceUpdate">Force update from marketplace even if cache exists</param>
+    private List<PSW.Shared.Models.PagedPackagesPackage> GetAllPackagesFromMarketplace(bool forceUpdate = false)
     {
-        int cacheTime = 60;
-        var cacheKey = "all_packages_umbraco";
-
-        var packages = _memoryCache.GetOrCreate(
-            cacheKey,
-            cacheEntry =>
+        // If not forcing update, try to load from cache first
+        if (!forceUpdate && _packageCacheService.CacheExists())
+        {
+            _logger?.LogDebug("Loading packages from cache file");
+            var cachedPackages = _packageCacheService.GetCachedPackages();
+            if (cachedPackages != null && cachedPackages.Count > 0)
             {
-                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                _logger?.LogDebug("Fetching packages from Umbraco Marketplace API");
-                return _packageService.GetAllPackagesFromUmbraco();
-            });
+                _logger?.LogInformation("Loaded {Count} packages from cache file", cachedPackages.Count);
+                return cachedPackages;
+            }
+        }
+
+        // Fetch from marketplace
+        _logger?.LogDebug("Fetching packages from Umbraco Marketplace API");
+        var packages = _packageService.GetAllPackagesFromUmbraco();
+
+        // Save to cache file
+        if (packages != null && packages.Count > 0)
+        {
+            _packageCacheService.SavePackages(packages);
+        }
 
         return packages ?? new List<PSW.Shared.Models.PagedPackagesPackage>();
     }

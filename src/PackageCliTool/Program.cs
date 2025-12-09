@@ -92,10 +92,14 @@ class Program
             // Initialize cache service (1-hour TTL, disabled if --no-cache is set)
             var cacheService = new CacheService(ttlHours: 1, enabled: !options.NoCache, logger: logger);
 
+            // Initialize package cache service
+            var packageCacheService = new PackageCacheService(logger: logger);
+
             // Handle clear cache flag
             if (options.ClearCache)
             {
                 cacheService.Clear();
+                packageCacheService.ClearCache();
                 AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
 
                 // If only clearing cache, exit
@@ -105,9 +109,29 @@ class Program
                 }
             }
 
+            // Handle update packages flag
+            if (options.UpdatePackageCache)
+            {
+                AnsiConsole.MarkupLine("[yellow]Updating package cache from marketplace...[/]");
+                var tempPackageSelector = new PackageSelector(
+                    new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService),
+                    packageService,
+                    memoryCache,
+                    packageCacheService,
+                    logger);
+                tempPackageSelector.PopulateAllPackages(forceUpdate: true);
+                AnsiConsole.MarkupLine("[green]✓ Package cache updated successfully[/]");
+
+                // If only updating cache, exit
+                if (!options.HasAnyOptions() && !options.IsTemplateCommand() && !options.IsHistoryCommand())
+                {
+                    return;
+                }
+            }
+
             // Initialize services that depend on configuration
             var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService);
-            var packageSelector = new PackageSelector(apiClient, packageService, memoryCache, logger);
+            var packageSelector = new PackageSelector(apiClient, packageService, memoryCache, packageCacheService, logger);
             var scriptExecutor = new ScriptExecutor(logger);
             var templateService = new TemplateService(logger: logger);
             var historyService = new HistoryService(logger: logger);

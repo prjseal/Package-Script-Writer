@@ -48,6 +48,7 @@ public class CommandLineOptions
     // Cache-related options
     public bool NoCache { get; set; }  // Disable caching
     public bool ClearCache { get; set; }  // Clear all cache
+    public bool UpdatePackageCache { get; set; }  // Force update package cache from marketplace
 
     /// <summary>
     /// Checks if this is a template command
@@ -293,6 +294,10 @@ public class CommandLineOptions
 
                 case "--clear-cache":
                     options.ClearCache = true;
+                    break;
+
+                case "--update-packages":
+                    options.UpdatePackageCache = true;
                     break;
 
                 default:
