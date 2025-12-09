@@ -17,7 +17,7 @@ public static class InteractivePrompts
     public static async Task<ScriptModel> PromptForScriptConfigurationAsync(Dictionary<string, string> packageVersions, ApiClient apiClient, ILogger? logger = null, string? templateName = null, string? templateVersion = null, ScriptModel? existingModel = null)
     {
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Step 7:[/] Configure Project Options\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 5:[/] Configure Project Options\n");
 
         // Build packages string with proper format handling
         var packageParts = new List<string>();

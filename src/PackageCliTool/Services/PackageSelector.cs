@@ -103,7 +103,7 @@ public class PackageSelector
     /// </summary>
     public async Task<List<string>> SelectPackagesAsync()
     {
-        AnsiConsole.MarkupLine("[bold blue]Step 1:[/] Select Packages\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Packages\n");
 
         // Ask user how they want to select packages
         var selectionMode = AnsiConsole.Prompt(
@@ -269,7 +269,7 @@ public class PackageSelector
     public Dictionary<string, string> SelectVersionsForPackages(List<string> packages)
     {
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Step 2:[/] Select Versions\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 4:[/] Select Versions\n");
 
         var packageVersions = new Dictionary<string, string>();
 

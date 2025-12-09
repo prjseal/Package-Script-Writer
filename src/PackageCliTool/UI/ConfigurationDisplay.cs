@@ -14,7 +14,7 @@ public static class ConfigurationDisplay
     public static void DisplayFinalSelection(Dictionary<string, string> packageVersions)
     {
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Final Selection\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 5:[/] Final Selection\n");
 
         if (packageVersions.Count == 0)
         {
