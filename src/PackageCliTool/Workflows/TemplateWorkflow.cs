@@ -238,9 +238,9 @@ public class TemplateWorkflow
         var panel = new Panel(script)
         {
             Header = new PanelHeader("Generated Installation Script"),
-            Border = BoxBorder.Double,
-            BorderStyle = new Style(Color.Green),
-            Padding = new Padding(2, 1)
+            Border = BoxBorder.Rounded,
+            BorderStyle = new Style(Color.Grey),
+            Padding = new Padding(4, 2)
         };
 
         AnsiConsole.Write(panel);

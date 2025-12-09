@@ -30,3 +30,5 @@
 /src/PSW.IntegrationTests/obj
 /src/PSW.Shared/obj
 /src/PSW.Shared/bin
+/src/PSW.ApiDiagnostic/bin
+/src/PSW.ApiDiagnostic/obj

@@ -13,6 +13,7 @@ using PackageCliTool.Workflows;
 using PSW.Shared.Configuration;
 using PSW.Shared.Services;
 using Spectre.Console;
+using System.Net.Sockets;
 
 namespace PackageCliTool;
 

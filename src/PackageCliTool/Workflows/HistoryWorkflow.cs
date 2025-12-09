@@ -300,10 +300,10 @@ public class HistoryWorkflow
 
         // Display script
         var panel = new Panel(script)
-            .Header("[bold green]Regenerated Installation Script[/]")
-            .Border(BoxBorder.Double)
-            .BorderColor(Color.Green)
-            .Padding(1, 1);
+            .Header("[bold cyan]Regenerated Installation Script[/]")
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.Grey)
+            .Padding(4, 2);
 
         AnsiConsole.Write(panel);
         AnsiConsole.WriteLine();

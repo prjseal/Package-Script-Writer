@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using PackageCliTool.Configuration;
 using System.Net.Http.Json;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace PackageCliTool.Services;
@@ -76,7 +77,8 @@ public class VersionCheckService
                 return null;
             }
 
-            var currentVersion = ApiConfiguration.Version;
+            // get current version from current assembly
+            var currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
             _logger?.LogDebug("Current version: {Current}, Latest version: {Latest}", currentVersion, latestVersion);
 
             // Compare versions

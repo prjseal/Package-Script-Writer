@@ -26,23 +26,23 @@ public class UmbracoVersionService : IUmbracoVersionService
                 x => x.ReleaseType == "LTS" && x.ReleaseDate < midnightTonight
                 && x.SecurityPhase >= midnightTonight);
 
-        var umbracoVersions = GetUmbracoVersionsFromCache(pswConfig);
+        if (latestLTSMajor == null) return null;
 
-        return umbracoVersions?.FirstOrDefault(x => x.StartsWith(latestLTSMajor.Version.ToString()) && !x.Contains('-'));
+        var umbracoVersionsTask = GetUmbracoVersionsFromCache(pswConfig);
+        var umbracoVersions = umbracoVersionsTask?.GetAwaiter().GetResult();
+
+        if (umbracoVersions == null) return null;
+
+        return umbracoVersions.FirstOrDefault(x => x.StartsWith(latestLTSMajor.Version.ToString()) && !x.Contains('-'));
     }
 
-    public List<string>? GetUmbracoVersionsFromCache(PSWConfig pswConfig)
+
+    public async Task<List<string>?> GetUmbracoVersionsFromCache(PSWConfig pswConfig)
     {
         var umbracoVersions = new List<string>();
         if (!string.IsNullOrWhiteSpace(GlobalConstants.TEMPLATE_NAME_UMBRACO))
         {
-            umbracoVersions = _memoryCache.GetOrCreate(
-                $"{GlobalConstants.TEMPLATE_NAME_UMBRACO}_Versions",
-                cacheEntry =>
-                {
-                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(pswConfig.CachingTimeInMins);
-                    return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{GlobalConstants.TEMPLATE_NAME_UMBRACO.ToLower()}/index.json");
-                });
+            umbracoVersions = await _packageService.GetNugetPackageVersionsAsync($"https://api.nuget.org/v3-flatcontainer/{GlobalConstants.TEMPLATE_NAME_UMBRACO.ToLower()}/index.json");
         }
         return umbracoVersions;
     }

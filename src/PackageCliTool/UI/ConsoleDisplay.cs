@@ -1,5 +1,6 @@
 ﻿using PackageCliTool.Configuration;
 using Spectre.Console;
+using System.Reflection;
 using System.Text;
 
 namespace PackageCliTool.UI;
@@ -292,8 +293,8 @@ public static class ConsoleDisplay
             new FigletText("PSW CLI")
                 .LeftJustified()
                 .Color(Color.Blue));
-
-        AnsiConsole.MarkupLine($"[bold]Version:[/] {ApiConfiguration.Version}");
+        var currentVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "unknown";
+        AnsiConsole.MarkupLine($"[bold]Version:[/] {currentVersion}");
         AnsiConsole.MarkupLine("[dim]Package Script Writer CLI Tool[/]");
         AnsiConsole.MarkupLine("[dim]By Paul Seal[/]");
         AnsiConsole.MarkupLine($"[dim]https://github.com/prjseal/Package-Script-Writer[/]");
