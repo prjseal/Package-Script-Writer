@@ -184,7 +184,7 @@ public class ApiClient
     /// <summary>
     /// Retrieves all available Umbraco packages from the marketplace
     /// </summary>
-    public async Task<List<PagedPackagesPackage>> GetAllPackagesAsync()
+    public async Task<List<PSW.Shared.Models.PagedPackagesPackage>> GetAllPackagesAsync()
     {
         // Generate cache key
         var cacheKey = "all_packages";
@@ -196,7 +196,7 @@ public class ApiClient
             _logger?.LogDebug("Using cached package list");
             try
             {
-                var cachedPackages = JsonSerializer.Deserialize<List<PagedPackagesPackage>>(cachedResponse,
+                var cachedPackages = JsonSerializer.Deserialize<List<PSW.Shared.Models.PagedPackagesPackage>>(cachedResponse,
                     new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
@@ -223,13 +223,13 @@ public class ApiClient
 
         try
         {
-            var packages = JsonSerializer.Deserialize<List<PagedPackagesPackage>>(responseContent,
+            var packages = JsonSerializer.Deserialize<List<PSW.Shared.Models.PagedPackagesPackage>>(responseContent,
                 new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
 
-            var packageList = packages ?? new List<PagedPackagesPackage>();
+            var packageList = packages ?? new List<PSW.Shared.Models.PagedPackagesPackage>();
             var distinctPackages = packageList
                 .GroupBy(p => p.PackageId)
                 .Select(g => g.First())
