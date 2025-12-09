@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
@@ -23,7 +25,36 @@ public class ApiClient
         _logger = logger;
         _cacheService = cacheService;
 
-        var httpClient = new HttpClient
+        // Create IPv4-only SocketsHttpHandler to avoid IPv6 timeout issues
+        // Diagnostic testing showed IPv6 connections timeout after ~42 seconds
+        // while IPv4 connections complete in ~150ms
+        var handler = new SocketsHttpHandler
+        {
+            ConnectCallback = async (context, cancellationToken) =>
+            {
+                // Force IPv4 to avoid ~42 second IPv6 timeout
+                var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                {
+                    NoDelay = true
+                };
+
+                try
+                {
+                    await socket.ConnectAsync(context.DnsEndPoint, cancellationToken);
+                    return new NetworkStream(socket, ownsSocket: true);
+                }
+                catch
+                {
+                    socket.Dispose();
+                    throw;
+                }
+            },
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2),
+            EnableMultipleHttp2Connections = true
+        };
+
+        var httpClient = new HttpClient(handler, disposeHandler: true)
         {
             BaseAddress = new Uri(baseUrl),
             Timeout = TimeSpan.FromSeconds(90)
