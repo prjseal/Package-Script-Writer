@@ -90,7 +90,7 @@ public class ScriptGeneratorApiController : ControllerBase
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{packageUniqueId}/index.json");
+                return _packageService.GetNugetPackageVersionsAsync($"https://api.nuget.org/v3-flatcontainer/{packageUniqueId}/index.json").Result;
             });
         return Ok(packageVersions);
     }
@@ -115,7 +115,7 @@ public class ScriptGeneratorApiController : ControllerBase
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                return _packageService.GetAllPackagesFromUmbraco();
+                return _packageService.GetAllPackagesFromUmbracoAsync().Result;
             });
 
         return Ok(allPackages);

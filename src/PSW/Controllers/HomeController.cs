@@ -53,10 +53,10 @@ public class HomeController : Controller
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                return _packageService.GetAllPackagesFromUmbraco();
+                return _packageService.GetAllPackagesFromUmbracoAsync().Result;
             });
 
-        var umbracoVersions = _umbracoVersionService.GetUmbracoVersionsFromCache(_pswConfig);
+        var umbracoVersions = _umbracoVersionService.GetUmbracoVersionsFromCache(_pswConfig).Result;
 
         PopulatePackageVersions(packageOptions, allPackages, cacheTime);
 
@@ -71,7 +71,7 @@ public class HomeController : Controller
             cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                return _packageService.GetAllTemplatesFromUmbraco().Select(x => new SelectListItem(x.PackageId, x.PackageId, packageOptions.TemplateName?.Equals(x.PackageId) == true));
+                return _packageService.GetAllTemplatesFromUmbracoAsync().Result.Select(x => new SelectListItem(x.PackageId, x.PackageId, packageOptions.TemplateName?.Equals(x.PackageId) == true));
             }));
 
         var latestLTSVersion = _umbracoVersionService.GetLatestLTSVersion(_pswConfig);
@@ -120,7 +120,7 @@ public class HomeController : Controller
                         cacheEntry =>
                         {
                             cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                            return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{package.PackageId.ToLower()}/index.json");
+                            return _packageService.GetNugetPackageVersionsAsync($"https://api.nuget.org/v3-flatcontainer/{package.PackageId.ToLower()}/index.json").Result;
                         });
 
                     package.PackageVersions = thisPackageVersions;
