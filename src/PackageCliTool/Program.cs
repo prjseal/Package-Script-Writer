@@ -57,7 +57,38 @@ class Program
             services.AddSingleton<IConfiguration>(configuration);
 
             services.AddMemoryCache();
-            services.AddHttpClient();
+
+            // Configure HttpClient with IPv4-only handler to avoid IPv6 timeout issues
+            services.AddHttpClient(Options.DefaultName, client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                ConnectCallback = async (context, cancellationToken) =>
+                {
+                    // Force IPv4 to avoid ~42 second IPv6 timeout
+                    var socket = new Socket(System.Net.Sockets.AddressFamily.InterNetwork,
+                        System.Net.Sockets.SocketType.Stream,
+                        System.Net.Sockets.ProtocolType.Tcp)
+                    {
+                        NoDelay = true
+                    };
+
+                    try
+                    {
+                        await socket.ConnectAsync(context.DnsEndPoint, cancellationToken);
+                        return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+                    }
+                    catch
+                    {
+                        socket.Dispose();
+                        throw;
+                    }
+                },
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+            });
 
             services.Configure<PSWConfig>(
                 configuration.GetSection(PSWConfig.SectionName));
@@ -119,7 +150,7 @@ class Program
                     memoryCache,
                     packageCacheService,
                     logger);
-                tempPackageSelector.PopulateAllPackages(forceUpdate: true);
+                await tempPackageSelector.PopulateAllPackagesAsync(forceUpdate: true);
                 AnsiConsole.MarkupLine("[green]✓ Package cache updated successfully[/]");
 
                 // If only updating cache, exit

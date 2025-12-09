@@ -52,7 +52,7 @@ public class InteractiveModeWorkflow
         await CheckForUpdatesAsync();
 
         // Populate all packages from API
-        _packageSelector.PopulateAllPackages();
+        await _packageSelector.PopulateAllPackagesAsync();
 
         // Ask if user wants a default script (fast route)
         var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
@@ -133,7 +133,7 @@ public class InteractiveModeWorkflow
         var templateName = await _packageSelector.SelectTemplateAsync();
 
         // Step 2: Select template version
-        var templateVersion = _packageSelector.SelectTemplateVersion(templateName);
+        var templateVersion = await _packageSelector.SelectTemplateVersionAsync(templateName);
 
         // Step 3: Select packages
         var selectedPackages = await _packageSelector.SelectPackagesAsync();
@@ -153,7 +153,7 @@ public class InteractiveModeWorkflow
         }
 
         // Step 4: For each package, select version
-        var packageVersions = _packageSelector.SelectVersionsForPackages(selectedPackages);
+        var packageVersions = await _packageSelector.SelectVersionsForPackagesAsync(selectedPackages);
 
         // Step 5: Display final selection
         ConfigurationDisplay.DisplayFinalSelection(packageVersions);
