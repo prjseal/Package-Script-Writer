@@ -17,21 +17,19 @@ public class PackageSelector
     private readonly ApiClient _apiClient;
     private readonly IPackageService _packageService;
     private readonly IMemoryCache _memoryCache;
-    private readonly PackageCacheService _packageCacheService;
     private readonly ILogger? _logger;
     private List<PSW.Shared.Models.PagedPackagesPackage> _allPackages = new();
 
-    public PackageSelector(ApiClient apiClient, IPackageService packageService, IMemoryCache memoryCache, PackageCacheService packageCacheService, ILogger? logger = null)
+    public PackageSelector(ApiClient apiClient, IPackageService packageService, IMemoryCache memoryCache, ILogger? logger = null)
     {
         _apiClient = apiClient;
         _packageService = packageService;
         _memoryCache = memoryCache;
-        _packageCacheService = packageCacheService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Populates the allPackages list from Umbraco Marketplace
+    /// Populates the allPackages list from PSW API
     /// </summary>
     /// <param name="forceUpdate">Force update from marketplace even if cache exists</param>
     public async Task PopulateAllPackagesAsync(bool forceUpdate = false)
@@ -63,40 +61,16 @@ public class PackageSelector
     }
 
     /// <summary>
-    /// Gets all packages from Umbraco Marketplace (with file-based caching)
+    /// Gets all packages from PSW API (with caching)
     /// </summary>
-    /// <param name="forceUpdate">Force update from marketplace even if cache exists</param>
+    /// <param name="forceUpdate">Force update from API even if cache exists</param>
     private async Task<List<PSW.Shared.Models.PagedPackagesPackage>> GetAllPackagesFromMarketplaceAsync(bool forceUpdate = false)
     {
-        // If not forcing update, try to load from cache first
-        if (!forceUpdate && _packageCacheService.CacheExists())
-        {
-            _logger?.LogDebug("Loading packages from cache file");
-            var cachedPackages = _packageCacheService.GetCachedPackages();
-            if (cachedPackages != null && cachedPackages.Count > 0)
-            {
-                _logger?.LogInformation("Loaded {Count} packages from cache file", cachedPackages.Count);
-                return cachedPackages;
-            }
-        }
+        // Fetch from PSW API (ApiClient handles its own caching and deduplication)
+        _logger?.LogDebug("Fetching packages from PSW API");
+        var packages = await _apiClient.GetAllPackagesAsync();
 
-        // Fetch from marketplace
-        _logger?.LogDebug("Fetching packages from Umbraco Marketplace API");
-        var packages = await _packageService.GetAllPackagesFromUmbracoAsync();
-
-        // Remove duplicates based on PackageId
-        var distinctPackages = packages
-                .GroupBy(p => p.PackageId)
-                .Select(g => g.First())
-                .ToList();
-
-        // Save to cache file
-        if (distinctPackages != null && distinctPackages.Count > 0)
-        {
-            _packageCacheService.SavePackages(distinctPackages);
-        }
-
-        return distinctPackages ?? new List<PSW.Shared.Models.PagedPackagesPackage>();
+        return packages ?? new List<PSW.Shared.Models.PagedPackagesPackage>();
     }
 
     /// <summary>
