@@ -3,6 +3,7 @@ using Spectre.Console;
 using PackageCliTool.Models;
 using PackageCliTool.Models.Templates;
 using PackageCliTool.Services;
+using PackageCliTool.UI;
 using PackageCliTool.Validation;
 using PackageCliTool.Exceptions;
 using PackageCliTool.Extensions;
@@ -39,6 +40,15 @@ public class TemplateWorkflow
     {
         var command = options.TemplateCommand?.ToLower();
 
+        // If no command was provided (e.g., just "psw template"), show help
+        if (string.IsNullOrEmpty(command))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Missing template subcommand[/]\n");
+            ConsoleDisplay.DisplayTemplateHelp();
+            Environment.ExitCode = 1;
+            return;
+        }
+
         switch (command)
         {
             case "save":
@@ -74,8 +84,9 @@ public class TemplateWorkflow
                 break;
 
             default:
-                AnsiConsole.MarkupLine($"[red]Unknown template command: {command}[/]");
-                AnsiConsole.MarkupLine("Use [green]psw template --help[/] for available commands");
+                AnsiConsole.MarkupLine($"[red]Error: Unknown template command '{command}'[/]\n");
+                ConsoleDisplay.DisplayTemplateHelp();
+                Environment.ExitCode = 1;
                 break;
         }
     }

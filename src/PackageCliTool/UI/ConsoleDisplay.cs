@@ -190,6 +190,100 @@ public static class ConsoleDisplay
     }
 
     /// <summary>
+    /// Displays help information for template commands
+    /// </summary>
+    public static void DisplayTemplateHelp()
+    {
+        var helpPanel = new Panel(
+            @"[bold yellow]USAGE:[/]
+  psw template <command> [[options]]
+
+[bold yellow]TEMPLATE COMMANDS:[/]
+  [green]save[/] <name>          Save current configuration as a template
+  [green]load[/] <name>          Load and execute a template
+  [green]list[/]                 List all available templates
+  [green]show[/] <name>          Show template details
+  [green]delete[/] <name>        Delete a template
+  [green]export[/] <name>        Export template to file
+  [green]import[/] <file>        Import template from file
+  [green]validate[/] <file>      Validate template file
+
+[bold yellow]TEMPLATE OPTIONS:[/]
+  [green]    --template-description[/] <desc> Template description
+  [green]    --template-tags[/] <tags>   Comma-separated tags
+  [green]    --template-file[/] <path>   Template file path
+  [green]    --set[/] <key=value>        Override template values
+
+[bold yellow]EXAMPLES:[/]
+  Save current configuration as template:
+    [cyan]psw template save my-blog --template-description ""My blog setup"" --template-tags ""blog,umbraco14""[/]
+
+  List all templates:
+    [cyan]psw template list[/]
+
+  Load and use a template:
+    [cyan]psw template load my-blog[/]
+
+  Load template with overrides:
+    [cyan]psw template load my-blog --project-name NewBlog --set AutoRun=true[/]
+
+  Export template to file:
+    [cyan]psw template export my-blog --template-file my-blog.yaml[/]
+
+  Import template from file:
+    [cyan]psw template import my-blog.yaml[/]")
+            .Header("[bold blue]Template Command Help[/]")
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.Blue)
+            .Padding(1, 1);
+
+        AnsiConsole.Write(helpPanel);
+    }
+
+    /// <summary>
+    /// Displays help information for history commands
+    /// </summary>
+    public static void DisplayHistoryHelp()
+    {
+        var helpPanel = new Panel(
+            @"[bold yellow]USAGE:[/]
+  psw history <command> [[options]]
+
+[bold yellow]HISTORY COMMANDS:[/]
+  [green]list[/]                  List recent script generation history
+  [green]show[/] <#>              Show details of a history entry
+  [green]rerun[/] <#>             Regenerate and re-run a script from history
+  [green]delete[/] <#>            Delete a history entry
+  [green]clear[/]                 Clear all history
+  [green]stats[/]                 Show history statistics
+
+[bold yellow]HISTORY OPTIONS:[/]
+  [green]    --history-limit[/] <count>  Number of entries to show (default: 10)
+
+[bold yellow]EXAMPLES:[/]
+  List recent scripts:
+    [cyan]psw history list[/]
+
+  Show details of a specific entry:
+    [cyan]psw history show 3[/]
+
+  Re-run a previous script:
+    [cyan]psw history rerun 1[/]
+
+  View statistics:
+    [cyan]psw history stats[/]
+
+  Clear all history:
+    [cyan]psw history clear[/]")
+            .Header("[bold blue]History Command Help[/]")
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.Blue)
+            .Padding(1, 1);
+
+        AnsiConsole.Write(helpPanel);
+    }
+
+    /// <summary>
     /// Displays version information
     /// </summary>
     public static void DisplayVersion()

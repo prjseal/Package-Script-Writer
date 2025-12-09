@@ -229,6 +229,11 @@ public class CommandLineOptions
                             options.TemplateName = args[i];
                         }
                     }
+                    else
+                    {
+                        // No subcommand provided - set to empty string to trigger help display
+                        options.TemplateCommand = "";
+                    }
                     break;
 
                 case "--template-name":
@@ -277,6 +282,11 @@ public class CommandLineOptions
                             i++;
                             options.HistoryId = args[i];
                         }
+                    }
+                    else
+                    {
+                        // No subcommand provided - set to empty string to trigger help display
+                        options.HistoryCommand = "";
                     }
                     break;
 
