@@ -1,6 +1,6 @@
 # Package Script Writer CLI (`psw`)
 
-An interactive command-line interface for the Package Script Writer API, built with .NET 10.0 and Spectre.Console.
+An interactive command-line tool for generating Umbraco installation scripts, built with .NET 10.0 and Spectre.Console.
 
 [![NuGet](https://img.shields.io/nuget/v/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
 [![Downloads](https://img.shields.io/nuget/dt/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
@@ -12,8 +12,8 @@ An interactive command-line interface for the Package Script Writer API, built w
 - 🎯 **Template Selection** - Choose from Umbraco official templates and community templates with version selection
 - 📦 **Package Selection** - Browse and search from 150+ Umbraco Marketplace packages or add custom ones
 - 🔢 **Version Selection** - Choose specific versions for each selected package
-- ⚡ **Progress Indicators** - Spinners and progress displays during API calls
-- 📄 **Script Generation** - Generate complete installation scripts with all options
+- ⚡ **Progress Indicators** - Spinners and progress displays during data fetching
+- 📄 **Script Generation** - Generate complete installation scripts locally with all options
 - 💾 **Export Scripts** - Save generated scripts to files
 - ⚙️ **Complete Configuration** - All options from the website's Options tab:
   - Template and project settings
@@ -34,7 +34,7 @@ An interactive command-line interface for the Package Script Writer API, built w
 ## Requirements
 
 - .NET 10.0 SDK or later
-- Internet connection (to access the Package Script Writer API)
+- Internet connection (to fetch package information from the Umbraco Marketplace API)
 
 ## Installation
 
@@ -313,7 +313,7 @@ psw -p "uSync|17.0.0" -n QuickSite -o -r
    - Confirm to proceed or cancel
 
 9. **Generate and Save**:
-   - Script is generated using the API with resilient retry logic
+   - Script is generated locally by the CLI tool
    - View the generated script in a formatted panel
    - Optionally save it to a file
    - Optionally auto-run the script
@@ -501,16 +501,19 @@ The CLI tool is built with a clean, modular architecture following separation of
 **CliModeWorkflow.cs** - CLI mode orchestration
 - Parses command-line options
 - Validates input parameters
-- Generates scripts from flags
+- Generates scripts locally using ScriptGeneratorService
 - Executes auto-run if requested
 
 ### 3. **Services** (Business Logic Layer)
 
 **ApiClient.cs** - API communication with resilience
-- `GetPackageVersionsAsync()` - Fetches package versions from NuGet
-- `GenerateScriptAsync()` - Generates installation script via API
-- `GetAllPackagesAsync()` - Retrieves all Umbraco Marketplace packages
+- `GetPackageVersionsAsync()` - Fetches package versions from NuGet via API
+- `GetAllPackagesAsync()` - Retrieves all Umbraco Marketplace packages via API
 - Uses ResilientHttpClient for automatic retries
+
+**ScriptGeneratorService.cs** - Local script generation
+- `GenerateScript()` - Generates installation scripts locally without API calls
+- Handles all script formatting and command generation
 
 **ResilientHttpClient.cs** - HTTP resilience with Polly
 - Automatic retry logic with exponential backoff
@@ -582,7 +585,7 @@ The CLI tool is built with a clean, modular architecture following separation of
 ### Key Features in Code
 
 #### Async/Await Pattern
-All API calls use async/await for non-blocking operations:
+Package data fetching uses async/await for non-blocking operations:
 ```csharp
 var versions = await apiClient.GetPackageVersionsAsync(package, includePrerelease: false);
 ```
@@ -618,7 +621,7 @@ Enable verbose mode with:
 - **SelectionPrompt** - For selecting single options (versions, database types, starter kits, templates, etc.)
 - **TextPrompt with Secret** - For secure password input
 - **Confirm** - For yes/no prompts
-- **Status/Spinner** - For showing progress during API calls
+- **Status/Spinner** - For showing progress during data fetching and script generation
 - **Table** - For displaying package selections and configuration summary
 - **Panel** - For showing generated scripts
 - **FigletText** - For ASCII art banner
@@ -642,12 +645,13 @@ Custom exceptions include:
 
 ## API Integration
 
-The tool connects to the Package Script Writer API:
+The tool connects to the Package Script Writer API for package information:
 - **Base URL**: `https://psw.codeshare.co.uk`
 - **Endpoints**:
-  - `POST /api/scriptgeneratorapi/getpackageversions` - Get package versions
-  - `POST /api/scriptgeneratorapi/generatescript` - Generate installation script
+  - `POST /api/scriptgeneratorapi/getpackageversions` - Get package versions from NuGet
   - `GET /api/scriptgeneratorapi/getallpackages` - Get all Umbraco Marketplace packages
+
+**Note**: Script generation is performed locally by the CLI tool itself, not via the API. The tool only uses the API to fetch package information and versions from the Umbraco Marketplace.
 
 ## Configuration
 
@@ -682,8 +686,10 @@ If a package cannot be found:
 - Enable verbose mode to see detailed API calls: `psw --verbose`
 
 ### API Connection Issues
-If you cannot connect to the API:
+If you cannot fetch package information:
 - Check your internet connection
+- The API is used only for fetching package data from the Umbraco Marketplace
+- Script generation is performed locally and does not require API connectivity
 - Verify the API is accessible: https://psw.codeshare.co.uk/api/docs
 - Check firewall settings
 - The tool automatically retries failed requests 3 times with exponential backoff
