@@ -17,7 +17,7 @@
             @foreach (var package in Model.AllPackages.OrderByDescending(x => x.Downloads))
             {
                 var downloads = package?.Downloads ?? 0;
-                var isChecked = pickedPackageIds != null && package != null && pickedPackageIds.Contains(package.NuGetPackageId);
+                var isChecked = pickedPackageIds != null && package != null && pickedPackageIds.Contains(package.PackageId);
 
                 @await Component.InvokeAsync("Package", 
                     new { 

@@ -46,7 +46,7 @@ public class InteractiveModeWorkflow
         ConsoleDisplay.DisplayWelcomeBanner();
 
         // Populate all packages from API
-        await _packageSelector.PopulateAllPackagesAsync();
+        _packageSelector.PopulateAllPackages();
 
         // Ask if user wants a default script (fast route)
         var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
@@ -257,7 +257,7 @@ public class InteractiveModeWorkflow
                 await RunCustomFlowAsync();
             }
         }
-        else if (action == "Copy to clipboard")
+        else if (action == "Copy")
         {
             await ClipboardHelper.CopyToClipboardAsync(script, _logger);
 
@@ -268,7 +268,7 @@ public class InteractiveModeWorkflow
                 await HandleScriptSaveAndRunAsync(script, scriptModel, packageVersions, templateName, templateVersion);
             }
         }
-        else if (action == "Save as template")
+        else if (action == "Save")
         {
             await SaveAsTemplateAsync(scriptModel, packageVersions);
 

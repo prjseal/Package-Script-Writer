@@ -18,7 +18,7 @@ public class PackageSelector
     private readonly IPackageService _packageService;
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger? _logger;
-    private List<PagedPackagesPackage> _allPackages = new();
+    private List<PSW.Shared.Models.PagedPackagesPackage> _allPackages = new();
 
     public PackageSelector(ApiClient apiClient, IPackageService packageService, IMemoryCache memoryCache, ILogger? logger = null)
     {
@@ -31,18 +31,18 @@ public class PackageSelector
     /// <summary>
     /// Populates the allPackages list from Umbraco Marketplace
     /// </summary>
-    public async Task PopulateAllPackagesAsync()
+    public void PopulateAllPackages()
     {
         try
         {
             _logger?.LogInformation("Fetching available packages from Umbraco Marketplace");
 
-            _allPackages = await AnsiConsole.Status()
+            _allPackages = AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
-                .StartAsync("Loading available packages...", async ctx =>
+                .Start("Loading available packages...", ctx =>
                 {
-                    return await Task.Run(() => GetAllPackagesFromMarketplace());
+                    return GetAllPackagesFromMarketplace();
                 });
 
             AnsiConsole.MarkupLine($"Loaded [cyan]{_allPackages.Count}[/] packages from marketplace");
@@ -55,14 +55,14 @@ public class PackageSelector
             ErrorHandler.Warning($"Unable to load packages from marketplace: {ex.Message}", _logger);
             AnsiConsole.MarkupLine("[dim]Continuing with limited package selection...[/]");
             AnsiConsole.WriteLine();
-            _allPackages = new List<PagedPackagesPackage>();
+            _allPackages = new List<PSW.Shared.Models.PagedPackagesPackage>();
         }
     }
 
     /// <summary>
     /// Gets all packages from Umbraco Marketplace (synchronous with caching)
     /// </summary>
-    private List<PagedPackagesPackage> GetAllPackagesFromMarketplace()
+    private List<PSW.Shared.Models.PagedPackagesPackage> GetAllPackagesFromMarketplace()
     {
         int cacheTime = 60;
         var cacheKey = "all_packages_umbraco";
@@ -76,7 +76,7 @@ public class PackageSelector
                 return _packageService.GetAllPackagesFromUmbraco();
             });
 
-        return packages ?? new List<PagedPackagesPackage>();
+        return packages ?? new List<PSW.Shared.Models.PagedPackagesPackage>();
     }
 
     /// <summary>
@@ -192,14 +192,14 @@ public class PackageSelector
                 .Where(p =>
                     (!string.IsNullOrWhiteSpace(p.Title) && p.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
                     (!string.IsNullOrWhiteSpace(p.PackageId) && p.PackageId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.authors) && p.authors.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                    (!string.IsNullOrWhiteSpace(p.Authors) && p.Authors.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
                 )
                 .Select(p => new
                 {
                     p.PackageId,
                     p.Title,
-                    p.authors,
-                    DisplayText = $"{p.PackageId} - {p.Title ?? "No title"} (by {p.authors ?? "Unknown"})"
+                    p.Authors,
+                    DisplayText = $"{p.PackageId} - {p.Title ?? "No title"} (by {p.Authors ?? "Unknown"})"
                 })
                 .OrderBy(p => p.PackageId)
                 .ToList();

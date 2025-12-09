@@ -208,7 +208,7 @@ public static class InteractivePrompts
         return AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("\nWhat would you like to do with this script?\n[dim](Press Ctrl+C at any time to start over)[/]")
-                .AddChoices(new[] { "Run", "Edit", "Copy to clipboard", "Save as template", "Start over" }));
+                .AddChoices(new[] { "Run", "Edit", "Copy", "Save", "Start over" }));
     }
 
     /// <summary>

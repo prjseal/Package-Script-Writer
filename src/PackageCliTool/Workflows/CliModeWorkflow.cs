@@ -288,7 +288,7 @@ public class CliModeWorkflow
         {
             AnsiConsole.MarkupLine("[yellow]Please re-run the tool with different options to edit the script.[/]");
         }
-        else if (action == "Copy to clipboard")
+        else if (action == "Copy")
         {
             await ClipboardHelper.CopyToClipboardAsync(script, _logger);
 

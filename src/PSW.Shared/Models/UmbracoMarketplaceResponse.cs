@@ -25,7 +25,7 @@ public class PagedPackagesPackage
     public Guid Id { get; set; }
     [JsonPropertyName("PackageUrl")]
 #pragma warning disable CA1056 // URI-like properties should not be strings
-    public string Url => $"https://marketplace.umbraco.com/package/{NuGetPackageId.ToLower()}";
+    public string Url => $"https://marketplace.umbraco.com/package/{PackageId.ToLower()}";
 #pragma warning restore CA1056 // URI-like properties should not be strings
     public bool IsHQ { get; set; }
     public bool IsHQSupported { get; set; }
@@ -37,10 +37,10 @@ public class PagedPackagesPackage
     [JsonPropertyName("NumberOfNuGetDownloads")]
     public int Downloads { get; set; }
     [JsonPropertyName("PackageId")]
-    public string NuGetPackageId { get; set; }
+    public string PackageId { get; set; }
     public string[] Tags { get; set; }
     [JsonPropertyName("Title")]
-    public string Name { get; set; }
+    public string Title { get; set; }
     public int[] UmbracoMajorVersionsSupported { get; set; }
     public List<string> PackageVersions { get; set; }
     [Display(Name = "Version")]
