@@ -12,10 +12,10 @@
 
     <!-- Package Metadata -->
     <PackageId>PackageScriptWriter.Cli</PackageId>
-    <Version>1.0.0-beta</Version>
+    <Version>1.0.0-beta001</Version>
     <Authors>Paul Seal</Authors>
     <Company>CodeShare</Company>
-    <Description>Interactive CLI tool for the Package Script Writer API. Generate Umbraco installation scripts with ease using a beautiful terminal interface.</Description>
+    <Description>Interactive CLI tool for the Package Script Writer. Generate Umbraco installation scripts with ease using a beautiful terminal interface.</Description>
     <PackageTags>umbraco;cli;dotnet-tool;package-script-writer;script-generator</PackageTags>
     <PackageProjectUrl>https://github.com/prjseal/Package-Script-Writer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/prjseal/Package-Script-Writer</RepositoryUrl>
@@ -23,7 +23,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <Copyright>Copyright (c) 2024 Paul Seal</Copyright>
+    <Copyright>Copyright (c) 2025 Paul Seal</Copyright>
     <NeutralLanguage>en</NeutralLanguage>
 
     <!-- Build Configuration -->
@@ -69,6 +69,7 @@
     <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
 	<None Include="appsettings.json" CopyToOutputDirectory="Always" Pack="true" PackagePath="contentFiles/any/any/" />
+	<None Include="packages-cache.json" CopyToOutputDirectory="Always" Pack="true" PackagePath="contentFiles/any/any/" />
   </ItemGroup>
 
   <ItemGroup>
