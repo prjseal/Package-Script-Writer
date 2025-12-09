@@ -115,13 +115,13 @@ class Program
             // Check if this is a history command
             if (options.IsHistoryCommand())
             {
-                var historyWorkflow = new HistoryWorkflow(historyService, apiClient, scriptExecutor, logger);
+                var historyWorkflow = new HistoryWorkflow(historyService, scriptExecutor, scriptGeneratorService, logger);
                 await historyWorkflow.RunAsync(options);
             }
             // Check if this is a template command
             else if (options.IsTemplateCommand())
             {
-                var templateWorkflow = new TemplateWorkflow(templateService, apiClient, scriptExecutor, logger);
+                var templateWorkflow = new TemplateWorkflow(templateService, scriptExecutor, scriptGeneratorService, logger);
                 await templateWorkflow.RunAsync(options);
             }
             // Determine if we should use CLI mode or interactive mode

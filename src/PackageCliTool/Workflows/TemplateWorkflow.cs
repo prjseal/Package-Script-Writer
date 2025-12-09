@@ -5,6 +5,8 @@ using PackageCliTool.Models.Templates;
 using PackageCliTool.Services;
 using PackageCliTool.Validation;
 using PackageCliTool.Exceptions;
+using PackageCliTool.Extensions;
+using PSW.Shared.Services;
 
 namespace PackageCliTool.Workflows;
 
@@ -14,19 +16,19 @@ namespace PackageCliTool.Workflows;
 public class TemplateWorkflow
 {
     private readonly TemplateService _templateService;
-    private readonly ApiClient _apiClient;
     private readonly ScriptExecutor _scriptExecutor;
+    private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly ILogger? _logger;
 
     public TemplateWorkflow(
         TemplateService templateService,
-        ApiClient apiClient,
         ScriptExecutor scriptExecutor,
+        IScriptGeneratorService scriptGeneratorService,
         ILogger? logger = null)
     {
         _templateService = templateService;
-        _apiClient = apiClient;
         _scriptExecutor = scriptExecutor;
+        _scriptGeneratorService = scriptGeneratorService;
         _logger = logger;
     }
 
@@ -214,7 +216,7 @@ public class TemplateWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Generating installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(scriptModel);
+                return await Task.Run(() => _scriptGeneratorService.GenerateScript(scriptModel.ToViewModel()));
             });
 
         _logger?.LogInformation("Script generated successfully");
