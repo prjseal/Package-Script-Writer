@@ -84,13 +84,19 @@ public class PackageSelector
         _logger?.LogDebug("Fetching packages from Umbraco Marketplace API");
         var packages = _packageService.GetAllPackagesFromUmbraco();
 
+        // Remove duplicates based on PackageId
+        var distinctPackages = packages
+                .GroupBy(p => p.PackageId)
+                .Select(g => g.First())
+                .ToList();
+
         // Save to cache file
-        if (packages != null && packages.Count > 0)
+        if (distinctPackages != null && distinctPackages.Count > 0)
         {
-            _packageCacheService.SavePackages(packages);
+            _packageCacheService.SavePackages(distinctPackages);
         }
 
-        return packages ?? new List<PSW.Shared.Models.PagedPackagesPackage>();
+        return distinctPackages ?? new List<PSW.Shared.Models.PagedPackagesPackage>();
     }
 
     /// <summary>
