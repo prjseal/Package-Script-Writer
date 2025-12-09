@@ -330,7 +330,11 @@ psw -p "uSync|17.0.0" -n QuickSite -o -r
 
 Package Script Writer - Interactive CLI
 
-Step 1: Select Packages
+Step 1: Select Template
+
+Step 2: Select Template Version
+
+Step 3: Select Packages
 
 Select one or more packages (use Space to select, Enter to confirm):
   [ ] Umbraco.Community.BlockPreview
@@ -339,13 +343,13 @@ Select one or more packages (use Space to select, Enter to confirm):
   [ ] Umbraco.Community.Contentment
   ...
 
-Step 2: Select Versions
+Step 4: Select Versions
 
 ⠋ Fetching versions for Diplo.GodMode...
 ✓ Selected Diplo.GodMode version 3.0.3
 ✓ Selected uSync version 12.0.0
 
-Step 3: Final Selection
+Step 5: Final Selection
 
 ┌───────────────────────────┬──────────────────┐
 │      Package Name         │ Selected Version │
@@ -356,7 +360,7 @@ Step 3: Final Selection
 
 Would you like to generate a complete installation script? (y/n): y
 
-Step 4: Configure Project Options
+Step 6: Configure Project Options
 
 Template & Project Settings
 

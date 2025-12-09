@@ -121,7 +121,15 @@ public class InteractiveModeWorkflow
     {
         _logger?.LogInformation("Starting custom configuration flow");
 
-        // Step 1: Select packages
+        // Step 1: Select template
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Step 1:[/] Select Template\n");
+        var templateName = await _packageSelector.SelectTemplateAsync();
+
+        // Step 2: Select template version
+        var templateVersion = _packageSelector.SelectTemplateVersion(templateName);
+
+        // Step 3: Select packages
         var selectedPackages = await _packageSelector.SelectPackagesAsync();
 
         if (selectedPackages.Count == 0)
@@ -133,21 +141,13 @@ public class InteractiveModeWorkflow
             var shouldGenerate = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
             if (shouldGenerate)
             {
-                await GenerateAndDisplayScriptAsync(new Dictionary<string, string>());
+                await GenerateAndDisplayScriptAsync(new Dictionary<string, string>(), templateName, templateVersion);
             }
             return;
         }
 
-        // Step 2: For each package, select version
+        // Step 4: For each package, select version
         var packageVersions = _packageSelector.SelectVersionsForPackages(selectedPackages);
-
-        // Step 3: Select template
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Template\n");
-        var templateName = await _packageSelector.SelectTemplateAsync();
-
-        // Step 4: Select template version
-        var templateVersion = _packageSelector.SelectTemplateVersion(templateName);
 
         // Step 5: Display final selection
         ConfigurationDisplay.DisplayFinalSelection(packageVersions);
