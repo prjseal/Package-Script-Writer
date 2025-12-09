@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using PackageCliTool.Models;
 using PackageCliTool.Models.Api;
 using PackageCliTool.Services;
+using PackageCliTool.UI;
 using PackageCliTool.Extensions;
 using PSW.Shared.Services;
 using Spectre.Console;
@@ -37,6 +38,15 @@ public class HistoryWorkflow
     {
         var command = options.HistoryCommand?.ToLower();
 
+        // If no command was provided (e.g., just "psw history"), show help
+        if (string.IsNullOrEmpty(command))
+        {
+            AnsiConsole.MarkupLine("[red]Error: Missing history subcommand[/]\n");
+            ConsoleDisplay.DisplayHistoryHelp();
+            Environment.ExitCode = 1;
+            return;
+        }
+
         switch (command)
         {
             case "list":
@@ -65,8 +75,9 @@ public class HistoryWorkflow
                 break;
 
             default:
-                AnsiConsole.MarkupLine($"[red]Unknown history command: {command}[/]");
-                AnsiConsole.MarkupLine("Use [green]psw history --help[/] for available commands");
+                AnsiConsole.MarkupLine($"[red]Error: Unknown history command '{command}'[/]\n");
+                ConsoleDisplay.DisplayHistoryHelp();
+                Environment.ExitCode = 1;
                 break;
         }
     }
