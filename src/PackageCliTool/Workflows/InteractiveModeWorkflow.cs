@@ -19,6 +19,7 @@ public class InteractiveModeWorkflow
     private readonly PackageSelector _packageSelector;
     private readonly ScriptExecutor _scriptExecutor;
     private readonly TemplateService _templateService;
+    private readonly VersionCheckService _versionCheckService;
     private readonly ILogger? _logger;
     private readonly IScriptGeneratorService _scriptGeneratorService;
 
@@ -27,12 +28,14 @@ public class InteractiveModeWorkflow
         PackageSelector packageSelector,
         ScriptExecutor scriptExecutor,
         IScriptGeneratorService scriptGeneratorService,
+        VersionCheckService versionCheckService,
         ILogger? logger = null)
     {
         _apiClient = apiClient;
         _packageSelector = packageSelector;
         _scriptExecutor = scriptExecutor;
         _templateService = new TemplateService(logger: logger);
+        _versionCheckService = versionCheckService;
         _scriptGeneratorService = scriptGeneratorService;
         _logger = logger;
     }
@@ -44,6 +47,9 @@ public class InteractiveModeWorkflow
     {
         // Display welcome banner
         ConsoleDisplay.DisplayWelcomeBanner();
+
+        // Check for updates (non-blocking)
+        await CheckForUpdatesAsync();
 
         // Populate all packages from API
         _packageSelector.PopulateAllPackages();
@@ -365,6 +371,29 @@ public class InteractiveModeWorkflow
         {
             _logger?.LogWarning(ex, "Failed to save template: {Name}", templateName);
             AnsiConsole.MarkupLine($"[red]✗ Failed to save template:[/] {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Checks for newer versions of the CLI tool
+    /// </summary>
+    private async Task CheckForUpdatesAsync()
+    {
+        try
+        {
+            var result = await _versionCheckService.CheckForUpdateAsync();
+
+            if (result?.IsUpdateAvailable == true)
+            {
+                AnsiConsole.MarkupLine($"[yellow]📦 A new version is available:[/] [bold]{result.LatestVersion}[/] [dim](current: {result.CurrentVersion})[/]");
+                AnsiConsole.MarkupLine($"[dim]   Update with: [green]{result.UpdateCommand}[/][/]");
+                AnsiConsole.WriteLine();
+            }
+        }
+        catch
+        {
+            // Silently fail - don't interrupt the user experience
+            _logger?.LogDebug("Version check failed but continuing normally");
         }
     }
 }
