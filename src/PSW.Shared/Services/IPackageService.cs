@@ -5,9 +5,9 @@ namespace PSW.Shared.Services;
 
 public interface IPackageService
 {
-    List<string> GetNugetPackageVersions(string packageUrl);
-    public List<string> GetPackageVersions(string packageUrl);
-    public List<PagedPackagesPackage> GetAllPackagesFromUmbraco();
-    List<PagedPackagesPackage> GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType umbracoMarketplaceQueryType);
-    List<PagedPackagesPackage> GetAllTemplatesFromUmbraco();
+    Task<List<string>> GetNugetPackageVersionsAsync(string packageUrl);
+    Task<List<string>> GetPackageVersionsAsync(string packageUrl);
+    Task<List<PagedPackagesPackage>> GetAllPackagesFromUmbracoAsync();
+    Task<List<PagedPackagesPackage>> GetFromUmbracoMarketplaceAsync(UmbracoMarketplaceQueryType umbracoMarketplaceQueryType);
+    Task<List<PagedPackagesPackage>> GetAllTemplatesFromUmbracoAsync();
 }

@@ -19,15 +19,15 @@ public class MarketplacePackageService : IPackageService
         _clientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     }
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-    public List<string> GetNugetPackageVersions(string packageUrl)
+    public async Task<List<string>> GetNugetPackageVersionsAsync(string packageUrl)
     {
         try
         {
             var client = _clientFactory.CreateClient();
-            var result = client.GetAsync(packageUrl).Result;
+            var result = await client.GetAsync(packageUrl);
             if (result.IsSuccessStatusCode)
             {
-                var data = result.Content.ReadAsStringAsync().Result;
+                var data = await result.Content.ReadAsStringAsync();
                 var packageVersions = JsonSerializer.Deserialize<PackageVersions>(data);
 
                 if (packageVersions is { Versions: { } })
@@ -44,13 +44,18 @@ public class MarketplacePackageService : IPackageService
         }
     }
 
-    public List<string> GetPackageVersions(string packageUrl)
+    public async Task<List<string>> GetPackageVersionsAsync(string packageUrl)
     {
         var allVersions = new List<string>();
 
         var url = $"{packageUrl}/atom.xml";
 
-        var xmlReader = new XmlTextReader(url);
+        // Use HttpClient to fetch XML asynchronously
+        var client = _clientFactory.CreateClient();
+        var xmlContent = await client.GetStringAsync(url);
+
+        using var stringReader = new StringReader(xmlContent);
+        using var xmlReader = new XmlTextReader(stringReader);
 
         var serializer = new XmlSerializer(typeof(NugetPackageVersionFeed.feed));
 
@@ -68,18 +73,18 @@ public class MarketplacePackageService : IPackageService
         return allVersions;
     }
 
-    public List<PagedPackagesPackage> GetAllPackagesFromUmbraco()
+    public async Task<List<PagedPackagesPackage>> GetAllPackagesFromUmbracoAsync()
     {
-        return GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType.Packages);
+        return await GetFromUmbracoMarketplaceAsync(UmbracoMarketplaceQueryType.Packages);
     }
 
-    public List<PagedPackagesPackage> GetAllTemplatesFromUmbraco()
+    public async Task<List<PagedPackagesPackage>> GetAllTemplatesFromUmbracoAsync()
     {
-        return GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType.Templates);
+        return await GetFromUmbracoMarketplaceAsync(UmbracoMarketplaceQueryType.Templates);
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
-    public List<PagedPackagesPackage> GetFromUmbracoMarketplace(UmbracoMarketplaceQueryType umbracoMarketplaceQueryType)
+    public async Task<List<PagedPackagesPackage>> GetFromUmbracoMarketplaceAsync(UmbracoMarketplaceQueryType umbracoMarketplaceQueryType)
     {
         int pageIndex = 1;
         var pageSize = 50;
@@ -106,8 +111,8 @@ public class MarketplacePackageService : IPackageService
             try
             {
                 var httpClient = _clientFactory.CreateClient();
-                var response = httpClient.GetAsync(url).Result;
-                var packages = response.Content.ReadFromJsonAsync<UmbracoMarketplaceResponse>().Result;
+                var response = await httpClient.GetAsync(url);
+                var packages = await response.Content.ReadFromJsonAsync<UmbracoMarketplaceResponse>();
                 if (packages != null && carryOn)
                 {
 

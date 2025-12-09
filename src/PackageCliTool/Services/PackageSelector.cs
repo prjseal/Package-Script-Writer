@@ -34,18 +34,18 @@ public class PackageSelector
     /// Populates the allPackages list from Umbraco Marketplace
     /// </summary>
     /// <param name="forceUpdate">Force update from marketplace even if cache exists</param>
-    public void PopulateAllPackages(bool forceUpdate = false)
+    public async Task PopulateAllPackagesAsync(bool forceUpdate = false)
     {
         try
         {
             _logger?.LogInformation("Fetching available packages (forceUpdate: {ForceUpdate})", forceUpdate);
 
-            _allPackages = AnsiConsole.Status()
+            _allPackages = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
-                .Start("Loading available packages...", ctx =>
+                .StartAsync("Loading available packages...", async ctx =>
                 {
-                    return GetAllPackagesFromMarketplace(forceUpdate);
+                    return await GetAllPackagesFromMarketplaceAsync(forceUpdate);
                 });
 
             AnsiConsole.MarkupLine($"Loaded [cyan]{_allPackages.Count}[/] packages");
@@ -66,7 +66,7 @@ public class PackageSelector
     /// Gets all packages from Umbraco Marketplace (with file-based caching)
     /// </summary>
     /// <param name="forceUpdate">Force update from marketplace even if cache exists</param>
-    private List<PSW.Shared.Models.PagedPackagesPackage> GetAllPackagesFromMarketplace(bool forceUpdate = false)
+    private async Task<List<PSW.Shared.Models.PagedPackagesPackage>> GetAllPackagesFromMarketplaceAsync(bool forceUpdate = false)
     {
         // If not forcing update, try to load from cache first
         if (!forceUpdate && _packageCacheService.CacheExists())
@@ -82,7 +82,7 @@ public class PackageSelector
 
         // Fetch from marketplace
         _logger?.LogDebug("Fetching packages from Umbraco Marketplace API");
-        var packages = _packageService.GetAllPackagesFromUmbraco();
+        var packages = await _packageService.GetAllPackagesFromUmbracoAsync();
 
         // Remove duplicates based on PackageId
         var distinctPackages = packages
@@ -100,19 +100,19 @@ public class PackageSelector
     }
 
     /// <summary>
-    /// Gets package versions directly from NuGet API (synchronous with caching)
+    /// Gets package versions directly from NuGet API (async with caching)
     /// </summary>
-    private List<string> GetPackageVersions(string packageId)
+    private async Task<List<string>> GetPackageVersionsAsync(string packageId)
     {
         int cacheTime = 60;
         var packageUniqueId = packageId.ToLower();
 
-        var packageVersions = _memoryCache.GetOrCreate(
+        var packageVersions = await _memoryCache.GetOrCreateAsync(
             packageId + "_Versions",
-            cacheEntry =>
+            async cacheEntry =>
             {
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
-                return _packageService.GetNugetPackageVersions($"https://api.nuget.org/v3-flatcontainer/{packageUniqueId}/index.json");
+                return await _packageService.GetNugetPackageVersionsAsync($"https://api.nuget.org/v3-flatcontainer/{packageUniqueId}/index.json");
             });
 
         return packageVersions ?? new List<string>();
@@ -286,7 +286,7 @@ public class PackageSelector
     /// <summary>
     /// For each selected package, fetch versions and let user select one
     /// </summary>
-    public Dictionary<string, string> SelectVersionsForPackages(List<string> packages)
+    public async Task<Dictionary<string, string>> SelectVersionsForPackagesAsync(List<string> packages)
     {
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Step 4:[/] Select Versions\n");
@@ -299,13 +299,13 @@ public class PackageSelector
             {
                 _logger?.LogDebug("Fetching versions for package: {Package}", package);
 
-                // Fetch versions with spinner (synchronous)
-                var versions = AnsiConsole.Status()
+                // Fetch versions with spinner (async)
+                var versions = await AnsiConsole.Status()
                     .Spinner(Spinner.Known.Dots)
                     .SpinnerStyle(Style.Parse("green"))
-                    .Start($"Fetching versions for [yellow]{package}[/]...", ctx =>
+                    .StartAsync($"Fetching versions for [yellow]{package}[/]...", async ctx =>
                     {
-                        return GetPackageVersions(package);
+                        return await GetPackageVersionsAsync(package);
                     });
 
                 _logger?.LogDebug("Found {Count} versions for package {Package}", versions.Count, package);
@@ -412,20 +412,20 @@ public class PackageSelector
     /// <summary>
     /// Allows user to select a version for the selected template
     /// </summary>
-    public string SelectTemplateVersion(string templateName)
+    public async Task<string> SelectTemplateVersionAsync(string templateName)
     {
         AnsiConsole.WriteLine();
         _logger?.LogInformation("User selecting version for template: {Template}", templateName);
 
         try
         {
-            // Fetch versions with spinner (synchronous)
-            var versions = AnsiConsole.Status()
+            // Fetch versions with spinner (async)
+            var versions = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
-                .Start($"Fetching versions for [yellow]{templateName}[/]...", ctx =>
+                .StartAsync($"Fetching versions for [yellow]{templateName}[/]...", async ctx =>
                 {
-                    return GetPackageVersions(templateName);
+                    return await GetPackageVersionsAsync(templateName);
                 });
 
             _logger?.LogDebug("Found {Count} versions for template {Template}", versions.Count, templateName);

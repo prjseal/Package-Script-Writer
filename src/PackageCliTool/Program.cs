@@ -150,7 +150,7 @@ class Program
                     memoryCache,
                     packageCacheService,
                     logger);
-                tempPackageSelector.PopulateAllPackages(forceUpdate: true);
+                await tempPackageSelector.PopulateAllPackagesAsync(forceUpdate: true);
                 AnsiConsole.MarkupLine("[green]✓ Package cache updated successfully[/]");
 
                 // If only updating cache, exit
