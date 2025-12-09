@@ -29,20 +29,20 @@ public class PackageSelector
     }
 
     /// <summary>
-    /// Populates the allPackages list from the API
+    /// Populates the allPackages list from Umbraco Marketplace
     /// </summary>
     public async Task PopulateAllPackagesAsync()
     {
         try
         {
-            _logger?.LogInformation("Fetching available packages from API");
+            _logger?.LogInformation("Fetching available packages from Umbraco Marketplace");
 
             _allPackages = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
                 .StartAsync("Loading available packages...", async ctx =>
                 {
-                    return await _apiClient.GetAllPackagesAsync();
+                    return await Task.Run(() => GetAllPackagesFromMarketplace());
                 });
 
             AnsiConsole.MarkupLine($"Loaded [cyan]{_allPackages.Count}[/] packages from marketplace");
@@ -51,12 +51,32 @@ public class PackageSelector
         }
         catch (Exception ex)
         {
-            _logger?.LogWarning(ex, "Failed to load packages from API");
-            ErrorHandler.Warning($"Unable to load packages from API: {ex.Message}", _logger);
+            _logger?.LogWarning(ex, "Failed to load packages from marketplace");
+            ErrorHandler.Warning($"Unable to load packages from marketplace: {ex.Message}", _logger);
             AnsiConsole.MarkupLine("[dim]Continuing with limited package selection...[/]");
             AnsiConsole.WriteLine();
             _allPackages = new List<PagedPackagesPackage>();
         }
+    }
+
+    /// <summary>
+    /// Gets all packages from Umbraco Marketplace (synchronous with caching)
+    /// </summary>
+    private List<PagedPackagesPackage> GetAllPackagesFromMarketplace()
+    {
+        int cacheTime = 60;
+        var cacheKey = "all_packages_umbraco";
+
+        var packages = _memoryCache.GetOrCreate(
+            cacheKey,
+            cacheEntry =>
+            {
+                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheTime);
+                _logger?.LogDebug("Fetching packages from Umbraco Marketplace API");
+                return _packageService.GetAllPackagesFromUmbraco();
+            });
+
+        return packages ?? new List<PagedPackagesPackage>();
     }
 
     /// <summary>

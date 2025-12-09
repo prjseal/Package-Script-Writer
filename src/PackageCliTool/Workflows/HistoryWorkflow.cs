@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using PackageCliTool.Models;
 using PackageCliTool.Models.Api;
 using PackageCliTool.Services;
+using PackageCliTool.Extensions;
+using PSW.Shared.Services;
 using Spectre.Console;
 
 namespace PackageCliTool.Workflows;
@@ -12,19 +14,19 @@ namespace PackageCliTool.Workflows;
 public class HistoryWorkflow
 {
     private readonly HistoryService _historyService;
-    private readonly ApiClient _apiClient;
     private readonly ScriptExecutor _scriptExecutor;
+    private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly ILogger? _logger;
 
     public HistoryWorkflow(
         HistoryService historyService,
-        ApiClient apiClient,
         ScriptExecutor scriptExecutor,
+        IScriptGeneratorService scriptGeneratorService,
         ILogger? logger = null)
     {
         _historyService = historyService;
-        _apiClient = apiClient;
         _scriptExecutor = scriptExecutor;
+        _scriptGeneratorService = scriptGeneratorService;
         _logger = logger;
     }
 
@@ -277,7 +279,7 @@ public class HistoryWorkflow
             .SpinnerStyle(Style.Parse("green"))
             .StartAsync("Regenerating installation script...", async ctx =>
             {
-                return await _apiClient.GenerateScriptAsync(scriptModel);
+                return await Task.Run(() => _scriptGeneratorService.GenerateScript(scriptModel.ToViewModel()));
             });
 
         _logger?.LogInformation("Script regenerated successfully");
