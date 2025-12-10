@@ -87,10 +87,9 @@ flowchart TD
     ReturnToMenu4 --> MainMenu
     ReturnToMenu5 --> MainMenu
 
-    ScriptActions --> End([Exit Interactive Mode])
+    ScriptActions --> MainMenu
 
     style Start fill:#90EE90
-    style End fill:#FFB6C1
     style MainMenu fill:#87CEEB
     style ConfigEditor fill:#FFE4B5
     style ScriptActions fill:#DDA0DD
@@ -343,7 +342,7 @@ flowchart TD
 
 ## 8. Script Actions Flow
 
-This diagram shows what happens after a script is generated.
+This diagram shows what happens after a script is generated. All actions return to the main menu to continue the workflow.
 
 ```mermaid
 flowchart TD
@@ -364,8 +363,8 @@ flowchart TD
     CreateDir --> RunScript
 
     UseCurrentDir --> RunScript
-    RunScript --> Complete([Complete Successfully])
-    CancelRun --> End([Exit])
+    RunScript --> ReturnToMainMenu[Return to Main Menu]
+    CancelRun --> ReturnToMainMenu
 
     %% EDIT PATH
     AskAction -->|Edit| EditConfig[Return to Configuration Editor<br/>with existing values]
@@ -376,12 +375,12 @@ flowchart TD
     AskAction -->|Copy| CopyClipboard[Copy Script to Clipboard<br/>Show confirmation]
     CopyClipboard --> AskContinue{Do something else<br/>with script?<br/>Default: No}
     AskContinue -->|Yes| AskAction
-    AskContinue -->|No| End
+    AskContinue -->|No| ReturnToMainMenu
 
     %% SAVE PATH
     AskAction -->|Save| CheckModel{Has script model<br/>and package versions?}
     CheckModel -->|No| ShowCannotSave[Show: Cannot save template<br/>Configuration not available]
-    ShowCannotSave --> End
+    ShowCannotSave --> ReturnToMainMenu
 
     CheckModel -->|Yes| SaveFlow[Save as Template Flow]
     SaveFlow --> PromptName[Prompt: Template Name]
@@ -399,18 +398,15 @@ flowchart TD
     SaveTemplate --> ShowSuccess[Show: Success message<br/>Show load command]
     ShowSuccess --> AskContinueSave{Do something else<br/>with script?<br/>Default: No}
     AskContinueSave -->|Yes| AskAction
-    AskContinueSave -->|No| End
-    CancelSave --> End
+    AskContinueSave -->|No| ReturnToMainMenu
+    CancelSave --> ReturnToMainMenu
 
     %% START OVER PATH
-    AskAction -->|Start over| ClearScreen[Clear screen<br/>Show: Starting over]
-    ClearScreen --> RestartInteractive[Return to Interactive Mode Start]
+    AskAction -->|Start over| ReturnToMainMenu
 
     style Start fill:#DDA0DD
-    style Complete fill:#90EE90
-    style End fill:#FFB6C1
+    style ReturnToMainMenu fill:#87CEEB
     style BackToConfigEditor fill:#E6E6FA
-    style RestartInteractive fill:#87CEEB
 ```
 
 ---
