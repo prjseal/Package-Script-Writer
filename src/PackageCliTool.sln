@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageCliTool", "PackageCl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSW.Shared", "PSW.Shared\PSW.Shared.csproj", "{8F80C329-4614-052A-5325-7261B11303AB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageCliTool.Tests", "PackageCliTool.Tests\PackageCliTool.Tests.csproj", "{2C8A5E9D-7F3B-4E92-A1D5-6F9C8B4D3E7A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{8F80C329-4614-052A-5325-7261B11303AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F80C329-4614-052A-5325-7261B11303AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F80C329-4614-052A-5325-7261B11303AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2C8A5E9D-7F3B-4E92-A1D5-6F9C8B4D3E7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C8A5E9D-7F3B-4E92-A1D5-6F9C8B4D3E7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C8A5E9D-7F3B-4E92-A1D5-6F9C8B4D3E7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C8A5E9D-7F3B-4E92-A1D5-6F9C8B4D3E7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
