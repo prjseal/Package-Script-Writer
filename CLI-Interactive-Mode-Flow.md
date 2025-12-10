@@ -112,7 +112,7 @@ flowchart TD
     InitEmpty --> DisplayConfig
     InitDefaults --> DisplayConfig
 
-    DisplayConfig[Display Multi-Select List:<br/>Current configuration.<br/>Please select which options<br/>you would like to edit:<br/><br/>☐ Template<br/>☐ Project name<br/>☐ Include starter kit<br/>☐ Packages<br/>☐ Include docker file<br/>☐ Include docker compose<br/>☐ Create a solution file<br/>☐ Solution name<br/>☐ Starter kit package<br/>☐ Use unattended install<br/>☐ Database type<br/>☐ User email<br/>☐ User password<br/>☐ User friendly name<br/>☐ One liner output<br/>☐ Remove comments<br/><br/>No paging, all visible]
+    DisplayConfig[Display Multi-Select List:<br/>Current configuration.<br/>Please select which options<br/>you would like to edit:<br/><br/>☐ Template - value<br/>☐ Project name - value<br/>☐ Include starter kit - value<br/>☐ Packages - value<br/>☐ Include docker file - value<br/>☐ Include docker compose - value<br/>☐ Create a solution file - value<br/>☐ Solution name - value<br/>☐ Starter kit package - value<br/>☐ Use unattended install - value<br/>☐ Database type - value<br/>☐ User email - value<br/>☐ User password - value<br/>☐ User friendly name - value<br/>☐ One liner output - value<br/>☐ Remove comments - value<br/><br/>No paging, all visible]
 
     DisplayConfig --> UserSelects[User selects items<br/>Space to toggle<br/>Enter to confirm]
 
