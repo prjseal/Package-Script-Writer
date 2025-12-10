@@ -591,9 +591,9 @@ public class InteractiveModeWorkflow
                 config.Packages = string.Join(",", packageParts);
             }
 
-            // Update template fields
-            config.TemplateName = templateName;
-            config.TemplateVersion = templateVersion;
+            // Sync template fields from config to local variables
+            templateName = config.TemplateName;
+            templateVersion = config.TemplateVersion;
 
             // Display configuration table
             AnsiConsole.WriteLine();
@@ -676,8 +676,8 @@ public class InteractiveModeWorkflow
         {
             case "Template":
                 AnsiConsole.MarkupLine("[bold blue]Select Template[/]\n");
-                templateName = await _packageSelector.SelectTemplateAsync();
-                templateVersion = await _packageSelector.SelectTemplateVersionAsync(templateName);
+                config.TemplateName = await _packageSelector.SelectTemplateAsync();
+                config.TemplateVersion = await _packageSelector.SelectTemplateVersionAsync(config.TemplateName);
                 break;
 
             case "Project name":
@@ -1042,9 +1042,9 @@ public class InteractiveModeWorkflow
                 config.Packages = string.Join(",", packageParts);
             }
 
-            // Update template fields
-            config.TemplateName = templateName;
-            config.TemplateVersion = templateVersion;
+            // Sync template fields from config to local variables
+            templateName = config.TemplateName;
+            templateVersion = config.TemplateVersion;
 
             // Display configuration table
             AnsiConsole.WriteLine();
