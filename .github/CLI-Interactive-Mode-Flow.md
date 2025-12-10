@@ -110,7 +110,7 @@ flowchart TD
     InitEmpty --> DisplayConfig
     InitDefaults --> DisplayConfig
 
-    DisplayConfig[Display Multi-Select List:<br/>Current configuration.<br/>Please select which options<br/>you would like to edit:<br/><br/>☐ Template - value<br/>☐ Project name - value<br/>☐ Include starter kit - value<br/>☐ Packages - value<br/>☐ Include docker file - value<br/>☐ Include docker compose - value<br/>☐ Create a solution file - value<br/>☐ Solution name - value<br/>☐ Starter kit package - value<br/>☐ Use unattended install - value<br/>☐ Database type - value<br/>☐ Connection string - value<br/>☐ User email - value<br/>☐ User password - value<br/>☐ User friendly name - value<br/>☐ One liner output - value<br/>☐ Remove comments - value<br/><br/>No paging, all visible]
+    DisplayConfig[Display Multi-Select List:<br/>Current configuration.<br/>Please select which options<br/>you would like to edit:<br/><br/>☐ Template (package & version) - value<br/>☐ Project name - value<br/>☐ Include starter kit - value<br/>☐ Packages - value<br/>☐ Include docker file - value<br/>☐ Include docker compose - value<br/>☐ Create a solution file - value<br/>☐ Solution name - value<br/>☐ Starter kit package - value<br/>☐ Use unattended install - value<br/>☐ Database type - value<br/>☐ Connection string - value<br/>☐ User email - value<br/>☐ User password - value<br/>☐ User friendly name - value<br/>☐ One liner output - value<br/>☐ Remove comments - value<br/><br/>No paging, all visible]
 
     DisplayConfig --> UserSelects[User selects items<br/>Space to toggle<br/>Enter to confirm]
 
@@ -118,7 +118,7 @@ flowchart TD
 
     ProcessSelected --> CheckField{Next field to edit?}
 
-    CheckField -->|Template| TemplateFlow[Template Selection Flow<br/>Select template<br/>Select version]
+    CheckField -->|Template| TemplateFlow[Template Selection Flow<br/>Select template package name<br/>Select template version]
     CheckField -->|Project name| ProjectInput[Prompt: Project Name<br/>Validated with project name regex]
     CheckField -->|Include starter kit| StarterKitToggle[Toggle: Include starter kit?<br/>true/false]
     CheckField -->|Packages| PackageFlow[Package Selection Flow<br/>Select packages<br/>Select versions]
@@ -176,13 +176,13 @@ flowchart TD
 
 ## 4. Template Selection Flow
 
-This diagram shows template and template version selection (called from Configuration Editor).
+This diagram shows template package name and template version selection (called from Configuration Editor).
 
 ```mermaid
 flowchart TD
-    Start([Template Selection Flow]) --> ShowTemplates[Display Template Choices:<br/>- Umbraco.Templates<br/>- Umbraco.Community.Templates.Clean<br/>- Umbraco.Community.Templates.UmBootstrap]
+    Start([Template Selection Flow]) --> ShowTemplates[Display Template Package Choices:<br/>- Umbraco.Templates<br/>- Umbraco.Community.Templates.Clean<br/>- Umbraco.Community.Templates.UmBootstrap]
 
-    ShowTemplates --> SelectTemplate[User Selects Template]
+    ShowTemplates --> SelectTemplate[User Selects Template Package]
     SelectTemplate --> ConfirmTemplate[Show confirmation message]
 
     ConfirmTemplate --> FetchVersions[Fetch Template Versions from NuGet<br/>Show spinner]
@@ -533,7 +533,8 @@ When modifying these flows, consider:
    - See templates/history/help/version/clear cache → Returns to menu
 
 3. **Default Values** for "Create script from defaults":
-   - Template: Umbraco.Templates (latest)
+   - Template package: Umbraco.Templates
+   - Template version: Latest stable
    - Project name: MyProject
    - Create solution: true
    - Solution name: MySolution
@@ -559,7 +560,14 @@ When modifying these flows, consider:
    - Templates: `~/.psw/templates/`
    - History: `~/.psw/history/`
 
-7. **Template Version**: Empty string means latest stable, `--prerelease` means latest prerelease
+7. **Template Configuration**:
+   - **Template Package**: The NuGet package name (optional)
+     - Can be set via CLI with `--template-package <name>`
+     - If not specified, no template installation command will be generated
+     - Interactive mode prompts for selection from available packages
+   - **Template Version**: Empty string means latest stable, `--prerelease` means latest prerelease
+     - Can be set via CLI with `--template-version <version>`
+     - Interactive mode prompts for version selection
 
 8. **Regex Patterns**:
    - Project name: `^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*$`
