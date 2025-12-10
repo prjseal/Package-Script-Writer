@@ -18,6 +18,9 @@ on:
         required: false
         default: ''
 
+permissions:
+  contents: write
+  pull-requests: write
 env:
   SCHEDULED_INCLUDE_PRERELEASE: 'false'
 
