@@ -112,7 +112,7 @@ flowchart TD
     InitEmpty --> DisplayConfig
     InitDefaults --> DisplayConfig
 
-    DisplayConfig[Display Multi-Select List:<br/>Current configuration.<br/>Please select which options<br/>you would like to edit:<br/><br/>☐ Template - value<br/>☐ Project name - value<br/>☐ Include starter kit - value<br/>☐ Packages - value<br/>☐ Include docker file - value<br/>☐ Include docker compose - value<br/>☐ Create a solution file - value<br/>☐ Solution name - value<br/>☐ Starter kit package - value<br/>☐ Use unattended install - value<br/>☐ Database type - value<br/>☐ User email - value<br/>☐ User password - value<br/>☐ User friendly name - value<br/>☐ One liner output - value<br/>☐ Remove comments - value<br/><br/>No paging, all visible]
+    DisplayConfig[Display Multi-Select List:<br/>Current configuration.<br/>Please select which options<br/>you would like to edit:<br/><br/>☐ Template - value<br/>☐ Project name - value<br/>☐ Include starter kit - value<br/>☐ Packages - value<br/>☐ Include docker file - value<br/>☐ Include docker compose - value<br/>☐ Create a solution file - value<br/>☐ Solution name - value<br/>☐ Starter kit package - value<br/>☐ Use unattended install - value<br/>☐ Database type - value<br/>☐ Connection string - value<br/>☐ User email - value<br/>☐ User password - value<br/>☐ User friendly name - value<br/>☐ One liner output - value<br/>☐ Remove comments - value<br/><br/>No paging, all visible]
 
     DisplayConfig --> UserSelects[User selects items<br/>Space to toggle<br/>Enter to confirm]
 
@@ -130,7 +130,8 @@ flowchart TD
     CheckField -->|Solution name| SolutionInput[Prompt: Solution Name<br/>Default: Project name if set<br/>Validated with solution name regex]
     CheckField -->|Starter kit package| StarterKitFlow[Starter Kit Selection Flow<br/>Select starter kit<br/>Select version]
     CheckField -->|Use unattended install| UnattendedToggle[Toggle: Use unattended install?<br/>true/false]
-    CheckField -->|Database type| DatabaseSelect[Select Database Type:<br/>- SQLite<br/>- LocalDb<br/>- SQLServer<br/>- SQLAzure<br/>- SQLCE]
+    CheckField -->|Database type| DatabaseSelect[Select Database Type:<br/>- SQLite<br/>- LocalDb<br/>- SQLServer<br/>- SQLAzure<br/>- SQLCE<br/>If SQLServer/SQLAzure selected,<br/>prompt for connection string]
+    CheckField -->|Connection string| ConnectionStringInput[Prompt: Connection String<br/>String input<br/>Only needed for SQLServer/SQLAzure]
     CheckField -->|User email| EmailInput[Prompt: User Email<br/>Validate: Email format]
     CheckField -->|User password| PasswordInput[Prompt: User Password<br/>Secret input<br/>Min 10 characters]
     CheckField -->|User friendly name| NameInput[Prompt: User Friendly Name<br/>String input]
@@ -148,6 +149,7 @@ flowchart TD
     StarterKitFlow --> UpdateConfig
     UnattendedToggle --> UpdateConfig
     DatabaseSelect --> UpdateConfig
+    ConnectionStringInput --> UpdateConfig
     EmailInput --> UpdateConfig
     PasswordInput --> UpdateConfig
     NameInput --> UpdateConfig
@@ -497,13 +499,40 @@ flowchart TD
 
 When modifying these flows, consider:
 
-1. **Configuration Editor Fields**: The multi-select list shows all 16 configuration options
+1. **Configuration Editor Fields**: The multi-select list shows all 17 configuration options
    - Order matters for user experience
    - Each field has specific input type (string, toggle, sub-flow)
    - Validation happens per field
    - Solution name can be pre-populated from project name if available
 
-2. **Main Menu Options**: 7 options in the main menu
+2. **Conditional Logic & Field Dependencies**: Important logic to preserve
+   - **Database Type → Connection String**:
+     - If user selects "Database type" and chooses "SQLServer" or "SQLAzure"
+     - MUST also prompt for "Connection string" immediately after
+     - Connection string is REQUIRED for SQLServer and SQLAzure
+     - Connection string is NOT needed for SQLite, LocalDb, or SQLCE
+
+   - **Use Unattended Install Dependencies**:
+     - If "Use unattended install" is FALSE, the following fields are ignored in script generation:
+       - Database type
+       - Connection string
+       - User email
+       - User password
+       - User friendly name
+     - Users can still set these values, but they won't be used in the script
+     - If "Use unattended install" is TRUE, all these fields are active and used
+
+   - **Password Field**:
+     - MUST be at least 10 characters
+     - Input should be masked (secret/password field)
+     - Default value: "1234567890"
+
+   - **Solution Name**:
+     - If "Create solution file" is FALSE, solution name is ignored
+     - If "Create solution file" is TRUE and solution name is empty, use project name
+     - Pre-populate with project name if available
+
+3. **Main Menu Options**: 7 options in the main menu
    - Create script from scratch → Empty configuration
    - Create script from defaults → Pre-filled configuration
    - See templates/history/help/version/clear cache → Returns to menu
