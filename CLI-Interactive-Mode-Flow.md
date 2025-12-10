@@ -77,19 +77,18 @@ flowchart TD
 
     ListTemplates --> ReturnToMenu1[Return to Main Menu]
     ListHistory --> ReturnToMenu2[Return to Main Menu]
-    ShowHelp --> ReturnToMenu3[Return to Main Menu]
-    ShowVersion --> ReturnToMenu4[Return to Main Menu]
-    ClearCache --> ReturnToMenu5[Return to Main Menu]
+    ShowHelp --> End([Exit])
+    ShowVersion --> End([Exit])
+    ClearCache --> ReturnToMenu3[Return to Main Menu]
 
     ReturnToMenu1 --> MainMenu
     ReturnToMenu2 --> MainMenu
     ReturnToMenu3 --> MainMenu
-    ReturnToMenu4 --> MainMenu
-    ReturnToMenu5 --> MainMenu
 
     ScriptActions --> MainMenu
 
     style Start fill:#90EE90
+    style End fill:#FFB6C1
     style MainMenu fill:#87CEEB
     style ConfigEditor fill:#FFE4B5
     style ScriptActions fill:#DDA0DD
