@@ -475,10 +475,59 @@ public class InteractiveModeWorkflow
             config.Packages = "";
         }
 
+        // If using defaults, display configuration table first
+        if (useDefaults)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[bold blue]Default Configuration[/]\n");
+            DisplayConfigurationTable(config, packageVersions);
+        }
+
         // Configuration editor loop
         bool keepEditing = true;
         while (keepEditing)
         {
+            // If using defaults, show different initial prompt
+            if (useDefaults)
+            {
+                AnsiConsole.WriteLine();
+                var initialAction = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("What would you like to do?")
+                        .AddChoices(new[] { "Edit configuration", "Generate script", "Cancel" }));
+
+                if (initialAction == "Generate script")
+                {
+                    keepEditing = false;
+
+                    // Generate the script
+                    _logger?.LogInformation("Generating installation script with defaults");
+
+                    var script = await AnsiConsole.Status()
+                        .Spinner(Spinner.Known.Star)
+                        .SpinnerStyle(Style.Parse("green"))
+                        .StartAsync("Generating installation script...", async ctx =>
+                        {
+                            return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+                        });
+
+                    _logger?.LogInformation("Script generated successfully");
+
+                    ConsoleDisplay.DisplayGeneratedScript(script);
+
+                    // Handle script actions (returns to main menu when done)
+                    await HandleScriptActionsAsync(script, config, packageVersions, templateName, templateVersion);
+                    return;
+                }
+                else if (initialAction == "Cancel")
+                {
+                    return; // Return to main menu
+                }
+
+                // If "Edit configuration" was selected, continue to field selection below
+                useDefaults = false; // Switch to edit mode for subsequent loops
+            }
+
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("[bold blue]Configuration Editor[/]\n");
 
