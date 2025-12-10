@@ -1,4 +1,6 @@
 name: Build, publish and deploy project to UmbHost
+permissions:
+  contents: read
 
 on:
   push:
