@@ -1017,7 +1017,7 @@ public class InteractiveModeWorkflow
             // Process each selected field
             foreach (var fieldDisplay in selectedFields)
             {
-                await ProcessConfigurationFieldAsync(fieldDisplay, config, packageVersions, ref templateName, ref templateVersion);
+                await ProcessConfigurationFieldAsync(fieldDisplay, config, packageVersions, templateName, templateVersion);
             }
 
             // Update packages string from dictionary
