@@ -43,21 +43,50 @@ public static class ConsoleDisplay
             @"[bold yellow]USAGE:[/]
   psw [[options]]
   psw template <command> [[options]]
+  psw history <command> [[options]]
 
-[bold yellow]OPTIONS:[/]
-  [green]-h, --help[/]                    Show help information
-  [green]-v, --version[/]                 Show version information
+[bold yellow]MAIN OPTIONS:[/]
+  [green]    --admin-email[/] <email>     Admin email for unattended install
+  [green]    --admin-name[/] <name>       Admin user friendly name for unattended install
+  [green]    --admin-password[/] <pwd>    Admin password for unattended install
+  [green]    --auto-run[/]                Automatically run the generated script
+  [green]    --clear-cache[/]             Clear all cached API responses
+  [green]    --connection-string[/] <str> Connection string (for SQLServer/SQLAzure)
+  [green]    --database-type[/] <type>    Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
   [green]-d, --default[/]                 Generate a default script with minimal configuration
+  [green]    --dockerfile[/]              Include Dockerfile in generated script
+  [green]    --docker-compose[/]          Include Docker Compose file in generated script
+  [green]-h, --help[/]                    Show this help information
+  [green]    --include-prerelease[/]      Include prerelease package versions
+  [green]-k, --starter-kit[/]             Include a starter kit
+  [green]-n, --project-name[/] <name>     Project name (default: MyProject)
+  [green]    --no-cache[/]                Disable API response caching (bypass cache)
+  [green]-o, --oneliner[/]                Output script as one-liner
+  [green]-p, --packages[/] <packages>     Comma-separated list of packages with optional versions
+                                   Format: ""Package1|Version1,Package2|Version2""
+                                   Or just package names: ""uSync,Umbraco.Forms"" (uses latest)
+                                   Example: ""uSync|17.0.0,clean|7.0.1""
+  [green]-r, --remove-comments[/]         Remove comments from generated script
+  [green]    --run-dir[/] <directory>     Directory to run script in
+  [green]-s, --solution[/]                Create a solution file
+  [green]    --solution-name[/] <name>    Solution name (used with --solution)
+  [green]    --starter-kit-package[/] <pkg> Starter kit package name
+  [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
+  [green]    --template-package[/] <name> Template package name (optional, skips template install if not specified)
+  [green]-u, --unattended[/]              Use unattended install
+  [green]    --update-packages[/]         Update package list cache from marketplace
+  [green]-v, --version[/]                 Show version information
+  [green]    --verbose[/]                 Enable verbose logging mode
 
 [bold yellow]TEMPLATE COMMANDS:[/]
-  [green]template save[/] <name>          Save current configuration as a template
-  [green]template load[/] <name>          Load and execute a template
-  [green]template list[/]                 List all available templates
-  [green]template show[/] <name>          Show template details
-  [green]template delete[/] <name>        Delete a template
-  [green]template export[/] <name>        Export template to file
-  [green]template import[/] <file>        Import template from file
-  [green]template validate[/] <file>      Validate template file
+  [green]psw template save[/] <name>      Save current configuration as a template
+  [green]psw template load[/] <name>      Load and execute a template
+  [green]psw template list[/]             List all available templates
+  [green]psw template show[/] <name>      Show template details
+  [green]psw template delete[/] <name>    Delete a template
+  [green]psw template export[/] <name>    Export template to file
+  [green]psw template import[/] <file>    Import template from file
+  [green]psw template validate[/] <file>  Validate template file
 
 [bold yellow]TEMPLATE OPTIONS:[/]
   [green]    --template-description[/] <desc> Template description
@@ -66,56 +95,15 @@ public static class ConsoleDisplay
   [green]    --set[/] <key=value>        Override template values
 
 [bold yellow]HISTORY COMMANDS:[/]
-  [green]history list[/]                  List recent script generation history
-  [green]history show[/] <#>              Show details of a history entry
-  [green]history rerun[/] <#>             Regenerate and re-run a script from history
-  [green]history delete[/] <#>            Delete a history entry
-  [green]history clear[/]                 Clear all history
-  [green]history stats[/]                 Show history statistics
+  [green]psw history list[/]              List recent script generation history
+  [green]psw history show[/] <#>          Show details of a history entry
+  [green]psw history rerun[/] <#>         Regenerate and re-run a script from history
+  [green]psw history delete[/] <#>        Delete a history entry
+  [green]psw history clear[/]             Clear all history
+  [green]psw history stats[/]             Show history statistics
 
 [bold yellow]HISTORY OPTIONS:[/]
   [green]    --history-limit[/] <count>  Number of entries to show (default: 10)
-
-[bold yellow]SCRIPT CONFIGURATION:[/]
-  [green]-p, --packages[/] <packages>     Comma-separated list of packages with optional versions
-                                   Format: ""Package1|Version1,Package2|Version2""
-                                   Or just package names: ""uSync,Umbraco.Forms"" (uses latest)
-                                   Example: ""uSync|17.0.0,clean|7.0.1""
-  [green]    --template-package[/] <name> Template package name (optional, skips template install if not specified)
-  [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
-  [green]-n, --project-name[/] <name>     Project name (default: MyProject)
-  [green]-s, --solution[/]                Create a solution file
-  [green]    --solution-name[/] <name>    Solution name (used with --solution)
-
-[bold yellow]STARTER KIT:[/]
-  [green]-k, --starter-kit[/]             Include a starter kit
-  [green]    --starter-kit-package[/] <pkg> Starter kit package name
-
-[bold yellow]DOCKER:[/]
-  [green]    --dockerfile[/]              Include Dockerfile
-  [green]    --docker-compose[/]          Include Docker Compose file
-
-[bold yellow]UNATTENDED INSTALL:[/]
-  [green]-u, --unattended[/]              Use unattended install
-  [green]    --database-type[/] <type>    Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
-  [green]    --connection-string[/] <str> Connection string (for SQLServer/SQLAzure)
-  [green]    --admin-name[/] <name>       Admin user friendly name
-  [green]    --admin-email[/] <email>     Admin email
-  [green]    --admin-password[/] <pwd>    Admin password
-
-[bold yellow]OUTPUT OPTIONS:[/]
-  [green]-o, --oneliner[/]                Output as one-liner
-  [green]-r, --remove-comments[/]         Remove comments from script
-  [green]    --include-prerelease[/]      Include prerelease package versions
-
-[bold yellow]CACHE OPTIONS:[/]
-  [green]    --no-cache[/]                Disable API response caching (bypass cache)
-  [green]    --clear-cache[/]             Clear all cached API responses
-  [green]    --update-packages[/]         Update package list cache from marketplace
-
-[bold yellow]EXECUTION:[/]
-  [green]    --auto-run[/]                Automatically run the generated script
-  [green]    --run-dir[/] <directory>     Directory to run script in
 
 [bold yellow]EXAMPLES:[/]
   Generate default script:
