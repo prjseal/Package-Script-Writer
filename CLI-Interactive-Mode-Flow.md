@@ -174,43 +174,18 @@ flowchart TD
 
 ---
 
-## 4. Default Script Flow
+## 4. Template Selection Flow
 
-This diagram shows the quick path for generating a default script with minimal configuration.
-
-```mermaid
-flowchart TD
-    Start([Default Script Path]) --> ShowMessage[Display:<br/>'Generating Default Script'<br/>'Using default configuration']
-
-    ShowMessage --> CreateModel[Create Default ScriptModel]
-
-    CreateModel --> ModelDetails[Set Default Values:<br/>- Template: Umbraco.Templates latest<br/>- ProjectName: MyProject<br/>- CreateSolutionFile: true<br/>- SolutionName: MySolution<br/>- IncludeStarterKit: true<br/>- StarterKitPackage: clean<br/>- UseUnattendedInstall: true<br/>- DatabaseType: SQLite<br/>- UserEmail: admin@example.com<br/>- UserPassword: 1234567890<br/>- UserFriendlyName: Administrator<br/>- OnelinerOutput: false<br/>- RemoveComments: false]
-
-    ModelDetails --> GenerateScript[Generate Script via API<br/>Show spinner animation]
-    GenerateScript --> DisplayScript[Display Generated Script]
-    DisplayScript --> NextStep[Continue to Script Actions]
-
-    style Start fill:#FFE4B5
-    style NextStep fill:#DDA0DD
-```
-
----
-
-## 5. Custom Flow - Steps 1 & 2 (Template Selection)
-
-This diagram shows template and template version selection.
+This diagram shows template and template version selection (called from Configuration Editor).
 
 ```mermaid
 flowchart TD
-    Start([Custom Flow Path]) --> Step1[Step 1: Select Template]
-
-    Step1 --> ShowTemplates[Display Template Choices:<br/>- Umbraco.Templates<br/>- Umbraco.Community.Templates.Clean<br/>- Umbraco.Community.Templates.UmBootstrap]
+    Start([Template Selection Flow]) --> ShowTemplates[Display Template Choices:<br/>- Umbraco.Templates<br/>- Umbraco.Community.Templates.Clean<br/>- Umbraco.Community.Templates.UmBootstrap]
 
     ShowTemplates --> SelectTemplate[User Selects Template]
     SelectTemplate --> ConfirmTemplate[Show confirmation message]
 
-    ConfirmTemplate --> Step2[Step 2: Select Template Version]
-    Step2 --> FetchVersions[Fetch Template Versions from NuGet<br/>Show spinner]
+    ConfirmTemplate --> FetchVersions[Fetch Template Versions from NuGet<br/>Show spinner]
 
     FetchVersions --> ShowVersions[Display Version Choices:<br/>- Latest Stable<br/>- Pre-release<br/>- Specific Versions list]
 
@@ -225,23 +200,21 @@ flowchart TD
     SetPrerelease --> ConfirmVersion
     SetSpecific --> ConfirmVersion
 
-    ConfirmVersion --> NextStep[Continue to Step 3:<br/>Package Selection]
+    ConfirmVersion --> Return[Return to Configuration Editor]
 
     style Start fill:#FFE4B5
-    style Step1 fill:#F0E68C
-    style Step2 fill:#F0E68C
-    style NextStep fill:#F0E68C
+    style Return fill:#E6E6FA
 ```
 
 ---
 
-## 6. Custom Flow - Step 3 (Package Selection)
+## 5. Package Selection Flow
 
-This diagram shows the three different modes for selecting packages.
+This diagram shows the three different modes for selecting packages (called from Configuration Editor).
 
 ```mermaid
 flowchart TD
-    Start([Step 3: Select Packages]) --> AskMode{How to add packages?}
+    Start([Package Selection Flow]) --> AskMode{How to add packages?}
 
     AskMode -->|Select from popular| PopularMode[Popular Packages Mode]
     AskMode -->|Search for package| SearchMode[Search Mode]
@@ -285,34 +258,27 @@ flowchart TD
     SkipMode --> NoPackages[No Packages Selected]
 
     %% Results
-    PackagesSelected --> CheckCount{Package count > 0?}
-    CheckCount -->|Yes| NextStep[Continue to Step 4:<br/>Version Selection]
-    CheckCount -->|No| ShowWarning[Show warning:<br/>No packages selected]
+    PackagesSelected --> VersionSelection[Package Version Selection Flow]
+    NoPackages --> Return[Return to Configuration Editor]
 
-    NoPackages --> AskGenerate{Generate script<br/>without packages?}
-    AskGenerate -->|Yes| JumpToStep5[Jump to Step 5:<br/>Configuration]
-    AskGenerate -->|No| End([Exit])
+    VersionSelection --> Return
 
-    ShowWarning --> AskGenerate
-
-    style Start fill:#F0E68C
+    style Start fill:#FFE4B5
     style PopularMode fill:#E6E6FA
     style SearchMode fill:#E6E6FA
     style SkipMode fill:#E6E6FA
-    style NextStep fill:#F0E68C
-    style JumpToStep5 fill:#F0E68C
-    style End fill:#FFB6C1
+    style Return fill:#E6E6FA
 ```
 
 ---
 
-## 7. Custom Flow - Step 4 (Version Selection)
+## 6. Package Version Selection Flow
 
-This diagram shows version selection for each selected package.
+This diagram shows version selection for each selected package (called from Package Selection Flow).
 
 ```mermaid
 flowchart TD
-    Start([Step 4: Select Versions]) --> BeginLoop[For Each Selected Package]
+    Start([Package Version Selection Flow]) --> BeginLoop[For Each Selected Package]
 
     BeginLoop --> FetchVersions[Fetch Package Versions from NuGet<br/>Show spinner with package name]
 
@@ -336,96 +302,46 @@ flowchart TD
 
     ShowConfirm --> MorePackages{More packages<br/>to process?}
     MorePackages -->|Yes| BeginLoop
-    MorePackages -->|No| DisplaySummary[Display Final Selection Summary<br/>Show all packages with versions]
+    MorePackages -->|No| Return[Return to Package Selection Flow]
 
-    DisplaySummary --> AskGenerate{Generate complete<br/>installation script?}
-    AskGenerate -->|Yes| NextStep[Continue to Step 5:<br/>Configuration]
-    AskGenerate -->|No| End([Exit])
-
-    style Start fill:#F0E68C
-    style NextStep fill:#F0E68C
-    style End fill:#FFB6C1
+    style Start fill:#FFE4B5
+    style Return fill:#E6E6FA
 ```
 
 ---
 
-## 8. Custom Flow - Step 5 (Project Configuration)
+## 7. Starter Kit Selection Flow
 
-This diagram shows the detailed project configuration prompts.
+This diagram shows starter kit and version selection (called from Configuration Editor).
 
 ```mermaid
 flowchart TD
-    Start([Step 5: Configure Project]) --> Section1[Template & Project Settings]
+    Start([Starter Kit Selection Flow]) --> SelectKit[Select Starter Kit:<br/>- clean<br/>- Articulate<br/>- Portfolio<br/>- LittleNorth.Igloo<br/>- Umbraco.BlockGrid.Example.Website<br/>- Umbraco.TheStarterKit<br/>- uSkinnedSiteBuilder]
 
-    Section1 --> PromptProject[Prompt: Project Name<br/>Default: MyProject]
-    PromptProject --> AskSolution{Create solution file?<br/>Default: Yes}
+    SelectKit --> FetchVersions[Fetch Starter Kit Versions from NuGet<br/>Show spinner]
 
-    AskSolution -->|Yes| PromptSolution[Prompt: Solution Name<br/>Default: same as project]
-    AskSolution -->|No| Section2
-    PromptSolution --> Section2[Starter Kit Options]
+    FetchVersions --> ShowVersions[Display Version Choices:<br/>- Latest Stable<br/>- Specific Versions list]
 
-    Section2 --> AskStarterKit{Include starter kit?<br/>Default: Yes}
+    ShowVersions --> SelectVersion[User Selects Version]
 
-    AskStarterKit -->|No| Section3
-    AskStarterKit -->|Yes| SelectKit[Select Starter Kit:<br/>- clean<br/>- Articulate<br/>- Portfolio<br/>- LittleNorth.Igloo<br/>- Umbraco.BlockGrid.Example.Website<br/>- Umbraco.TheStarterKit<br/>- uSkinnedSiteBuilder]
+    SelectVersion --> MapVersion{Which option?}
+    MapVersion -->|Latest Stable| SetKitName[Set: StarterKitPackage = name only]
+    MapVersion -->|Specific Version| SetKitVersion[Set: StarterKitPackage = 'name --version X.Y.Z']
 
-    SelectKit --> FetchKitVersions[Fetch Starter Kit Versions<br/>Show spinner]
-    FetchKitVersions --> SelectKitVersion[Select Version:<br/>- Latest Stable<br/>- Specific Versions]
+    SetKitName --> ConfirmSelection[Show confirmation message]
+    SetKitVersion --> ConfirmSelection
 
-    SelectKitVersion --> MapKitVersion{Which option?}
-    MapKitVersion -->|Latest Stable| SetKitName[Set: StarterKitPackage = name only]
-    MapKitVersion -->|Specific| SetKitVersion[Set: StarterKitPackage = 'name --version X.Y.Z']
+    ConfirmSelection --> Return[Return to Configuration Editor]
 
-    SetKitName --> Section3[Docker Options]
-    SetKitVersion --> Section3
-
-    Section3 --> AskDockerfile{Include Dockerfile?<br/>Default: No}
-    AskDockerfile --> AskCompose{Include Docker Compose?<br/>Default: No}
-    AskCompose --> SetDockerFlag[Set: CanIncludeDocker = true if either selected]
-
-    SetDockerFlag --> Section4[Unattended Install Options]
-    Section4 --> AskUnattended{Use unattended install?<br/>Default: Yes}
-
-    AskUnattended -->|No| Section5
-    AskUnattended -->|Yes| SelectDB[Select Database Type:<br/>- SQLite default<br/>- LocalDb<br/>- SQLServer<br/>- SQLAzure<br/>- SQLCE]
-
-    SelectDB --> CheckDBType{SQL Server or<br/>SQL Azure?}
-    CheckDBType -->|Yes| PromptConnStr[Prompt: Connection String]
-    CheckDBType -->|No| PromptAdmin
-    PromptConnStr --> PromptAdmin[Prompt: Admin User Friendly Name<br/>Default: Administrator]
-
-    PromptAdmin --> PromptEmail[Prompt: Admin Email<br/>Default: admin@example.com]
-    PromptEmail --> PromptPassword[Prompt: Admin Password<br/>Secret input<br/>Min 10 chars<br/>Default: 1234567890]
-
-    PromptPassword --> Section5[Output Format Options]
-    Section5 --> AskOneliner{Output as one-liner?<br/>Default: No}
-    AskOneliner --> AskComments{Remove comments?<br/>Default: No}
-
-    AskComments --> DisplaySummary[Display Configuration Summary<br/>Show all settings]
-    DisplaySummary --> ConfirmGen{Confirm:<br/>Generate script?<br/>Default: Yes}
-
-    ConfirmGen -->|No| Cancelled[Show: Cancelled]
-    ConfirmGen -->|Yes| GenerateScript[Generate Script via API<br/>Show spinner]
-
-    Cancelled --> End([Exit])
-    GenerateScript --> DisplayScript[Display Generated Script]
-    DisplayScript --> NextStep[Continue to Script Actions]
-
-    style Start fill:#F0E68C
-    style NextStep fill:#DDA0DD
-    style End fill:#FFB6C1
-    style Section1 fill:#FFFACD
-    style Section2 fill:#FFFACD
-    style Section3 fill:#FFFACD
-    style Section4 fill:#FFFACD
-    style Section5 fill:#FFFACD
+    style Start fill:#FFE4B5
+    style Return fill:#E6E6FA
 ```
 
 ---
 
-## 9. Script Actions Flow
+## 8. Script Actions Flow
 
-This diagram shows what happens after a script is generated (applies to both Default and Custom flows).
+This diagram shows what happens after a script is generated.
 
 ```mermaid
 flowchart TD
@@ -450,12 +366,9 @@ flowchart TD
     CancelRun --> End([Exit])
 
     %% EDIT PATH
-    AskAction -->|Edit| CheckContext{Has script model<br/>and package versions?}
-    CheckContext -->|Yes| EditWithDefaults[Re-run Step 5 Configuration<br/>with existing values as defaults]
-    CheckContext -->|No| EditFromScratch[Re-run Custom Flow from start]
+    AskAction -->|Edit| EditConfig[Return to Configuration Editor<br/>with existing values]
 
-    EditWithDefaults --> BackToStep5[Return to Step 5 Flow]
-    EditFromScratch --> BackToCustom[Return to Custom Flow Start]
+    EditConfig --> BackToConfigEditor[Return to Configuration Editor Flow]
 
     %% COPY PATH
     AskAction -->|Copy| CopyClipboard[Copy Script to Clipboard<br/>Show confirmation]
@@ -494,8 +407,7 @@ flowchart TD
     style Start fill:#DDA0DD
     style Complete fill:#90EE90
     style End fill:#FFB6C1
-    style BackToStep5 fill:#F0E68C
-    style BackToCustom fill:#FFE4B5
+    style BackToConfigEditor fill:#E6E6FA
     style RestartInteractive fill:#87CEEB
 ```
 
@@ -513,18 +425,16 @@ flowchart TD
    - See help → Show help, return to menu
    - See version → Show version, return to menu
    - Clear cache → Clear cache, return to menu
-3. **Configuration Editor Flow** → NEW: Multi-select configuration editing
+3. **Configuration Editor Flow** → Multi-select configuration editing
    - Select which fields to edit
-   - Edit only selected fields
+   - Edit only selected fields (calls sub-flows as needed)
    - Display configuration table
    - Choice: Edit again or Generate script
-4. **Default Script Flow** → (Legacy) Quick generation with defaults
-5. **Custom Flow** → (Legacy) Steps 1-5 for reference
-   - **Step 1 & 2**: Template Selection
-   - **Step 3**: Package Selection (3 modes)
-   - **Step 4**: Version Selection for packages
-   - **Step 5**: Project Configuration
-6. **Script Actions Flow** → Run, Edit, Copy, Save, or Start Over
+4. **Template Selection Flow** → Sub-flow for selecting template and version
+5. **Package Selection Flow** → Sub-flow for selecting packages (3 modes)
+6. **Package Version Selection Flow** → Sub-flow for selecting versions for each package
+7. **Starter Kit Selection Flow** → Sub-flow for selecting starter kit and version
+8. **Script Actions Flow** → Run, Edit, Copy, Save, or Start Over
 
 ### Key Features
 
