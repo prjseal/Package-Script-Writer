@@ -191,6 +191,28 @@ Comprehensive testing documentation for all testing approaches.
 
 ---
 
+#### [💻 CLI Tool Documentation](../src/PackageCliTool/README.md)
+Complete documentation for the Package Script Writer CLI tool (`psw`).
+
+**Topics**:
+- Installation and setup (global tool)
+- Interactive mode workflow
+- Command-line flags and options
+- Template system for reusable configurations
+- History tracking and re-running scripts
+- Code architecture and structure
+- Troubleshooting and logging
+
+**Additional CLI Resources**:
+- [CLI Interactive Mode Flow](CLI-Interactive-Mode-Flow.md) - Visual diagrams of interactive mode workflow
+- [Template System](../src/PackageCliTool/TEMPLATES.md) - Template save/load documentation
+- [History System](../src/PackageCliTool/HISTORY.md) - History tracking documentation
+- [CLI Release Process](CLI-RELEASE-PROCESS.md) - Publishing to NuGet
+
+[➡️ Read CLI Tool Documentation](../src/PackageCliTool/README.md)
+
+---
+
 ## 🚀 Quick Start
 
 ### For Users
@@ -403,6 +425,8 @@ Use the links above to navigate to specific documentation sections, or browse th
 - **[security.md](security.md)** - Security documentation
 - **[development-guide.md](development-guide.md)** - Development setup
 - **[testing.md](testing.md)** - Testing guide and best practices
+- **[../src/PackageCliTool/README.md](../src/PackageCliTool/README.md)** - CLI tool documentation
+- **[CLI-Interactive-Mode-Flow.md](CLI-Interactive-Mode-Flow.md)** - CLI interactive mode flow diagrams
 
 ---
 
