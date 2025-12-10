@@ -12,7 +12,7 @@
 
     <!-- Package Metadata -->
     <PackageId>PackageScriptWriter.Cli</PackageId>
-    <Version>1.0.0-beta002</Version>
+    <Version>1.0.0-beta003</Version>
     <Authors>Paul Seal</Authors>
     <Company>CodeShare</Company>
     <Description>Interactive CLI tool for the Package Script Writer. Generate Umbraco installation scripts with ease using a beautiful terminal interface.</Description>
