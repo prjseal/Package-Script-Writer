@@ -134,7 +134,15 @@ public class HomeController : Controller
     public IActionResult Index(PackagesViewModel model)
     {
         var queryString = _queryStringService.GenerateQueryStringFromModel(model);
-        return Redirect("/" + queryString);
+        var redirectUrl = "/" + queryString;
+        // Ensure that the redirect target is a relative URL, not absolute
+        var uri = new Uri(redirectUrl, UriKind.RelativeOrAbsolute);
+        if (uri.IsAbsoluteUri)
+        {
+            // Absolute URI detected - fallback to homepage
+            return Redirect("/");
+        }
+        return Redirect(redirectUrl);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
