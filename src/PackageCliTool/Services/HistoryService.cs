@@ -145,6 +145,15 @@ public class HistoryService
     }
 
     /// <summary>
+    /// Asynchronously retrieves all history entries.
+    /// </summary>
+    /// <returns>A list of <see cref="HistoryEntry"/> representing all history entries.</returns>
+    public async Task<List<HistoryEntry>> GetAllHistoryAsync()
+    {
+        return await Task.Run(() => _history.Entries);
+    }
+
+    /// <summary>
     /// Gets all history entries
     /// </summary>
     public List<HistoryEntry> GetAllEntries()

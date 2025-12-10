@@ -454,22 +454,22 @@ public class InteractiveModeWorkflow
         else
         {
             // Set minimal defaults for scratch mode
-            config.TemplateName = "Umbraco.Templates";
+            config.TemplateName = "";
             config.TemplateVersion = "";
-            config.ProjectName = "MyProject";
-            config.CreateSolutionFile = true;
-            config.SolutionName = "MyProject";
+            config.ProjectName = "";
+            config.CreateSolutionFile = false;
+            config.SolutionName = "";
             config.IncludeStarterKit = false;
             config.StarterKitPackage = "";
             config.IncludeDockerfile = false;
             config.IncludeDockerCompose = false;
             config.CanIncludeDocker = false;
-            config.UseUnattendedInstall = true;
+            config.UseUnattendedInstall = false;
             config.DatabaseType = "SQLite";
             config.ConnectionString = "";
-            config.UserFriendlyName = "Administrator";
-            config.UserEmail = "admin@example.com";
-            config.UserPassword = "1234567890";
+            config.UserFriendlyName = "";
+            config.UserEmail = "";
+            config.UserPassword = "";
             config.OnelinerOutput = false;
             config.RemoveComments = false;
             config.Packages = "";
@@ -566,7 +566,7 @@ public class InteractiveModeWorkflow
             // Process each selected field
             foreach (var fieldDisplay in selectedFields)
             {
-                await ProcessConfigurationFieldAsync(fieldDisplay, config, packageVersions, ref templateName, ref templateVersion);
+                await ProcessConfigurationFieldAsync(fieldDisplay, config, packageVersions, templateName, templateVersion);
             }
 
             // Update packages string from dictionary
@@ -667,7 +667,7 @@ public class InteractiveModeWorkflow
     /// <summary>
     /// Processes a selected configuration field
     /// </summary>
-    private async Task ProcessConfigurationFieldAsync(string fieldDisplay, ScriptModel config, Dictionary<string, string> packageVersions, ref string templateName, ref string templateVersion)
+    private async Task ProcessConfigurationFieldAsync(string fieldDisplay, ScriptModel config, Dictionary<string, string> packageVersions, string templateName, string templateVersion)
     {
         AnsiConsole.WriteLine();
         var fieldName = fieldDisplay.Split(" - ")[0];
@@ -1075,10 +1075,9 @@ public class InteractiveModeWorkflow
             foreach (var template in templates)
             {
                 table.AddRow(
-                    $"[green]{template.Metadata.Name}[/]",
-                    template.Metadata.Description ?? "[dim]No description[/]",
-                    template.Configuration.Packages?.Count.ToString() ?? "0",
-                    template.Metadata.CreatedAt.ToString("yyyy-MM-dd")
+                    $"[green]{template.Name}[/]",
+                    template.Description ?? "[dim]No description[/]",
+                    template.Created.ToString("yyyy-MM-dd")
                 );
             }
 
@@ -1095,7 +1094,7 @@ public class InteractiveModeWorkflow
     {
         _logger?.LogInformation("Displaying history list");
 
-        var historyService = new HistoryService(_logger);
+        var historyService = new HistoryService(null, _logger);
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Script Generation History[/]\n");
@@ -1119,9 +1118,9 @@ public class InteractiveModeWorkflow
             {
                 table.AddRow(
                     entry.Timestamp.ToString("yyyy-MM-dd HH:mm"),
-                    entry.ProjectName ?? "[dim]N/A[/]",
+                    entry.ScriptModel?.ProjectName ?? "[dim]N/A[/]",
                     entry.TemplateName ?? "[dim]N/A[/]",
-                    entry.Packages?.Count.ToString() ?? "0"
+                    entry.ScriptModel?.Packages?.Count().ToString() ?? "0"
                 );
             }
 
