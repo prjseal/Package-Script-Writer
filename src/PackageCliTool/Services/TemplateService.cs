@@ -101,6 +101,18 @@ public class TemplateService
     }
 
     /// <summary>
+    /// Asynchronously retrieves all template metadata from the templates directory.
+    /// </summary>
+    /// <returns>A list of <see cref="TemplateMetadata"/> representing all available templates.</returns>
+    public async Task<List<TemplateMetadata>> GetAllTemplatesAsync()
+    {
+        var templates = ListTemplates();
+        return await Task.FromResult(templates);
+    }
+
+
+
+    /// <summary>
     /// Lists all available templates
     /// </summary>
     public List<TemplateMetadata> ListTemplates(string? tagFilter = null)
