@@ -41,7 +41,7 @@ public class InteractiveModeWorkflow
     }
 
     /// <summary>
-    /// Runs the interactive mode workflow
+    /// Runs the interactive mode workflow with main menu loop
     /// </summary>
     public async Task RunAsync()
     {
@@ -54,16 +54,57 @@ public class InteractiveModeWorkflow
         // Populate all packages from API
         await _packageSelector.PopulateAllPackagesAsync();
 
-        // Ask if user wants a default script (fast route)
-        var useDefaultScript = AnsiConsole.Confirm("Do you want to generate a default script?", true);
+        // Main menu loop
+        bool keepRunning = true;
+        while (keepRunning)
+        {
+            AnsiConsole.WriteLine();
+            var choice = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("[bold cyan]What would you like to do?[/]")
+                    .AddChoices(new[]
+                    {
+                        "Create script from scratch",
+                        "Create script from defaults",
+                        "See templates",
+                        "See history",
+                        "See help",
+                        "See version",
+                        "Clear cache"
+                    }));
 
-        if (useDefaultScript)
-        {
-            await GenerateDefaultScriptAsync();
-        }
-        else
-        {
-            await RunCustomFlowAsync();
+            switch (choice)
+            {
+                case "Create script from scratch":
+                    await RunConfigurationEditorAsync(useDefaults: false);
+                    break;
+
+                case "Create script from defaults":
+                    await RunConfigurationEditorAsync(useDefaults: true);
+                    break;
+
+                case "See templates":
+                    await ShowTemplatesAsync();
+                    break;
+
+                case "See history":
+                    await ShowHistoryAsync();
+                    break;
+
+                case "See help":
+                    ConsoleDisplay.DisplayHelp();
+                    keepRunning = false; // Exit after showing help
+                    break;
+
+                case "See version":
+                    ConsoleDisplay.DisplayVersion();
+                    keepRunning = false; // Exit after showing version
+                    break;
+
+                case "Clear cache":
+                    await ClearCacheAsync();
+                    break;
+            }
         }
     }
 
@@ -372,6 +413,130 @@ public class InteractiveModeWorkflow
             _logger?.LogWarning(ex, "Failed to save template: {Name}", templateName);
             AnsiConsole.MarkupLine($"[red]✗ Failed to save template:[/] {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Runs the configuration editor workflow
+    /// </summary>
+    private async Task RunConfigurationEditorAsync(bool useDefaults)
+    {
+        _logger?.LogInformation("Starting configuration editor (useDefaults: {UseDefaults})", useDefaults);
+
+        // TODO: Implement Configuration Editor
+        // For now, fallback to old behavior
+        if (useDefaults)
+        {
+            await GenerateDefaultScriptAsync();
+        }
+        else
+        {
+            await RunCustomFlowAsync();
+        }
+    }
+
+    /// <summary>
+    /// Shows the list of saved templates
+    /// </summary>
+    private async Task ShowTemplatesAsync()
+    {
+        _logger?.LogInformation("Displaying templates list");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Saved Templates[/]\n");
+
+        var templates = await _templateService.GetAllTemplatesAsync();
+
+        if (!templates.Any())
+        {
+            AnsiConsole.MarkupLine("[dim]No templates found.[/]");
+            AnsiConsole.MarkupLine("[dim]You can save a template from the script generation flow.[/]");
+        }
+        else
+        {
+            var table = new Table();
+            table.AddColumn("Name");
+            table.AddColumn("Description");
+            table.AddColumn("Packages");
+            table.AddColumn("Created");
+
+            foreach (var template in templates)
+            {
+                table.AddRow(
+                    $"[green]{template.Metadata.Name}[/]",
+                    template.Metadata.Description ?? "[dim]No description[/]",
+                    template.Configuration.Packages?.Count.ToString() ?? "0",
+                    template.Metadata.CreatedAt.ToString("yyyy-MM-dd")
+                );
+            }
+
+            AnsiConsole.Write(table);
+        }
+
+        AnsiConsole.WriteLine();
+    }
+
+    /// <summary>
+    /// Shows the history of generated scripts
+    /// </summary>
+    private async Task ShowHistoryAsync()
+    {
+        _logger?.LogInformation("Displaying history list");
+
+        var historyService = new HistoryService(_logger);
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Script Generation History[/]\n");
+
+        var history = await historyService.GetAllHistoryAsync();
+
+        if (!history.Any())
+        {
+            AnsiConsole.MarkupLine("[dim]No history found.[/]");
+            AnsiConsole.MarkupLine("[dim]History is saved automatically when you generate scripts.[/]");
+        }
+        else
+        {
+            var table = new Table();
+            table.AddColumn("Date");
+            table.AddColumn("Project");
+            table.AddColumn("Template");
+            table.AddColumn("Packages");
+
+            foreach (var entry in history.OrderByDescending(h => h.Timestamp).Take(10))
+            {
+                table.AddRow(
+                    entry.Timestamp.ToString("yyyy-MM-dd HH:mm"),
+                    entry.ProjectName ?? "[dim]N/A[/]",
+                    entry.TemplateName ?? "[dim]N/A[/]",
+                    entry.Packages?.Count.ToString() ?? "0"
+                );
+            }
+
+            AnsiConsole.Write(table);
+            AnsiConsole.MarkupLine($"\n[dim]Showing last {Math.Min(10, history.Count)} entries[/]");
+        }
+
+        AnsiConsole.WriteLine();
+    }
+
+    /// <summary>
+    /// Clears the package cache
+    /// </summary>
+    private async Task ClearCacheAsync()
+    {
+        _logger?.LogInformation("Clearing cache");
+
+        // Clear the cache service
+        var cacheService = new CacheService(ttlHours: 1, enabled: true, logger: _logger);
+        cacheService.Clear();
+
+        AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
+
+        // Repopulate packages
+        AnsiConsole.MarkupLine("[dim]Reloading packages...[/]");
+        await _packageSelector.PopulateAllPackagesAsync(forceUpdate: true);
+
+        AnsiConsole.WriteLine();
     }
 
     /// <summary>
