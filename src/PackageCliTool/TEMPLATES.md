@@ -43,14 +43,15 @@ Saves the current configuration as a reusable template.
 **Options:**
 - `--template-description <desc>` - Human-readable description
 - `--template-tags <tags>` - Comma-separated tags for categorization
-- All standard CLI options (packages, project settings, etc.)
+- All standard CLI options (packages, project settings, template package, etc.)
 
 **Example:**
 ```bash
 psw template save company-standard \
+    --template-package Umbraco.Templates \
+    -t "14.3.0" \
     -p "uSync|17.0.0,Umbraco.Forms|14.2.0,clean|7.0.1" \
     -n MyProject \
-    -t "14.3.0" \
     -s --solution-name MySolution \
     -u --database-type SQLite \
     --admin-email "admin@example.com" \
@@ -194,8 +195,8 @@ metadata:
 
 configuration:
   template:
-    name: Umbraco.Templates
-    version: "14.3.0"
+    name: Umbraco.Templates  # Set via --template-package flag
+    version: "14.3.0"         # Set via -t or --template-version flag
 
   project:
     name: MyBlog
@@ -453,9 +454,10 @@ Valid override keys:
 ```bash
 # 1. Create a template from command-line flags
 psw template save my-umbraco-blog \
+    --template-package Umbraco.Templates \
+    -t "14.3.0" \
     -p "uSync|17.0.0,Umbraco.Forms|14.2.0,clean|7.0.1" \
     -n MyBlog \
-    -t "14.3.0" \
     -s --solution-name MyBlog \
     -k --starter-kit-package clean \
     -u --database-type SQLite \
