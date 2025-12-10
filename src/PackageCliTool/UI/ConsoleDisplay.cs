@@ -81,6 +81,7 @@ public static class ConsoleDisplay
                                    Format: ""Package1|Version1,Package2|Version2""
                                    Or just package names: ""uSync,Umbraco.Forms"" (uses latest)
                                    Example: ""uSync|17.0.0,clean|7.0.1""
+  [green]    --template-package[/] <name> Template package name (default: Umbraco.Templates)
   [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
   [green]-n, --project-name[/] <name>     Project name (default: MyProject)
   [green]-s, --solution[/]                Create a solution file
@@ -128,6 +129,9 @@ public static class ConsoleDisplay
 
   Mixed: some with versions, some without:
     [cyan]psw -p ""uSync|17.0.0,Umbraco.Forms"" -n MyProject[/]
+
+  Specify template package and version:
+    [cyan]psw --template-package Umbraco.Templates --template-version 14.3.0 -n MyProject[/]
 
   Full configuration example:
     [cyan]psw -p ""uSync|17.0.0"" -n MyProject -s --solution-name MySolution -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run[/]

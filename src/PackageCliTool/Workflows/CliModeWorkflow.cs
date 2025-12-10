@@ -63,7 +63,7 @@ public class CliModeWorkflow
         // Create default script model matching website defaults
         var model = new ScriptModel
         {
-            TemplateName = "Umbraco.Templates",
+            TemplateName = options.TemplatePackageName ?? "Umbraco.Templates",
             TemplateVersion = "", // Latest stable
             ProjectName = "MyProject",
             CreateSolutionFile = true,
@@ -118,7 +118,7 @@ public class CliModeWorkflow
 
         var model = new ScriptModel
         {
-            TemplateName = "Umbraco.Templates",
+            TemplateName = options.TemplatePackageName ?? "Umbraco.Templates",
             TemplateVersion = options.TemplateVersion ?? "",
             ProjectName = projectName,
             CreateSolutionFile = options.CreateSolution,

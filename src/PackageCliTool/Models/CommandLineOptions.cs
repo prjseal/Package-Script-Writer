@@ -11,6 +11,7 @@ public class CommandLineOptions
     public bool ShowVersion { get; set; }
     public bool UseDefault { get; set; }
     public string? Packages { get; set; }
+    public string? TemplatePackageName { get; set; }
     public string? TemplateVersion { get; set; }
     public string? ProjectName { get; set; }
     public bool CreateSolution { get; set; }
@@ -73,6 +74,7 @@ public class CommandLineOptions
     {
         return UseDefault ||
                !string.IsNullOrWhiteSpace(Packages) ||
+               !string.IsNullOrWhiteSpace(TemplatePackageName) ||
                !string.IsNullOrWhiteSpace(TemplateVersion) ||
                !string.IsNullOrWhiteSpace(ProjectName) ||
                CreateSolution ||
@@ -125,6 +127,10 @@ public class CommandLineOptions
                 case "-p":
                 case "--packages":
                     options.Packages = GetNextArgument(args, ref i);
+                    break;
+
+                case "--template-package":
+                    options.TemplatePackageName = GetNextArgument(args, ref i);
                     break;
 
                 case "-t":
