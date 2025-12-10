@@ -140,6 +140,9 @@ psw -p "uSync,Umbraco.Forms" -n MyProject
 # Generate script with specific package versions
 psw -p "uSync|17.0.0,clean|7.0.1" -n MyProject
 
+# Use custom template package
+psw --template-package Umbraco.Community.Templates.Clean -t 14.3.0 -n MyProject
+
 # Full automation example
 psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
     -u --database-type SQLite --admin-email admin@test.com \
@@ -158,6 +161,8 @@ psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
   - Format: `"Package1|Version1,Package2|Version2"` (e.g., `"uSync|17.0.0,clean|7.0.1"`)
   - Or just package names: `"uSync,Umbraco.Forms"` (automatically uses latest version)
   - Mix both formats: `"uSync|17.0.0,Umbraco.Forms"` (first uses specific version, second uses latest)
+- `--template-package <name>` - Template package name (default: Umbraco.Templates)
+  - Examples: "Umbraco.Templates", "Umbraco.Community.Templates.Clean"
 - `-t, --template-version <version>` - Template version (Latest, LTS, or specific version like "14.3.0")
 - `-n, --project-name <name>` - Project name (default: MyProject)
 - `-s, --solution` - Create a solution file
@@ -213,12 +218,19 @@ psw -p "uSync|17.0.0,clean|7.0.1" -n MyProject
 psw -p "uSync|17.0.0,Umbraco.Forms,Diplo.GodMode|3.0.3" -n MyProject
 ```
 
-**Example 5: Script with Solution**
+**Example 5: Custom Template Package**
+```bash
+psw --template-package Umbraco.Community.Templates.Clean \
+    --template-version 14.3.0 \
+    -n MyCleanProject
+```
+
+**Example 6: Script with Solution**
 ```bash
 psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution
 ```
 
-**Example 6: Full Automation with Unattended Install**
+**Example 7: Full Automation with Unattended Install**
 ```bash
 psw -p "uSync|17.0.0,Umbraco.Forms|14.2.0" \
     -n MyUmbracoSite \
@@ -230,14 +242,14 @@ psw -p "uSync|17.0.0,Umbraco.Forms|14.2.0" \
     --admin-password "SecurePassword123!"
 ```
 
-**Example 7: Docker-enabled Setup**
+**Example 8: Docker-enabled Setup**
 ```bash
 psw -p "uSync|17.0.0" -n MyDockerProject \
     --dockerfile --docker-compose \
     --auto-run --run-dir ./projects/docker-site
 ```
 
-**Example 8: One-liner Output**
+**Example 9: One-liner Output**
 ```bash
 psw -p "uSync|17.0.0" -n QuickSite -o -r
 ```
@@ -556,7 +568,7 @@ The CLI tool is built with a clean, modular architecture following separation of
 **CommandLineOptions.cs** - CLI argument parser
 - `Parse()` - Parses command-line arguments
 - `HasAnyOptions()` - Checks if any options are set
-- Properties for all CLI flags (24+ options)
+- Properties for all CLI flags (25+ options including template package name)
 
 **API Models** (Models/Api/)
 - `ScriptModel.cs` - Complete script configuration
