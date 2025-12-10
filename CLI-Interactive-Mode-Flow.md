@@ -121,13 +121,13 @@ flowchart TD
     ProcessSelected --> CheckField{Next field to edit?}
 
     CheckField -->|Template| TemplateFlow[Template Selection Flow<br/>Select template<br/>Select version]
-    CheckField -->|Project name| ProjectInput[Prompt: Project Name<br/>Regex: ^A-Za-z_A-Za-z0-9_*<br/>?:\\.A-Za-z_A-Za-z0-9_*]*$]
+    CheckField -->|Project name| ProjectInput[Prompt: Project Name<br/>Validated with project name regex]
     CheckField -->|Include starter kit| StarterKitToggle[Toggle: Include starter kit?<br/>true/false]
     CheckField -->|Packages| PackageFlow[Package Selection Flow<br/>Select packages<br/>Select versions]
     CheckField -->|Include docker file| DockerfileToggle[Toggle: Include Dockerfile?<br/>true/false]
     CheckField -->|Include docker compose| DockerComposeToggle[Toggle: Include Docker Compose?<br/>true/false]
     CheckField -->|Create solution file| SolutionToggle[Toggle: Create solution file?<br/>true/false]
-    CheckField -->|Solution name| SolutionInput[Prompt: Solution Name<br/>Default: Project name if set<br/>Regex: ^^\0/:*?"<>|]+$]
+    CheckField -->|Solution name| SolutionInput[Prompt: Solution Name<br/>Default: Project name if set<br/>Validated with solution name regex]
     CheckField -->|Starter kit package| StarterKitFlow[Starter Kit Selection Flow<br/>Select starter kit<br/>Select version]
     CheckField -->|Use unattended install| UnattendedToggle[Toggle: Use unattended install?<br/>true/false]
     CheckField -->|Database type| DatabaseSelect[Select Database Type:<br/>- SQLite<br/>- LocalDb<br/>- SQLServer<br/>- SQLAzure<br/>- SQLCE]
