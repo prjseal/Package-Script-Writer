@@ -81,7 +81,7 @@ public static class ConsoleDisplay
                                    Format: ""Package1|Version1,Package2|Version2""
                                    Or just package names: ""uSync,Umbraco.Forms"" (uses latest)
                                    Example: ""uSync|17.0.0,clean|7.0.1""
-  [green]    --template-package[/] <name> Template package name (default: Umbraco.Templates)
+  [green]    --template-package[/] <name> Template package name (optional, skips template install if not specified)
   [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
   [green]-n, --project-name[/] <name>     Project name (default: MyProject)
   [green]-s, --solution[/]                Create a solution file

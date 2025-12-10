@@ -561,8 +561,9 @@ When modifying these flows, consider:
    - History: `~/.psw/history/`
 
 7. **Template Configuration**:
-   - **Template Package**: The NuGet package name (default: "Umbraco.Templates")
+   - **Template Package**: The NuGet package name (optional)
      - Can be set via CLI with `--template-package <name>`
+     - If not specified, no template installation command will be generated
      - Interactive mode prompts for selection from available packages
    - **Template Version**: Empty string means latest stable, `--prerelease` means latest prerelease
      - Can be set via CLI with `--template-version <version>`

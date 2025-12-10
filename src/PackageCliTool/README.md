@@ -161,8 +161,9 @@ psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
   - Format: `"Package1|Version1,Package2|Version2"` (e.g., `"uSync|17.0.0,clean|7.0.1"`)
   - Or just package names: `"uSync,Umbraco.Forms"` (automatically uses latest version)
   - Mix both formats: `"uSync|17.0.0,Umbraco.Forms"` (first uses specific version, second uses latest)
-- `--template-package <name>` - Template package name (default: Umbraco.Templates)
+- `--template-package <name>` - Template package name (optional, skips template install if not specified)
   - Examples: "Umbraco.Templates", "Umbraco.Community.Templates.Clean"
+  - If omitted, no template installation command will be generated
 - `-t, --template-version <version>` - Template version (Latest, LTS, or specific version like "14.3.0")
 - `-n, --project-name <name>` - Project name (default: MyProject)
 - `-s, --solution` - Create a solution file
