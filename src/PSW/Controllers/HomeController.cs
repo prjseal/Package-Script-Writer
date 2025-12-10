@@ -142,7 +142,7 @@ public class HomeController : Controller
             // Absolute URI detected - fallback to homepage
             return Redirect("/");
         }
-        return Redirect(redirectUrl);
+        return LocalRedirect(redirectUrl);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
