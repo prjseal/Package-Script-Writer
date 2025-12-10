@@ -969,6 +969,124 @@ public class InteractiveModeWorkflow
     }
 
     /// <summary>
+    /// Edits an existing configuration and regenerates the script
+    /// </summary>
+    private async Task EditConfigurationAsync(ScriptModel config, Dictionary<string, string> packageVersions, string templateName, string templateVersion)
+    {
+        _logger?.LogInformation("Editing existing configuration");
+
+        // Configuration editor loop
+        bool keepEditing = true;
+        while (keepEditing)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[bold blue]Configuration Editor[/]\n");
+
+            // Display multi-select list with current values
+            var fieldChoices = GetConfigurationFieldChoices(config, packageVersions);
+
+            var selectedFields = AnsiConsole.Prompt(
+                new MultiSelectionPrompt<string>()
+                    .Title("Select [green]configuration fields to edit[/] (use Space to select, Enter to confirm):")
+                    .PageSize(20)
+                    .MoreChoicesText("[grey](Move up and down to see more fields)[/]")
+                    .InstructionsText("[grey](Press [blue]<space>[/] to toggle a field, [green]<enter>[/] to accept)[/]")
+                    .AddChoices(fieldChoices));
+
+            if (selectedFields.Count == 0)
+            {
+                AnsiConsole.MarkupLine("[yellow]No fields selected for editing.[/]");
+
+                // Ask if they want to generate with current settings or edit again
+                var action = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("What would you like to do?")
+                        .AddChoices(new[] { "Edit configuration", "Generate script", "Cancel" }));
+
+                if (action == "Generate script")
+                {
+                    keepEditing = false;
+                }
+                else if (action == "Cancel")
+                {
+                    return; // Return to main menu
+                }
+                continue;
+            }
+
+            // Process each selected field
+            foreach (var fieldDisplay in selectedFields)
+            {
+                await ProcessConfigurationFieldAsync(fieldDisplay, config, packageVersions, ref templateName, ref templateVersion);
+            }
+
+            // Update packages string from dictionary
+            if (packageVersions.Count > 0)
+            {
+                var packageParts = new List<string>();
+                foreach (var (package, version) in packageVersions)
+                {
+                    if (string.IsNullOrEmpty(version))
+                    {
+                        packageParts.Add(package);
+                    }
+                    else if (version == "--prerelease")
+                    {
+                        packageParts.Add($"{package} {version}");
+                    }
+                    else
+                    {
+                        packageParts.Add($"{package}|{version}");
+                    }
+                }
+                config.Packages = string.Join(",", packageParts);
+            }
+
+            // Update template fields
+            config.TemplateName = templateName;
+            config.TemplateVersion = templateVersion;
+
+            // Display configuration table
+            AnsiConsole.WriteLine();
+            DisplayConfigurationTable(config, packageVersions);
+
+            // Ask if they want to edit again or generate
+            var nextAction = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("\nWhat would you like to do next?")
+                    .AddChoices(new[] { "Edit configuration", "Generate script", "Cancel" }));
+
+            if (nextAction == "Generate script")
+            {
+                keepEditing = false;
+
+                // Generate the script
+                _logger?.LogInformation("Generating installation script");
+
+                var script = await AnsiConsole.Status()
+                    .Spinner(Spinner.Known.Star)
+                    .SpinnerStyle(Style.Parse("green"))
+                    .StartAsync("Generating installation script...", async ctx =>
+                    {
+                        return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+                    });
+
+                _logger?.LogInformation("Script generated successfully");
+
+                ConsoleDisplay.DisplayGeneratedScript(script);
+
+                // Handle script actions (returns to main menu when done)
+                await HandleScriptActionsAsync(script, config, packageVersions, templateName, templateVersion);
+            }
+            else if (nextAction == "Cancel")
+            {
+                keepEditing = false;
+                return; // Return to main menu
+            }
+        }
+    }
+
+    /// <summary>
     /// Handles script actions (returns to main menu when done)
     /// </summary>
     private async Task HandleScriptActionsAsync(string script, ScriptModel? scriptModel = null, Dictionary<string, string>? packageVersions = null, string? templateName = null, string? templateVersion = null)
@@ -1012,8 +1130,17 @@ public class InteractiveModeWorkflow
         }
         else if (action == "Edit")
         {
-            AnsiConsole.MarkupLine("[yellow]Returning to main menu. Select 'Create script from scratch' or 'Create script from defaults' to edit.[/]");
-            // Return to main menu
+            if (scriptModel != null && packageVersions != null && templateName != null && templateVersion != null)
+            {
+                AnsiConsole.MarkupLine("\n[blue]Editing script configuration...[/]\n");
+
+                // Re-enter the configuration editor with existing values
+                await EditConfigurationAsync(scriptModel, packageVersions, templateName, templateVersion);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[yellow]Cannot edit configuration - configuration data not available.[/]");
+            }
         }
         else if (action == "Copy")
         {
