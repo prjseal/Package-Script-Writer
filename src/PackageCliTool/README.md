@@ -130,6 +130,9 @@ psw -h
 psw --version
 psw -v
 
+# Display Umbraco versions table
+psw versions
+
 # Generate default script
 psw --default
 psw -d

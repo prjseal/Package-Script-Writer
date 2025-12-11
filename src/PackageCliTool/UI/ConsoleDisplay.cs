@@ -44,6 +44,7 @@ public static class ConsoleDisplay
   psw [[options]]
   psw template <command> [[options]]
   psw history <command> [[options]]
+  psw versions
 
 [bold yellow]MAIN OPTIONS:[/]
   [green]    --admin-email[/] <email>     Admin email for unattended install
@@ -105,6 +106,9 @@ public static class ConsoleDisplay
 
 [bold yellow]HISTORY OPTIONS:[/]
   [green]    --history-limit[/] <count>  Number of entries to show (default: 10)
+
+[bold yellow]VERSIONS COMMAND:[/]
+  [green]psw versions[/]                 Display Umbraco versions table with support lifecycle information
 
 [bold yellow]EXAMPLES:[/]
   Generate default script:
@@ -174,7 +178,11 @@ public static class ConsoleDisplay
     [cyan]psw --default --no-cache[/]
 
   Clear cache and generate fresh script:
-    [cyan]psw --clear-cache --packages ""uSync"" --project-name MyProject[/]")
+    [cyan]psw --clear-cache --packages ""uSync"" --project-name MyProject[/]
+
+[bold yellow]VERSIONS EXAMPLES:[/]
+  Display Umbraco versions table:
+    [cyan]psw versions[/]")
             .Header("[bold blue]Package Script Writer Help[/]")
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Blue)
@@ -404,5 +412,99 @@ public static void DisplayGeneratedScript(string script, string title = "Generat
         AnsiConsole.Write(panel);
     }
 
+    /// <summary>
+    /// Displays the Umbraco versions table
+    /// </summary>
+    public static void DisplayUmbracoVersions(PSW.Shared.Configuration.PSWConfig pswConfig)
+    {
+        AnsiConsole.Write(
+            new FigletText("Umbraco Versions")
+                .LeftJustified()
+                .Color(Color.Blue));
+
+        AnsiConsole.MarkupLine("[dim]This is a handy table to help you work out which version of Umbraco to use.[/]");
+        AnsiConsole.MarkupLine("[dim]Find out more: https://umbraco.com/products/knowledge-center/long-term-support-and-end-of-life/[/]\n");
+
+        if (pswConfig?.UmbracoVersions == null || !pswConfig.UmbracoVersions.Any())
+        {
+            AnsiConsole.MarkupLine("[yellow]No Umbraco version data available.[/]");
+            return;
+        }
+
+        var oneYearFromNow = DateTime.UtcNow.AddYears(1);
+        const string dateFormat = "MMM dd, yyyy";
+
+        // Create the versions table
+        var table = new Table();
+        table.Border(TableBorder.Rounded);
+        table.BorderColor(Color.Grey);
+
+        // Add columns
+        table.AddColumn(new TableColumn("[bold]Version[/]").Centered());
+        table.AddColumn(new TableColumn("[bold]Release Date[/]").Centered());
+        table.AddColumn(new TableColumn("[bold]Release Type[/]").Centered());
+        table.AddColumn(new TableColumn("[bold]Support Phase[/]").Centered());
+        table.AddColumn(new TableColumn("[bold]Security Phase[/]").Centered());
+        table.AddColumn(new TableColumn("[bold]End of Life[/]").Centered());
+
+        // Add rows
+        foreach (var version in pswConfig.UmbracoVersions)
+        {
+            var isLTS = version.ReleaseType == "LTS";
+            var isEndOfLife = DateTime.UtcNow >= version.EndOfLife;
+            var isSTS = !isLTS;
+            var willEOLInLessThanAYear = !isEndOfLife && oneYearFromNow > version.EndOfLife;
+            var isFutureRelease = version.ReleaseDate > DateTime.UtcNow;
+
+            // Determine color based on status
+            var eolColor = "white";
+            if (isEndOfLife)
+            {
+                eolColor = "red";
+            }
+            else if ((isSTS && !isFutureRelease) || willEOLInLessThanAYear)
+            {
+                eolColor = "yellow";
+            }
+            else if (isFutureRelease)
+            {
+                eolColor = "grey";
+            }
+            else
+            {
+                eolColor = "green";
+            }
+
+            // Version column (with URL if available)
+            var versionText = !string.IsNullOrWhiteSpace(version.Url)
+                ? $"[link={version.Url}]{version.Version}[/]"
+                : version.Version.ToString();
+
+            table.AddRow(
+                versionText,
+                version.ReleaseDate.ToString(dateFormat),
+                isLTS ? $"[bold]{version.ReleaseType}[/]" : (version.ReleaseType ?? ""),
+                version.SupportPhase?.ToString(dateFormat) ?? "",
+                version.SecurityPhase?.ToString(dateFormat) ?? "",
+                $"[{eolColor}]{version.EndOfLife.ToString(dateFormat)}[/]"
+            );
+        }
+
+        AnsiConsole.Write(table);
+
+        // Display key
+        AnsiConsole.WriteLine();
+        var keyTable = new Table();
+        keyTable.Border(TableBorder.Rounded);
+        keyTable.BorderColor(Color.Grey);
+        keyTable.AddColumn(new TableColumn("[bold]Key[/]"));
+
+        keyTable.AddRow("[red]End of Life[/]");
+        keyTable.AddRow("[yellow]Standard Term Support (STS) or End of Life within 1 year from today[/]");
+        keyTable.AddRow("[green]Long Term Support (LTS) and more than 1 year before end of life[/]");
+        keyTable.AddRow("[grey]Future release[/]");
+
+        AnsiConsole.Write(keyTable);
+    }
 
 }
