@@ -346,7 +346,7 @@ public class CommandLineOptionsTests
         var options = CommandLineOptions.Parse(args);
 
         // Assert
-        options.Verbose.Should().BeTrue();
+        options.VerboseMode.Should().BeTrue();
     }
 
     [Fact]
@@ -484,7 +484,7 @@ public class CommandLineOptionsTests
         var options = CommandLineOptions.Parse(args);
 
         // Assert
-        options.DisableCache.Should().BeTrue();
+        options.NoCache.Should().BeTrue();
         options.ClearCache.Should().BeTrue();
     }
 

@@ -291,7 +291,9 @@ public class TemplateService
                 },
                 Docker = new DockerConfig
                 {
-                    Dockerfile = options.IncludeDockerfile,
+                    Dockerfile = options.IncludeDockerfile.HasValue 
+                        ? options.IncludeDockerfile.Value 
+                        : false,
                     DockerCompose = options.IncludeDockerCompose
                 },
                 Unattended = new UnattendedConfig

@@ -63,24 +63,46 @@ public class CliModeWorkflow
         // Create default script model matching website defaults
         var model = new ScriptModel
         {
-            TemplateName = options.TemplatePackageName,
-            TemplateVersion = "", // Latest stable
-            ProjectName = "MyProject",
+            TemplateName = !string.IsNullOrWhiteSpace(options.TemplatePackageName) 
+                ? options.TemplatePackageName
+                : "Umbraco.Templates",
+            TemplateVersion = !string.IsNullOrWhiteSpace(options.TemplateVersion)
+                ? options.TemplateVersion
+                : "",
+            ProjectName = !string.IsNullOrWhiteSpace(options.ProjectName)
+                ? options.ProjectName 
+                : "MyProject",
             CreateSolutionFile = true,
-            SolutionName = "MySolution",
+            SolutionName = !string.IsNullOrWhiteSpace(options.SolutionName) 
+                ? options.SolutionName 
+                : "MySolution",
             IncludeStarterKit = true,
-            StarterKitPackage = "clean",
-            IncludeDockerfile = false,
+            StarterKitPackage = !string.IsNullOrWhiteSpace(options.StarterKitPackage) 
+                ? options.StarterKitPackage
+                : "clean",
+            IncludeDockerfile = options.IncludeDockerfile.HasValue
+                ? options.IncludeDockerfile.Value
+                : false,
             IncludeDockerCompose = false,
             CanIncludeDocker = false,
             UseUnattendedInstall = true,
-            DatabaseType = "SQLite",
-            UserEmail = "admin@example.com",
-            UserPassword = "1234567890",
-            UserFriendlyName = "Administrator",
+            DatabaseType = !string.IsNullOrWhiteSpace(options.DatabaseType) 
+                ? options.DatabaseType 
+                : "SQLite",
+            UserEmail = !string.IsNullOrWhiteSpace(options.AdminEmail) 
+                ? options.AdminEmail
+                : "admin@example.com",
+            UserPassword = !string.IsNullOrWhiteSpace(options.AdminPassword)
+                ? options.AdminPassword
+                : "1234567890",
+            UserFriendlyName = !string.IsNullOrWhiteSpace(options.AdminName)
+                ? options.AdminName
+                : "Administrator",
             OnelinerOutput = false,
             RemoveComments = false
         };
+
+        HandlePackages(options, model);
 
         var script = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
@@ -125,9 +147,11 @@ public class CliModeWorkflow
             SolutionName = options.SolutionName,
             IncludeStarterKit = options.IncludeStarterKit,
             StarterKitPackage = options.StarterKitPackage,
-            IncludeDockerfile = options.IncludeDockerfile,
+            IncludeDockerfile = options.IncludeDockerfile.HasValue
+                ? options.IncludeDockerfile.Value
+                : false,
             IncludeDockerCompose = options.IncludeDockerCompose,
-            CanIncludeDocker = options.IncludeDockerfile || options.IncludeDockerCompose,
+            CanIncludeDocker = options.IncludeDockerfile.HasValue && options.IncludeDockerfile.Value || options.IncludeDockerCompose,
             UseUnattendedInstall = options.UseUnattended,
             DatabaseType = options.DatabaseType,
             ConnectionString = options.ConnectionString,
@@ -138,6 +162,30 @@ public class CliModeWorkflow
             RemoveComments = options.RemoveComments
         };
 
+        HandlePackages(options, model);
+
+        // Generate the script
+        _logger?.LogInformation("Generating installation script via API");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
+                //return await _apiClient.GenerateScriptAsync(model);
+            });
+
+        _logger?.LogInformation("Script generated successfully");
+
+        ConsoleDisplay.DisplayGeneratedScript(script);
+
+        // Handle auto-run or interactive run
+        await HandleScriptExecutionAsync(script, options);
+    }
+
+    private void HandlePackages(CommandLineOptions options, ScriptModel model)
+    {
         // Handle packages
         if (!string.IsNullOrWhiteSpace(options.Packages))
         {
@@ -194,25 +242,6 @@ public class CliModeWorkflow
                 }
             }
         }
-
-        // Generate the script
-        _logger?.LogInformation("Generating installation script via API");
-
-        var script = await AnsiConsole.Status()
-            .Spinner(Spinner.Known.Star)
-            .SpinnerStyle(Style.Parse("green"))
-            .StartAsync("Generating installation script...", async ctx =>
-            {
-                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-                //return await _apiClient.GenerateScriptAsync(model);
-            });
-
-        _logger?.LogInformation("Script generated successfully");
-
-        ConsoleDisplay.DisplayGeneratedScript(script);
-
-        // Handle auto-run or interactive run
-        await HandleScriptExecutionAsync(script, options);
     }
 
     /// <summary>

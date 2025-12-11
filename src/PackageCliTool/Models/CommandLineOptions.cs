@@ -18,7 +18,7 @@ public class CommandLineOptions
     public string? SolutionName { get; set; }
     public bool IncludeStarterKit { get; set; }
     public string? StarterKitPackage { get; set; }
-    public bool IncludeDockerfile { get; set; }
+    public bool? IncludeDockerfile { get; set; }
     public bool IncludeDockerCompose { get; set; }
     public bool UseUnattended { get; set; }
     public string? DatabaseType { get; set; }
@@ -81,7 +81,7 @@ public class CommandLineOptions
                !string.IsNullOrWhiteSpace(SolutionName) ||
                IncludeStarterKit ||
                !string.IsNullOrWhiteSpace(StarterKitPackage) ||
-               IncludeDockerfile ||
+               IncludeDockerfile.HasValue ||
                IncludeDockerCompose ||
                UseUnattended ||
                !string.IsNullOrWhiteSpace(DatabaseType) ||

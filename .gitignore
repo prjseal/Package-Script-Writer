@@ -32,3 +32,5 @@
 /src/PSW.Shared/bin
 /src/PSW.ApiDiagnostic/bin
 /src/PSW.ApiDiagnostic/obj
+/src/PackageCliTool.Tests/bin
+/src/PackageCliTool.Tests/obj
