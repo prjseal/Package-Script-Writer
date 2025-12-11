@@ -140,7 +140,9 @@ public class CliModeWorkflow
     {
         _logger?.LogInformation("Generating custom script from command-line options");
 
-        var projectName = options.ProjectName ?? "MyProject";
+        var projectName = !string.IsNullOrWhiteSpace(options.ProjectName)
+            ? options.ProjectName
+            : "MyProject";
 
         // Validate inputs
         InputValidator.ValidateProjectName(projectName);
@@ -152,17 +154,25 @@ public class CliModeWorkflow
 
         var model = new ScriptModel
         {
-            TemplateName = options.TemplatePackageName,
-            TemplateVersion = options.TemplateVersion ?? "",
+            TemplateName = !string.IsNullOrWhiteSpace(options.TemplatePackageName)
+                ? options.TemplatePackageName
+                : "Umbraco.Templates",
+            TemplateVersion = !string.IsNullOrWhiteSpace(options.TemplateVersion)
+                ? options.TemplateVersion
+                : "",
             ProjectName = projectName,
             CreateSolutionFile = options.CreateSolution.HasValue
                 ? options.CreateSolution.Value
                 : false,
-            SolutionName = options.SolutionName,
+            SolutionName = !string.IsNullOrWhiteSpace(options.SolutionName)
+                ? options.SolutionName
+                : null,
             IncludeStarterKit = options.IncludeStarterKit.HasValue
                 ? options.IncludeStarterKit.Value
                 : false,
-            StarterKitPackage = options.StarterKitPackage,
+            StarterKitPackage = !string.IsNullOrWhiteSpace(options.StarterKitPackage)
+                ? options.StarterKitPackage
+                : null,
             IncludeDockerfile = options.IncludeDockerfile.HasValue
                 ? options.IncludeDockerfile.Value
                 : false,
@@ -173,11 +183,21 @@ public class CliModeWorkflow
             UseUnattendedInstall = options.UseUnattended.HasValue
                 ? options.UseUnattended.Value
                 : false,
-            DatabaseType = options.DatabaseType,
-            ConnectionString = options.ConnectionString,
-            UserFriendlyName = options.AdminName,
-            UserEmail = options.AdminEmail,
-            UserPassword = options.AdminPassword,
+            DatabaseType = !string.IsNullOrWhiteSpace(options.DatabaseType)
+                ? options.DatabaseType
+                : null,
+            ConnectionString = !string.IsNullOrWhiteSpace(options.ConnectionString)
+                ? options.ConnectionString
+                : null,
+            UserFriendlyName = !string.IsNullOrWhiteSpace(options.AdminName)
+                ? options.AdminName
+                : null,
+            UserEmail = !string.IsNullOrWhiteSpace(options.AdminEmail)
+                ? options.AdminEmail
+                : null,
+            UserPassword = !string.IsNullOrWhiteSpace(options.AdminPassword)
+                ? options.AdminPassword
+                : null,
             OnelinerOutput = options.OnelinerOutput.HasValue
                 ? options.OnelinerOutput.Value
                 : false,
@@ -275,7 +295,9 @@ public class CliModeWorkflow
     {
         if (options.AutoRun || !string.IsNullOrWhiteSpace(options.RunDirectory))
         {
-            var targetDir = options.RunDirectory ?? Directory.GetCurrentDirectory();
+            var targetDir = !string.IsNullOrWhiteSpace(options.RunDirectory)
+                ? options.RunDirectory
+                : Directory.GetCurrentDirectory();
 
             // Validate and expand path
             InputValidator.ValidateDirectoryPath(targetDir);

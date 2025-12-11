@@ -275,15 +275,21 @@ public class TemplateService
                 Template = new TemplateInfo
                 {
                     Name = "Umbraco.Templates",
-                    Version = options.TemplateVersion ?? ""
+                    Version = !string.IsNullOrWhiteSpace(options.TemplateVersion)
+                        ? options.TemplateVersion
+                        : ""
                 },
                 Project = new ProjectInfo
                 {
-                    Name = options.ProjectName ?? "MyProject",
+                    Name = !string.IsNullOrWhiteSpace(options.ProjectName)
+                        ? options.ProjectName
+                        : "MyProject",
                     CreateSolution = options.CreateSolution.HasValue
                         ? options.CreateSolution.Value
                         : true,
-                    SolutionName = options.SolutionName
+                    SolutionName = !string.IsNullOrWhiteSpace(options.SolutionName)
+                        ? options.SolutionName
+                        : null
                 },
                 Packages = ParsePackages(options.Packages),
                 StarterKit = new StarterKitConfig
@@ -291,7 +297,9 @@ public class TemplateService
                     Enabled = options.IncludeStarterKit.HasValue
                         ? options.IncludeStarterKit.Value
                         : true,
-                    Package = options.StarterKitPackage
+                    Package = !string.IsNullOrWhiteSpace(options.StarterKitPackage)
+                        ? options.StarterKitPackage
+                        : null
                 },
                 Docker = new DockerConfig
                 {
@@ -309,14 +317,24 @@ public class TemplateService
                         : true,
                     Database = new DatabaseConfig
                     {
-                        Type = options.DatabaseType ?? "SQLite",
-                        ConnectionString = options.ConnectionString
+                        Type = !string.IsNullOrWhiteSpace(options.DatabaseType)
+                            ? options.DatabaseType
+                            : "SQLite",
+                        ConnectionString = !string.IsNullOrWhiteSpace(options.ConnectionString)
+                            ? options.ConnectionString
+                            : null
                     },
                     Admin = new AdminConfig
                     {
-                        Name = options.AdminName ?? "Administrator",
-                        Email = options.AdminEmail ?? "admin@example.com",
-                        Password = options.AdminPassword ?? "<prompt>"
+                        Name = !string.IsNullOrWhiteSpace(options.AdminName)
+                            ? options.AdminName
+                            : "Administrator",
+                        Email = !string.IsNullOrWhiteSpace(options.AdminEmail)
+                            ? options.AdminEmail
+                            : "admin@example.com",
+                        Password = !string.IsNullOrWhiteSpace(options.AdminPassword)
+                            ? options.AdminPassword
+                            : "<prompt>"
                     }
                 },
                 Output = new OutputConfig
@@ -334,7 +352,9 @@ public class TemplateService
                 Execution = new ExecutionConfig
                 {
                     AutoRun = options.AutoRun,
-                    RunDirectory = options.RunDirectory ?? "."
+                    RunDirectory = !string.IsNullOrWhiteSpace(options.RunDirectory)
+                        ? options.RunDirectory
+                        : "."
                 }
             }
         };
