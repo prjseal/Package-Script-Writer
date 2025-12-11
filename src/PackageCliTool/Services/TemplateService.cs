@@ -280,25 +280,33 @@ public class TemplateService
                 Project = new ProjectInfo
                 {
                     Name = options.ProjectName ?? "MyProject",
-                    CreateSolution = options.CreateSolution,
+                    CreateSolution = options.CreateSolution.HasValue
+                        ? options.CreateSolution.Value
+                        : true,
                     SolutionName = options.SolutionName
                 },
                 Packages = ParsePackages(options.Packages),
                 StarterKit = new StarterKitConfig
                 {
-                    Enabled = options.IncludeStarterKit,
+                    Enabled = options.IncludeStarterKit.HasValue
+                        ? options.IncludeStarterKit.Value
+                        : true,
                     Package = options.StarterKitPackage
                 },
                 Docker = new DockerConfig
                 {
-                    Dockerfile = options.IncludeDockerfile.HasValue 
-                        ? options.IncludeDockerfile.Value 
+                    Dockerfile = options.IncludeDockerfile.HasValue
+                        ? options.IncludeDockerfile.Value
                         : false,
-                    DockerCompose = options.IncludeDockerCompose
+                    DockerCompose = options.IncludeDockerCompose.HasValue
+                        ? options.IncludeDockerCompose.Value
+                        : false
                 },
                 Unattended = new UnattendedConfig
                 {
-                    Enabled = options.UseUnattended,
+                    Enabled = options.UseUnattended.HasValue
+                        ? options.UseUnattended.Value
+                        : true,
                     Database = new DatabaseConfig
                     {
                         Type = options.DatabaseType ?? "SQLite",
@@ -313,9 +321,15 @@ public class TemplateService
                 },
                 Output = new OutputConfig
                 {
-                    Oneliner = options.OnelinerOutput,
-                    RemoveComments = options.RemoveComments,
-                    IncludePrerelease = options.IncludePrerelease
+                    Oneliner = options.OnelinerOutput.HasValue
+                        ? options.OnelinerOutput.Value
+                        : false,
+                    RemoveComments = options.RemoveComments.HasValue
+                        ? options.RemoveComments.Value
+                        : false,
+                    IncludePrerelease = options.IncludePrerelease.HasValue
+                        ? options.IncludePrerelease.Value
+                        : false
                 },
                 Execution = new ExecutionConfig
                 {

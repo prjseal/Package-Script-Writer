@@ -63,33 +63,41 @@ public class CliModeWorkflow
         // Create default script model matching website defaults
         var model = new ScriptModel
         {
-            TemplateName = !string.IsNullOrWhiteSpace(options.TemplatePackageName) 
+            TemplateName = !string.IsNullOrWhiteSpace(options.TemplatePackageName)
                 ? options.TemplatePackageName
                 : "Umbraco.Templates",
             TemplateVersion = !string.IsNullOrWhiteSpace(options.TemplateVersion)
                 ? options.TemplateVersion
                 : "",
             ProjectName = !string.IsNullOrWhiteSpace(options.ProjectName)
-                ? options.ProjectName 
+                ? options.ProjectName
                 : "MyProject",
-            CreateSolutionFile = true,
-            SolutionName = !string.IsNullOrWhiteSpace(options.SolutionName) 
-                ? options.SolutionName 
+            CreateSolutionFile = options.CreateSolution.HasValue
+                ? options.CreateSolution.Value
+                : true,
+            SolutionName = !string.IsNullOrWhiteSpace(options.SolutionName)
+                ? options.SolutionName
                 : "MySolution",
-            IncludeStarterKit = true,
-            StarterKitPackage = !string.IsNullOrWhiteSpace(options.StarterKitPackage) 
+            IncludeStarterKit = options.IncludeStarterKit.HasValue
+                ? options.IncludeStarterKit.Value
+                : true,
+            StarterKitPackage = !string.IsNullOrWhiteSpace(options.StarterKitPackage)
                 ? options.StarterKitPackage
                 : "clean",
             IncludeDockerfile = options.IncludeDockerfile.HasValue
                 ? options.IncludeDockerfile.Value
                 : false,
-            IncludeDockerCompose = false,
+            IncludeDockerCompose = options.IncludeDockerCompose.HasValue
+                ? options.IncludeDockerCompose.Value
+                : false,
             CanIncludeDocker = false,
-            UseUnattendedInstall = true,
-            DatabaseType = !string.IsNullOrWhiteSpace(options.DatabaseType) 
-                ? options.DatabaseType 
+            UseUnattendedInstall = options.UseUnattended.HasValue
+                ? options.UseUnattended.Value
+                : true,
+            DatabaseType = !string.IsNullOrWhiteSpace(options.DatabaseType)
+                ? options.DatabaseType
                 : "SQLite",
-            UserEmail = !string.IsNullOrWhiteSpace(options.AdminEmail) 
+            UserEmail = !string.IsNullOrWhiteSpace(options.AdminEmail)
                 ? options.AdminEmail
                 : "admin@example.com",
             UserPassword = !string.IsNullOrWhiteSpace(options.AdminPassword)
@@ -98,8 +106,12 @@ public class CliModeWorkflow
             UserFriendlyName = !string.IsNullOrWhiteSpace(options.AdminName)
                 ? options.AdminName
                 : "Administrator",
-            OnelinerOutput = false,
-            RemoveComments = false
+            OnelinerOutput = options.OnelinerOutput.HasValue
+                ? options.OnelinerOutput.Value
+                : false,
+            RemoveComments = options.RemoveComments.HasValue
+                ? options.RemoveComments.Value
+                : false
         };
 
         HandlePackages(options, model);
@@ -143,23 +155,35 @@ public class CliModeWorkflow
             TemplateName = options.TemplatePackageName,
             TemplateVersion = options.TemplateVersion ?? "",
             ProjectName = projectName,
-            CreateSolutionFile = options.CreateSolution,
+            CreateSolutionFile = options.CreateSolution.HasValue
+                ? options.CreateSolution.Value
+                : false,
             SolutionName = options.SolutionName,
-            IncludeStarterKit = options.IncludeStarterKit,
+            IncludeStarterKit = options.IncludeStarterKit.HasValue
+                ? options.IncludeStarterKit.Value
+                : false,
             StarterKitPackage = options.StarterKitPackage,
             IncludeDockerfile = options.IncludeDockerfile.HasValue
                 ? options.IncludeDockerfile.Value
                 : false,
-            IncludeDockerCompose = options.IncludeDockerCompose,
-            CanIncludeDocker = options.IncludeDockerfile.HasValue && options.IncludeDockerfile.Value || options.IncludeDockerCompose,
-            UseUnattendedInstall = options.UseUnattended,
+            IncludeDockerCompose = options.IncludeDockerCompose.HasValue
+                ? options.IncludeDockerCompose.Value
+                : false,
+            CanIncludeDocker = (options.IncludeDockerfile.HasValue && options.IncludeDockerfile.Value) || (options.IncludeDockerCompose.HasValue && options.IncludeDockerCompose.Value),
+            UseUnattendedInstall = options.UseUnattended.HasValue
+                ? options.UseUnattended.Value
+                : false,
             DatabaseType = options.DatabaseType,
             ConnectionString = options.ConnectionString,
             UserFriendlyName = options.AdminName,
             UserEmail = options.AdminEmail,
             UserPassword = options.AdminPassword,
-            OnelinerOutput = options.OnelinerOutput,
-            RemoveComments = options.RemoveComments
+            OnelinerOutput = options.OnelinerOutput.HasValue
+                ? options.OnelinerOutput.Value
+                : false,
+            RemoveComments = options.RemoveComments.HasValue
+                ? options.RemoveComments.Value
+                : false
         };
 
         HandlePackages(options, model);
