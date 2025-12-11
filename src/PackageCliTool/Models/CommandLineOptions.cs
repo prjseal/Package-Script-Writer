@@ -14,21 +14,21 @@ public class CommandLineOptions
     public string? TemplatePackageName { get; set; }
     public string? TemplateVersion { get; set; }
     public string? ProjectName { get; set; }
-    public bool CreateSolution { get; set; }
+    public bool? CreateSolution { get; set; }
     public string? SolutionName { get; set; }
-    public bool IncludeStarterKit { get; set; }
+    public bool? IncludeStarterKit { get; set; }
     public string? StarterKitPackage { get; set; }
     public bool? IncludeDockerfile { get; set; }
-    public bool IncludeDockerCompose { get; set; }
-    public bool UseUnattended { get; set; }
+    public bool? IncludeDockerCompose { get; set; }
+    public bool? UseUnattended { get; set; }
     public string? DatabaseType { get; set; }
     public string? ConnectionString { get; set; }
     public string? AdminName { get; set; }
     public string? AdminEmail { get; set; }
     public string? AdminPassword { get; set; }
-    public bool OnelinerOutput { get; set; }
-    public bool RemoveComments { get; set; }
-    public bool IncludePrerelease { get; set; }
+    public bool? OnelinerOutput { get; set; }
+    public bool? RemoveComments { get; set; }
+    public bool? IncludePrerelease { get; set; }
     public bool AutoRun { get; set; }
     public string? RunDirectory { get; set; }
     public bool VerboseMode { get; set; }
@@ -77,21 +77,21 @@ public class CommandLineOptions
                !string.IsNullOrWhiteSpace(TemplatePackageName) ||
                !string.IsNullOrWhiteSpace(TemplateVersion) ||
                !string.IsNullOrWhiteSpace(ProjectName) ||
-               CreateSolution ||
+               CreateSolution.HasValue ||
                !string.IsNullOrWhiteSpace(SolutionName) ||
-               IncludeStarterKit ||
+               IncludeStarterKit.HasValue ||
                !string.IsNullOrWhiteSpace(StarterKitPackage) ||
                IncludeDockerfile.HasValue ||
-               IncludeDockerCompose ||
-               UseUnattended ||
+               IncludeDockerCompose.HasValue ||
+               UseUnattended.HasValue ||
                !string.IsNullOrWhiteSpace(DatabaseType) ||
                !string.IsNullOrWhiteSpace(ConnectionString) ||
                !string.IsNullOrWhiteSpace(AdminName) ||
                !string.IsNullOrWhiteSpace(AdminEmail) ||
                !string.IsNullOrWhiteSpace(AdminPassword) ||
-               OnelinerOutput ||
-               RemoveComments ||
-               IncludePrerelease ||
+               OnelinerOutput.HasValue ||
+               RemoveComments.HasValue ||
+               IncludePrerelease.HasValue ||
                AutoRun ||
                !string.IsNullOrWhiteSpace(RunDirectory);
     }
