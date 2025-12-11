@@ -7,6 +7,7 @@ using PackageCliTool.Logging;
 using PackageCliTool.Validation;
 using PackageCliTool.Extensions;
 using PSW.Shared.Services;
+using PSW.Shared.Configuration;
 
 namespace PackageCliTool.Workflows;
 
@@ -22,6 +23,7 @@ public class InteractiveModeWorkflow
     private readonly VersionCheckService _versionCheckService;
     private readonly ILogger? _logger;
     private readonly IScriptGeneratorService _scriptGeneratorService;
+    private readonly PSWConfig _pswConfig;
 
     public InteractiveModeWorkflow(
         ApiClient apiClient,
@@ -29,6 +31,7 @@ public class InteractiveModeWorkflow
         ScriptExecutor scriptExecutor,
         IScriptGeneratorService scriptGeneratorService,
         VersionCheckService versionCheckService,
+        PSWConfig pswConfig,
         ILogger? logger = null)
     {
         _apiClient = apiClient;
@@ -37,6 +40,7 @@ public class InteractiveModeWorkflow
         _templateService = new TemplateService(logger: logger);
         _versionCheckService = versionCheckService;
         _scriptGeneratorService = scriptGeneratorService;
+        _pswConfig = pswConfig;
         _logger = logger;
     }
 
@@ -66,6 +70,7 @@ public class InteractiveModeWorkflow
                     {
                         "Create script from scratch",
                         "Create script from defaults",
+                        "See Umbraco versions table",
                         "See templates",
                         "See history",
                         "See help",
@@ -81,6 +86,10 @@ public class InteractiveModeWorkflow
 
                 case "Create script from defaults":
                     await RunConfigurationEditorAsync(useDefaults: true);
+                    break;
+
+                case "See Umbraco versions table":
+                    ShowUmbracoVersionsTable();
                     break;
 
                 case "See templates":
@@ -1149,6 +1158,18 @@ public class InteractiveModeWorkflow
             AnsiConsole.MarkupLine("\n[blue]Returning to main menu...[/]\n");
             _logger?.LogInformation("User chose to start over - returning to main menu");
         }
+    }
+
+    /// <summary>
+    /// Shows the Umbraco versions table
+    /// </summary>
+    private void ShowUmbracoVersionsTable()
+    {
+        _logger?.LogInformation("Displaying Umbraco versions table");
+
+        AnsiConsole.WriteLine();
+        ConsoleDisplay.DisplayUmbracoVersions(_pswConfig);
+        AnsiConsole.WriteLine();
     }
 
     /// <summary>

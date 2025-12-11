@@ -197,12 +197,14 @@ class Program
                 {
                     try
                     {
+                        var pswConfig = serviceProvider.GetRequiredService<IOptions<PSWConfig>>().Value;
                         var interactiveWorkflow = new InteractiveModeWorkflow(
                             apiClient,
                             packageSelector,
                             scriptExecutor,
                             scriptGeneratorService,
                             versionCheckService,
+                            pswConfig,
                             logger);
                         await interactiveWorkflow.RunAsync();
                         keepRunning = false; // Exit loop on normal completion
