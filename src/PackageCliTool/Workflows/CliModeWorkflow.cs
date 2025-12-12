@@ -312,8 +312,8 @@ public class CliModeWorkflow
                 // Validate version
                 InputValidator.ValidateVersion(options.StarterKitVersion);
 
-                // Store in pipe format for the model
-                model.StarterKitPackage = $"{options.StarterKitPackage}|{options.StarterKitVersion}";
+                // Store with --version flag for the model
+                model.StarterKitPackage = $"{options.StarterKitPackage} --version {options.StarterKitVersion}";
 
                 AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} version {options.StarterKitVersion}");
                 _logger?.LogDebug("Using starter kit {Package} with version {Version}", options.StarterKitPackage, options.StarterKitVersion);
