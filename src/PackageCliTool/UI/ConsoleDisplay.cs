@@ -436,7 +436,7 @@ public static void DisplayGeneratedScript(string script, string title = "Generat
 
         // Create the versions table
         var table = new Table();
-        table.Border(TableBorder.Rounded);
+        table.Border(TableBorder.Horizontal);
         table.BorderColor(Color.Grey);
 
         // Add columns
@@ -457,36 +457,37 @@ public static void DisplayGeneratedScript(string script, string title = "Generat
             var isFutureRelease = version.ReleaseDate > DateTime.UtcNow;
 
             // Determine color based on status
-            var eolColor = "white";
+            var rowColor = "white";
             if (isEndOfLife)
             {
-                eolColor = "red";
+                rowColor = "red";
             }
             else if ((isSTS && !isFutureRelease) || willEOLInLessThanAYear)
             {
-                eolColor = "yellow";
+                rowColor = "yellow";
             }
             else if (isFutureRelease)
             {
-                eolColor = "grey";
+                rowColor = "grey";
             }
             else
             {
-                eolColor = "green";
+                rowColor = "green";
             }
 
             // Version column (with URL if available)
             var versionText = !string.IsNullOrWhiteSpace(version.Url)
-                ? $"[link={version.Url}]{version.Version}[/]"
-                : version.Version.ToString();
+                ? $"[{rowColor}][link={version.Url}]{version.Version}[/][/]"
+                : $"[{rowColor}]{version.Version}[/]";
 
+            // Apply color to all cells in the row
             table.AddRow(
                 versionText,
-                version.ReleaseDate.ToString(dateFormat),
-                isLTS ? $"[bold]{version.ReleaseType}[/]" : (version.ReleaseType ?? ""),
-                version.SupportPhase?.ToString(dateFormat) ?? "",
-                version.SecurityPhase?.ToString(dateFormat) ?? "",
-                $"[{eolColor}]{version.EndOfLife.ToString(dateFormat)}[/]"
+                $"[{rowColor}]{version.ReleaseDate.ToString(dateFormat)}[/]",
+                isLTS ? $"[{rowColor}][bold]{version.ReleaseType}[/][/]" : $"[{rowColor}]{version.ReleaseType ?? ""}[/]",
+                $"[{rowColor}]{version.SupportPhase?.ToString(dateFormat) ?? ""}[/]",
+                $"[{rowColor}]{version.SecurityPhase?.ToString(dateFormat) ?? ""}[/]",
+                $"[{rowColor}]{version.EndOfLife.ToString(dateFormat)}[/]"
             );
         }
 
