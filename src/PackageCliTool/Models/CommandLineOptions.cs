@@ -131,7 +131,29 @@ public class CommandLineOptions
 
                 case "-t":
                 case "--template-package":
-                    options.TemplatePackageName = GetNextArgument(args, ref i);
+                    var templateArg = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(templateArg))
+                    {
+                        // Check if version is specified with pipe character (e.g., "Umbraco.Templates|17.0.2")
+                        if (templateArg.Contains('|'))
+                        {
+                            var parts = templateArg.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length == 2)
+                            {
+                                options.TemplatePackageName = parts[0].Trim();
+                                options.TemplateVersion = parts[1].Trim();
+                            }
+                            else
+                            {
+                                // Invalid format, just set the whole thing as template name
+                                options.TemplatePackageName = templateArg;
+                            }
+                        }
+                        else
+                        {
+                            options.TemplatePackageName = templateArg;
+                        }
+                    }
                     break;
 
                 case "-n":

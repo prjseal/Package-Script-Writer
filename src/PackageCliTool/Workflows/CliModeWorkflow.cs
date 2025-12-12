@@ -116,6 +116,7 @@ public class CliModeWorkflow
 
         HandlePackages(options, model);
         HandleStarterKitPackage(options, model);
+        HandleTemplatePackage(options, model);
 
         var script = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
@@ -211,6 +212,7 @@ public class CliModeWorkflow
 
         HandlePackages(options, model);
         HandleStarterKitPackage(options, model);
+        HandleTemplatePackage(options, model);
 
         // Generate the script
         _logger?.LogInformation("Generating installation script via API");
@@ -346,6 +348,38 @@ public class CliModeWorkflow
                     model.IncludeStarterKit = true;
                     model.StarterKitPackage = processedPackages[0];
                 }
+            }
+        }
+    }
+
+    private void HandleTemplatePackage(CommandLineOptions options, ScriptModel model)
+    {
+        // Handle template package
+        if (!string.IsNullOrWhiteSpace(options.TemplatePackageName))
+        {
+            _logger?.LogDebug("Processing template package: {TemplatePackageName}", options.TemplatePackageName);
+
+            // Validate template package name
+            InputValidator.ValidatePackageName(options.TemplatePackageName);
+
+            // Update model with template package name
+            model.TemplateName = options.TemplatePackageName;
+
+            // Handle template version if specified
+            if (!string.IsNullOrWhiteSpace(options.TemplateVersion))
+            {
+                // Validate version
+                InputValidator.ValidateVersion(options.TemplateVersion);
+
+                model.TemplateVersion = options.TemplateVersion;
+
+                AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} version {options.TemplateVersion}");
+                _logger?.LogDebug("Using template {Template} with version {Version}", options.TemplatePackageName, options.TemplateVersion);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} (latest version)");
+                _logger?.LogDebug("Using template {Template} with latest version", options.TemplatePackageName);
             }
         }
     }
