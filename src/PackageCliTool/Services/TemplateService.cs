@@ -314,7 +314,7 @@ public class TemplateService
                 {
                     Enabled = options.UseUnattended.HasValue
                         ? options.UseUnattended.Value
-                        : true,
+                        : false,
                     Database = new DatabaseConfig
                     {
                         Type = !string.IsNullOrWhiteSpace(options.DatabaseType)
@@ -334,7 +334,7 @@ public class TemplateService
                             : "admin@example.com",
                         Password = !string.IsNullOrWhiteSpace(options.AdminPassword)
                             ? options.AdminPassword
-                            : "<prompt>"
+                            : "1234567890"
                     }
                 },
                 Output = new OutputConfig
@@ -414,7 +414,7 @@ public class TemplateService
                     {
                         Name = scriptModel.UserFriendlyName ?? "Administrator",
                         Email = scriptModel.UserEmail ?? "admin@example.com",
-                        Password = "<prompt>" // Don't save actual password
+                        Password = scriptModel.UserPassword ?? "1234567890"
                     }
                 },
                 Output = new OutputConfig

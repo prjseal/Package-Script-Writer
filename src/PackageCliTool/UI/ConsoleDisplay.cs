@@ -58,7 +58,7 @@ public static class ConsoleDisplay
   [green]    --docker-compose[/]          Include Docker Compose file in generated script
   [green]-h, --help[/]                    Show this help information
   [green]    --include-prerelease[/]      Include prerelease package versions
-  [green]-k, --starter-kit[/]             Include a starter kit
+  [green]-k, --starter-kit[/] <package>   Starter kit package name
   [green]-n, --project-name[/] <name>     Project name (default: MyProject)
   [green]    --no-cache[/]                Disable API response caching (bypass cache)
   [green]-o, --oneliner[/]                Output script as one-liner
@@ -68,12 +68,13 @@ public static class ConsoleDisplay
                                    Example: ""uSync|17.0.0,clean|7.0.1""
   [green]-r, --remove-comments[/]         Remove comments from generated script
   [green]    --run-dir[/] <directory>     Directory to run script in
-  [green]-s, --solution[/]                Create a solution file
-  [green]    --solution-name[/] <name>    Solution name (used with --solution)
+  [green]-s, --solution[/]                Solution name
   [green]    --starter-kit-package[/] <pkg> Starter kit package name
-  [green]-t, --template-version[/] <ver>  Template version (Latest, LTS, or specific version)
-  [green]    --template-package[/] <name> Template package name (optional, skips template install if not specified)
-  [green]-u, --unattended[/]              Use unattended install
+  [green]-t, --template-package[/] <package>     Comma-separated list of packages with optional version
+                                   Format: ""Package|Version""
+                                   Or just template name: ""Umbraco.Templates"" (uses latest)
+                                   Example: ""Umbraco.Templates|17.0.3""
+  [green]-u, --unattended-defaults[/]     Use unattended install defaults
   [green]    --update-packages[/]         Update package list cache from marketplace
   [green]-v, --version[/]                 Show version information
   [green]    --verbose[/]                 Enable verbose logging mode
@@ -119,10 +120,10 @@ public static class ConsoleDisplay
     [cyan]psw -p ""uSync|17.0.0,Umbraco.Forms"" -n MyProject[/]
 
   Specify template package and version:
-    [cyan]psw --template-package Umbraco.Templates --template-version 14.3.0 -n MyProject[/]
+    [cyan]psw -t ""Umbraco.Templates|17.0.2"" -n MyProject[/]
 
   Full configuration example:
-    [cyan]psw -p ""uSync|17.0.0"" -n MyProject -s --solution-name MySolution -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run[/]
+    [cyan]psw -p ""uSync|17.0.0"" -n MyProject -s MySolution -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run[/]
 
   Interactive mode (no flags):
     [cyan]psw[/]

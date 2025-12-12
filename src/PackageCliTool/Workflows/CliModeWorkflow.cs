@@ -115,6 +115,7 @@ public class CliModeWorkflow
         };
 
         HandlePackages(options, model);
+        HandleStarterKitPackage(options, model);
 
         var script = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
@@ -156,14 +157,16 @@ public class CliModeWorkflow
         {
             TemplateName = !string.IsNullOrWhiteSpace(options.TemplatePackageName)
                 ? options.TemplatePackageName
-                : "Umbraco.Templates",
+                : null,
             TemplateVersion = !string.IsNullOrWhiteSpace(options.TemplateVersion)
                 ? options.TemplateVersion
-                : "",
-            ProjectName = projectName,
+                : null,
+            ProjectName = !string.IsNullOrWhiteSpace(options.ProjectName)
+                ? options.ProjectName
+                : null,
             CreateSolutionFile = options.CreateSolution.HasValue
                 ? options.CreateSolution.Value
-                : false,
+                : !string.IsNullOrWhiteSpace(options.SolutionName),
             SolutionName = !string.IsNullOrWhiteSpace(options.SolutionName)
                 ? options.SolutionName
                 : null,
@@ -207,6 +210,7 @@ public class CliModeWorkflow
         };
 
         HandlePackages(options, model);
+        HandleStarterKitPackage(options, model);
 
         // Generate the script
         _logger?.LogInformation("Generating installation script via API");
@@ -283,6 +287,64 @@ public class CliModeWorkflow
                 if (processedPackages.Count > 0)
                 {
                     model.Packages = string.Join(",", processedPackages);
+                }
+            }
+        }
+    }
+
+    private void HandleStarterKitPackage(CommandLineOptions options, ScriptModel model)
+    {
+        // Handle starter kit package
+        if (!string.IsNullOrWhiteSpace(options.StarterKitPackage))
+        {
+            _logger?.LogDebug("Processing starter kit package: {StarterKitPackage}", options.StarterKitPackage);
+
+            var packageEntries = options.StarterKitPackage.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(p => p.Trim())
+                .ToList();
+
+            if (packageEntries.Count > 0)
+            {
+                var processedPackages = new List<string>();
+                var firstPackage = packageEntries[0];
+                // Check if version is specified with pipe character (e.g., "clean|7.0.3")
+                if (firstPackage.Contains('|'))
+                {
+                    var parts = firstPackage.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length == 2)
+                    {
+                        var packageName = parts[0].Trim();
+                        var version = parts[1].Trim();
+
+                        // Validate package name and version
+                        InputValidator.ValidatePackageName(packageName);
+                        InputValidator.ValidateVersion(version);
+
+                        processedPackages.Add($"{packageName}|{version}");
+                        AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
+                        _logger?.LogDebug("Added starter kit package {Package} with version {Version}", packageName, version);
+                    }
+                    else
+                    {
+                        ErrorHandler.Warning($"Invalid package format: {firstPackage}, skipping...", _logger);
+                    }
+                }
+                else
+                {
+                    // No version specified, use package name without version
+                    var packageName = firstPackage.Trim();
+                    InputValidator.ValidatePackageName(packageName);
+
+                    processedPackages.Add(packageName);
+                    AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
+                    _logger?.LogDebug("Added starter kit package {Package} with latest version", packageName);
+                }
+
+                // Build packages string - can be mixed format: "Package1|Version1,Package2,Package3|Version3"
+                if (processedPackages.Count > 0)
+                {
+                    model.IncludeStarterKit = true;
+                    model.StarterKitPackage = processedPackages[0];
                 }
             }
         }

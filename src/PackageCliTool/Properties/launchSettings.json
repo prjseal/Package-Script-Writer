@@ -1,7 +1,7 @@
 {
   "profiles": {
     "PackageCliTool": {
-      "commandName": "Project"
+      "commandName": "Project",
     }
   }
 }

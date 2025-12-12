@@ -117,8 +117,7 @@ public class TemplatePackageFlagTests
             "-t", "14.3.0",
             "-p", "uSync|17.0.0,Umbraco.Forms",
             "-n", "MyCleanProject",
-            "-s",
-            "--solution-name", "MyCleanSolution",
+            "-s", "MyCleanSolution",
             "-u",
             "--database-type", "SQLite"
         };

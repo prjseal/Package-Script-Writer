@@ -144,7 +144,7 @@ psw -p "uSync|17.0.0,clean|7.0.1" -n MyProject
 psw --template-package Umbraco.Community.Templates.Clean -t 14.3.0 -n MyProject
 
 # Full automation example
-psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
+psw -p "uSync|17.0.0" -n MyProject -s MySolution \
     -u --database-type SQLite --admin-email admin@test.com \
     --admin-password "MySecurePass123!" --auto-run
 ```
@@ -164,21 +164,23 @@ psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
 - `--template-package <name>` - Template package name (optional, skips template install if not specified)
   - Examples: "Umbraco.Templates", "Umbraco.Community.Templates.Clean"
   - If omitted, no template installation command will be generated
-- `-t, --template-version <version>` - Template version (Latest, LTS, or specific version like "14.3.0")
+- `-t, --template-package <templatePackage>` - Template package name with optional version
+    - Format: `"PackageName|Version1"` (e.g., `"Umbraco.Templates|17.0.2"`)
+    - Or just package names: `"uSync,Umbraco.Forms"` (automatically uses latest version)
 - `-n, --project-name <name>` - Project name (default: MyProject)
-- `-s, --solution` - Create a solution file
-- `--solution-name <name>` - Solution name (used with -s/--solution)
+- `-s, --solution` <name>` - Solution name
 
 **Starter Kit:**
-- `-k, --starter-kit` - Include a starter kit
-- `--starter-kit-package <package>` - Starter kit package name (e.g., "clean", "Articulate")
+- `-k, --starter-kit <package>` - Starter kit package name (e.g., "clean", "Articulate") with optional version
+  - Format: `"Package|Version"` (e.g., `"clean|7.0.3"`)
+  - Or just package name: `"clean"` (automatically uses latest version)
 
 **Docker:**
 - `--dockerfile` - Include Dockerfile
 - `--docker-compose` - Include Docker Compose file
 
 **Unattended Install:**
-- `-u, --unattended` - Use unattended install
+- `-u, --unattended-defaults` - Use unattended install default values
 - `--database-type <type>` - Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
 - `--connection-string <string>` - Connection string (for SQLServer/SQLAzure)
 - `--admin-name <name>` - Admin user friendly name
@@ -221,14 +223,12 @@ psw -p "uSync|17.0.0,Umbraco.Forms,Diplo.GodMode|3.0.3" -n MyProject
 
 **Example 5: Custom Template Package**
 ```bash
-psw --template-package Umbraco.Community.Templates.Clean \
-    --template-version 14.3.0 \
-    -n MyCleanProject
+psw -t Umbraco.Community.Templates.Clean|7.0.3 -n MyCleanProject
 ```
 
 **Example 6: Script with Solution**
 ```bash
-psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution
+psw -p "uSync|17.0.0" -n MyProject -s MySolution
 ```
 
 **Example 7: Full Automation with Unattended Install**
@@ -236,8 +236,8 @@ psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution
 psw -p "uSync|17.0.0,Umbraco.Forms|14.2.0" \
     -n MyUmbracoSite \
     -t "14.3.0" \
-    -s --solution-name MyUmbracoSolution \
-    -u --database-type SQLite \
+    -s MyUmbracoSolution \
+    --database-type SQLite \
     --admin-name "Site Administrator" \
     --admin-email "admin@mysite.com" \
     --admin-password "SecurePassword123!"
@@ -310,7 +310,7 @@ psw -p "uSync|17.0.0" -n QuickSite -o -r
    - Include Docker Compose (yes/no)
 
    **Unattended Install Options**:
-   - Use unattended install (yes/no)
+   - Use unattended install defaults (yes/no)
    - Database type (SQLite, LocalDb, SQL Server, SQL Azure, SQLCE)
    - Connection string (for SQL Server/Azure)
    - Admin user friendly name
@@ -399,7 +399,7 @@ Include Docker Compose? (y/n): n
 
 Unattended Install Options
 
-Use unattended install? (y/n): y
+Use unattended install defaults? (y/n): y
 Select database type:
 > SQLite
   LocalDb

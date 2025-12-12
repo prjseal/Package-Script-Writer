@@ -52,7 +52,7 @@ psw template save company-standard \
     -t "14.3.0" \
     -p "uSync|17.0.0,Umbraco.Forms|14.2.0,clean|7.0.1" \
     -n MyProject \
-    -s --solution-name MySolution \
+    -s MySolution \
     -u --database-type SQLite \
     --admin-email "admin@example.com" \
     --template-description "Company standard Umbraco setup" \
@@ -195,8 +195,8 @@ metadata:
 
 configuration:
   template:
-    name: Umbraco.Templates  # Set via --template-package flag
-    version: "14.3.0"         # Set via -t or --template-version flag
+    name: Umbraco.Templates  # Set via -t flag
+    version: "17.0.2"         # Set via -t flag
 
   project:
     name: MyBlog
@@ -226,7 +226,7 @@ configuration:
     admin:
       name: Administrator
       email: admin@example.com
-      password: <prompt>  # Prompts at runtime
+      password: 1234567890
 
   output:
     oneliner: false
@@ -458,8 +458,8 @@ psw template save my-umbraco-blog \
     -t "14.3.0" \
     -p "uSync|17.0.0,Umbraco.Forms|14.2.0,clean|7.0.1" \
     -n MyBlog \
-    -s --solution-name MyBlog \
-    -k --starter-kit-package clean \
+    -s MyBlog \
+    -k --starter-kit clean \
     -u --database-type SQLite \
     --admin-email "admin@myblog.com" \
     --template-description "Standard Umbraco 14 blog with uSync and Forms" \

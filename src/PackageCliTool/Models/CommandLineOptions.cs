@@ -129,13 +129,9 @@ public class CommandLineOptions
                     options.Packages = GetNextArgument(args, ref i);
                     break;
 
+                case "-t":
                 case "--template-package":
                     options.TemplatePackageName = GetNextArgument(args, ref i);
-                    break;
-
-                case "-t":
-                case "--template-version":
-                    options.TemplateVersion = GetNextArgument(args, ref i);
                     break;
 
                 case "-n":
@@ -145,20 +141,14 @@ public class CommandLineOptions
 
                 case "-s":
                 case "--solution":
-                    options.CreateSolution = true;
-                    break;
-
-                case "--solution-name":
                     options.SolutionName = GetNextArgument(args, ref i);
+                    options.CreateSolution = !string.IsNullOrWhiteSpace(options.SolutionName);
                     break;
 
                 case "-k":
                 case "--starter-kit":
-                    options.IncludeStarterKit = true;
-                    break;
-
-                case "--starter-kit-package":
                     options.StarterKitPackage = GetNextArgument(args, ref i);
+                    options.IncludeStarterKit = !string.IsNullOrWhiteSpace(options.StarterKitPackage);
                     break;
 
                 case "--dockerfile":
@@ -170,28 +160,36 @@ public class CommandLineOptions
                     break;
 
                 case "-u":
-                case "--unattended":
+                case "--unattended-defaults":
                     options.UseUnattended = true;
+                    options.DatabaseType = "SQLite";
+                    options.AdminEmail = "admin@example.com";
+                    options.AdminPassword = "1234567890";
                     break;
 
                 case "--database-type":
                     options.DatabaseType = GetNextArgument(args, ref i);
+                    options.UseUnattended = !string.IsNullOrWhiteSpace(options.DatabaseType);
                     break;
 
                 case "--connection-string":
                     options.ConnectionString = GetNextArgument(args, ref i);
+                    options.UseUnattended = !string.IsNullOrWhiteSpace(options.ConnectionString);
                     break;
 
                 case "--admin-name":
                     options.AdminName = GetNextArgument(args, ref i);
+                    options.UseUnattended = !string.IsNullOrWhiteSpace(options.AdminName);
                     break;
 
                 case "--admin-email":
                     options.AdminEmail = GetNextArgument(args, ref i);
+                    options.UseUnattended = !string.IsNullOrWhiteSpace(options.AdminEmail);
                     break;
 
                 case "--admin-password":
                     options.AdminPassword = GetNextArgument(args, ref i);
+                    options.UseUnattended = !string.IsNullOrWhiteSpace(options.AdminPassword);
                     break;
 
                 case "-o":

@@ -651,7 +651,7 @@ public class InteractiveModeWorkflow
             $"Starter kit package - {config.StarterKitPackage ?? "N/A"}",
             $"Include Dockerfile - {config.IncludeDockerfile}",
             $"Include Docker Compose - {config.IncludeDockerCompose}",
-            $"Use unattended install - {config.UseUnattendedInstall}",
+            $"Use unattended install defaults - {config.UseUnattendedInstall}",
             $"Database type - {config.DatabaseType ?? "N/A"}",
             $"Connection string - {(string.IsNullOrEmpty(config.ConnectionString) ? "N/A" : "***")}",
             $"Admin user friendly name - {config.UserFriendlyName ?? "N/A"}",
@@ -806,37 +806,38 @@ public class InteractiveModeWorkflow
                 config.CanIncludeDocker = config.IncludeDockerfile || config.IncludeDockerCompose;
                 break;
 
-            case "Use unattended install":
-                config.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install[/]?", config.UseUnattendedInstall);
+            case "Use unattended install defaults":
+                config.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install defaults[/]?", config.UseUnattendedInstall);
+                if (config.UseUnattendedInstall)
+                {
+                    // Set some reasonable defaults if enabling
+                    config.DatabaseType = "SQLite";
+                    config.UserFriendlyName = "Administrator";
+                    config.UserEmail = "admin@example.com";
+                    config.UserPassword = "1234567890";
+                }
                 break;
 
             case "Database type":
-                if (config.UseUnattendedInstall)
-                {
-                    var databaseChoices = new[] { "SQLite", "LocalDb", "SQLServer", "SQLAzure", "SQLCE" };
-                    var defaultDatabase = config.DatabaseType ?? "SQLite";
+                var databaseChoices = new[] { "SQLite", "LocalDb", "SQLServer", "SQLAzure", "SQLCE" };
+                var defaultDatabase = config.DatabaseType ?? "SQLite";
 
-                    config.DatabaseType = AnsiConsole.Prompt(
-                        new SelectionPrompt<string>()
-                            .Title("Select [green]database type[/]:")
-                            .AddChoices(databaseChoices));
+                config.DatabaseType = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Select [green]database type[/]:")
+                        .AddChoices(databaseChoices));
 
-                    // Conditional: If SQLServer or SQLAzure, prompt for connection string
-                    if (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure")
-                    {
-                        AnsiConsole.MarkupLine("[yellow]Connection string is required for SQLServer/SQLAzure[/]");
-                        config.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:", config.ConnectionString ?? string.Empty);
-                        InputValidator.ValidateConnectionString(config.ConnectionString, config.DatabaseType);
-                    }
-                }
-                else
+                // Conditional: If SQLServer or SQLAzure, prompt for connection string
+                if (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure")
                 {
-                    AnsiConsole.MarkupLine("[yellow]Use unattended install is disabled. Enable it first.[/]");
+                    AnsiConsole.MarkupLine("[yellow]Connection string is required for SQLServer/SQLAzure[/]");
+                    config.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:", config.ConnectionString ?? string.Empty);
+                    InputValidator.ValidateConnectionString(config.ConnectionString, config.DatabaseType);
                 }
                 break;
 
             case "Connection string":
-                if (config.UseUnattendedInstall && (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure"))
+                if (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure")
                 {
                     config.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:", config.ConnectionString ?? string.Empty);
                     InputValidator.ValidateConnectionString(config.ConnectionString, config.DatabaseType);
@@ -848,42 +849,21 @@ public class InteractiveModeWorkflow
                 break;
 
             case "Admin user friendly name":
-                if (config.UseUnattendedInstall)
-                {
-                    config.UserFriendlyName = AnsiConsole.Ask<string>("Enter [green]admin user friendly name[/]:", config.UserFriendlyName ?? "Administrator");
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[yellow]Use unattended install is disabled. Enable it first.[/]");
-                }
+                config.UserFriendlyName = AnsiConsole.Ask<string>("Enter [green]admin user friendly name[/]:", config.UserFriendlyName ?? "Administrator");
                 break;
 
             case "Admin email":
-                if (config.UseUnattendedInstall)
-                {
-                    config.UserEmail = AnsiConsole.Ask<string>("Enter [green]admin email[/]:", config.UserEmail ?? "admin@example.com");
-                    InputValidator.ValidateEmail(config.UserEmail);
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[yellow]Use unattended install is disabled. Enable it first.[/]");
-                }
+                config.UserEmail = AnsiConsole.Ask<string>("Enter [green]admin email[/]:", config.UserEmail ?? "admin@example.com");
+                InputValidator.ValidateEmail(config.UserEmail);
                 break;
 
             case "Admin password":
-                if (config.UseUnattendedInstall)
-                {
-                    config.UserPassword = AnsiConsole.Prompt(
-                        new TextPrompt<string>("Enter [green]admin password[/] (min 10 characters):")
-                            .PromptStyle("red")
-                            .Secret()
-                            .DefaultValue(config.UserPassword ?? "1234567890"));
-                    InputValidator.ValidatePassword(config.UserPassword);
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[yellow]Use unattended install is disabled. Enable it first.[/]");
-                }
+                config.UserPassword = AnsiConsole.Prompt(
+                    new TextPrompt<string>("Enter [green]admin password[/] (min 10 characters):")
+                        .PromptStyle("red")
+                        .Secret()
+                        .DefaultValue(config.UserPassword ?? "1234567890"));
+                InputValidator.ValidatePassword(config.UserPassword);
                 break;
 
             case "One-liner output":
@@ -946,21 +926,18 @@ public class InteractiveModeWorkflow
 
         table.AddRow("Include Dockerfile", config.IncludeDockerfile.ToString());
         table.AddRow("Include Docker Compose", config.IncludeDockerCompose.ToString());
-        table.AddRow("Use unattended install", config.UseUnattendedInstall.ToString());
+        table.AddRow("Use unattended install defualts", config.UseUnattendedInstall.ToString());
 
-        if (config.UseUnattendedInstall)
+        table.AddRow("Database type", config.DatabaseType ?? "N/A");
+
+        if (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure")
         {
-            table.AddRow("Database type", config.DatabaseType ?? "N/A");
-
-            if (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure")
-            {
-                table.AddRow("Connection string", string.IsNullOrEmpty(config.ConnectionString) ? "N/A" : "***");
-            }
-
-            table.AddRow("Admin user friendly name", config.UserFriendlyName ?? "N/A");
-            table.AddRow("Admin email", config.UserEmail ?? "N/A");
-            table.AddRow("Admin password", string.IsNullOrEmpty(config.UserPassword) ? "N/A" : "***");
+            table.AddRow("Connection string", string.IsNullOrEmpty(config.ConnectionString) ? "N/A" : "***");
         }
+
+        table.AddRow("Admin user friendly name", config.UserFriendlyName ?? "N/A");
+        table.AddRow("Admin email", config.UserEmail ?? "N/A");
+        table.AddRow("Admin password", string.IsNullOrEmpty(config.UserPassword) ? "N/A" : "***");
 
         table.AddRow("One-liner output", config.OnelinerOutput.ToString());
         table.AddRow("Remove comments", config.RemoveComments.ToString());

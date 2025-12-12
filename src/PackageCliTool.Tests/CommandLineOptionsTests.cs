@@ -113,8 +113,7 @@ public class CommandLineOptionsTests
     }
 
     [Theory]
-    [InlineData("-t", "14.3.0")]
-    [InlineData("--template-version", "14.3.0")]
+    [InlineData("-t", "Umbraco.Templates|17.0.3")]
     public void Parse_WithTemplateVersionFlag_SetsTemplateVersion(string flag, string version)
     {
         // Arrange
@@ -170,26 +169,11 @@ public class CommandLineOptionsTests
         options.ProjectName.Should().Be(projectName);
     }
 
-    [Theory]
-    [InlineData("-s")]
-    [InlineData("--solution")]
-    public void Parse_WithSolutionFlag_SetCreateSolution(string flag)
-    {
-        // Arrange
-        var args = new[] { flag };
-
-        // Act
-        var options = CommandLineOptions.Parse(args);
-
-        // Assert
-        options.CreateSolution.Should().BeTrue();
-    }
-
     [Fact]
     public void Parse_WithSolutionNameFlag_SetsSolutionName()
     {
         // Arrange
-        var args = new[] { "--solution-name", "MySolution" };
+        var args = new[] { "-s", "MySolution" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
@@ -198,37 +182,23 @@ public class CommandLineOptionsTests
         options.SolutionName.Should().Be("MySolution");
     }
 
-    [Theory]
-    [InlineData("-k")]
-    [InlineData("--starter-kit")]
-    public void Parse_WithStarterKitFlag_SetsIncludeStarterKit(string flag)
+    [Fact]
+    public void Parse_WithStarterKitFlag_SetsStarterKitPackage()
     {
         // Arrange
-        var args = new[] { flag };
+        var args = new[] { "-k", "clean" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
 
         // Assert
         options.IncludeStarterKit.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Parse_WithStarterKitPackageFlag_SetsStarterKitPackage()
-    {
-        // Arrange
-        var args = new[] { "--starter-kit-package", "clean" };
-
-        // Act
-        var options = CommandLineOptions.Parse(args);
-
-        // Assert
         options.StarterKitPackage.Should().Be("clean");
     }
 
     [Theory]
     [InlineData("-u")]
-    [InlineData("--unattended")]
+    [InlineData("--unattended-defaults")]
     public void Parse_WithUnattendedFlag_SetsUseUnattended(string flag)
     {
         // Arrange
@@ -239,6 +209,9 @@ public class CommandLineOptionsTests
 
         // Assert
         options.UseUnattended.Should().BeTrue();
+        options.DatabaseType.Should().Be("SQLite");
+        options.AdminEmail.Should().Be("admin@example.com"); 
+        options.AdminPassword.Should().Be("1234567890");
     }
 
     [Fact]
@@ -359,8 +332,7 @@ public class CommandLineOptionsTests
             "-t", "14.3.0",
             "-p", "uSync|17.0.0,Umbraco.Forms|14.2.0",
             "-n", "MyProject",
-            "-s",
-            "--solution-name", "MySolution",
+            "-s", "MySolution",
             "-u",
             "--database-type", "SQLite",
             "--admin-email", "admin@test.com"
