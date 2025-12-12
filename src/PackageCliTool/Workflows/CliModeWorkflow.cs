@@ -301,53 +301,29 @@ public class CliModeWorkflow
         {
             _logger?.LogDebug("Processing starter kit package: {StarterKitPackage}", options.StarterKitPackage);
 
-            var packageEntries = options.StarterKitPackage.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(p => p.Trim())
-                .ToList();
+            // Validate starter kit package name
+            InputValidator.ValidatePackageName(options.StarterKitPackage);
 
-            if (packageEntries.Count > 0)
+            model.IncludeStarterKit = true;
+
+            // Handle starter kit version if specified
+            if (!string.IsNullOrWhiteSpace(options.StarterKitVersion))
             {
-                var processedPackages = new List<string>();
-                var firstPackage = packageEntries[0];
-                // Check if version is specified with pipe character (e.g., "clean|7.0.3")
-                if (firstPackage.Contains('|'))
-                {
-                    var parts = firstPackage.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 2)
-                    {
-                        var packageName = parts[0].Trim();
-                        var version = parts[1].Trim();
+                // Validate version
+                InputValidator.ValidateVersion(options.StarterKitVersion);
 
-                        // Validate package name and version
-                        InputValidator.ValidatePackageName(packageName);
-                        InputValidator.ValidateVersion(version);
+                // Store in pipe format for the model
+                model.StarterKitPackage = $"{options.StarterKitPackage}|{options.StarterKitVersion}";
 
-                        processedPackages.Add($"{packageName}|{version}");
-                        AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
-                        _logger?.LogDebug("Added starter kit package {Package} with version {Version}", packageName, version);
-                    }
-                    else
-                    {
-                        ErrorHandler.Warning($"Invalid package format: {firstPackage}, skipping...", _logger);
-                    }
-                }
-                else
-                {
-                    // No version specified, use package name without version
-                    var packageName = firstPackage.Trim();
-                    InputValidator.ValidatePackageName(packageName);
+                AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} version {options.StarterKitVersion}");
+                _logger?.LogDebug("Using starter kit {Package} with version {Version}", options.StarterKitPackage, options.StarterKitVersion);
+            }
+            else
+            {
+                model.StarterKitPackage = options.StarterKitPackage;
 
-                    processedPackages.Add(packageName);
-                    AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
-                    _logger?.LogDebug("Added starter kit package {Package} with latest version", packageName);
-                }
-
-                // Build packages string - can be mixed format: "Package1|Version1,Package2,Package3|Version3"
-                if (processedPackages.Count > 0)
-                {
-                    model.IncludeStarterKit = true;
-                    model.StarterKitPackage = processedPackages[0];
-                }
+                AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} (latest version)");
+                _logger?.LogDebug("Using starter kit {Package} with latest version", options.StarterKitPackage);
             }
         }
     }
