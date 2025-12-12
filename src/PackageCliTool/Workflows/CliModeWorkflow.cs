@@ -20,16 +20,19 @@ public class CliModeWorkflow
     private readonly ScriptExecutor _scriptExecutor;
     private readonly ILogger? _logger;
     private readonly IScriptGeneratorService _scriptGeneratorService;
+    private readonly HistoryService _historyService;
 
     public CliModeWorkflow(
         ApiClient apiClient,
         ScriptExecutor scriptExecutor,
         IScriptGeneratorService scriptGeneratorService,
+        HistoryService historyService,
         ILogger? logger = null)
     {
         _apiClient = apiClient;
         _scriptExecutor = scriptExecutor;
         _scriptGeneratorService = scriptGeneratorService;
+        _historyService = historyService;
         _logger = logger;
     }
 
@@ -129,6 +132,13 @@ public class CliModeWorkflow
 
         _logger?.LogInformation("Default script generated successfully");
 
+        // Save to history
+        _historyService.AddEntry(
+            script,
+            model,
+            templateName: model.TemplateName,
+            description: $"Default script for {model.ProjectName}");
+
         ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
 
         // Handle auto-run or interactive run
@@ -227,6 +237,13 @@ public class CliModeWorkflow
             });
 
         _logger?.LogInformation("Script generated successfully");
+
+        // Save to history
+        _historyService.AddEntry(
+            script,
+            model,
+            templateName: model.TemplateName,
+            description: $"Custom script for {model.ProjectName ?? "project"}");
 
         ConsoleDisplay.DisplayGeneratedScript(script);
 
