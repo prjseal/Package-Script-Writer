@@ -239,8 +239,8 @@ public class TemplateWorkflow
         _historyService.AddEntry(
             script,
             scriptModel,
-            templateName: template.Name,
-            description: $"From template: {template.Name}");
+            templateName: template.Metadata.Name,
+            description: $"From template: {template.Metadata.Name}");
 
         AnsiConsole.MarkupLine("\n[green]✓ Script generated from template[/]");
 
