@@ -52,6 +52,9 @@ public class CommandLineOptions
     public bool ClearCache { get; set; }  // Clear all cache
     public bool UpdatePackageCache { get; set; }  // Force update package cache from marketplace
 
+    // Versions-related options
+    public bool ShowVersionsTable { get; set; }  // Show Umbraco versions table
+
     /// <summary>
     /// Checks if this is a template command
     /// </summary>
@@ -66,6 +69,14 @@ public class CommandLineOptions
     public bool IsHistoryCommand()
     {
         return !string.IsNullOrWhiteSpace(HistoryCommand);
+    }
+
+    /// <summary>
+    /// Checks if this is a versions command
+    /// </summary>
+    public bool IsVersionsCommand()
+    {
+        return ShowVersionsTable;
     }
 
     /// <summary>
@@ -358,6 +369,10 @@ public class CommandLineOptions
 
                 case "--update-packages":
                     options.UpdatePackageCache = true;
+                    break;
+
+                case "versions":
+                    options.ShowVersionsTable = true;
                     break;
 
                 default:

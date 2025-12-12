@@ -165,8 +165,14 @@ class Program
             var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
             var versionCheckService = new VersionCheckService(httpClientFactory.CreateClient(), logger);
 
+            // Check if this is a versions command
+            if (options.IsVersionsCommand())
+            {
+                var versionsWorkflow = new VersionsWorkflow(serviceProvider.GetRequiredService<IOptions<PSWConfig>>(), logger);
+                await versionsWorkflow.RunAsync(options);
+            }
             // Check if this is a history command
-            if (options.IsHistoryCommand())
+            else if (options.IsHistoryCommand())
             {
                 var historyWorkflow = new HistoryWorkflow(historyService, scriptExecutor, scriptGeneratorService, logger);
                 await historyWorkflow.RunAsync(options);
@@ -191,12 +197,14 @@ class Program
                 {
                     try
                     {
+                        var pswConfig = serviceProvider.GetRequiredService<IOptions<PSWConfig>>().Value;
                         var interactiveWorkflow = new InteractiveModeWorkflow(
                             apiClient,
                             packageSelector,
                             scriptExecutor,
                             scriptGeneratorService,
                             versionCheckService,
+                            pswConfig,
                             logger);
                         await interactiveWorkflow.RunAsync();
                         keepRunning = false; // Exit loop on normal completion
