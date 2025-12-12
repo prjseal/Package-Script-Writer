@@ -264,4 +264,102 @@ public class TemplatePackageFlagTests
         options1.ProjectName.Should().Be(options2.ProjectName);
         options1.Packages.Should().Be(options2.Packages);
     }
+
+    [Fact]
+    public void TemplatePackageFlag_WithPipeSeparatedVersion_ShouldParseCorrectly()
+    {
+        // Arrange
+        var args = new[] { "-t", "Umbraco.Templates|17.0.2" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.2");
+    }
+
+    [Fact]
+    public void TemplatePackageFlag_WithPipeSeparatedVersion_UsingLongForm_ShouldParseCorrectly()
+    {
+        // Arrange
+        var args = new[] { "--template-package", "Umbraco.Templates|17.0.2" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.2");
+    }
+
+    [Fact]
+    public void TemplatePackageFlag_WithPipeSeparatedVersion_InComplexCommand_ShouldParseWithOtherFlags()
+    {
+        // Arrange
+        var args = new[]
+        {
+            "-t", "Umbraco.Templates|17.0.2",
+            "-p", "uSync|17.0.0,Umbraco.Forms",
+            "-n", "MyProject",
+            "-s", "MySolution"
+        };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.2");
+        options.Packages.Should().Be("uSync|17.0.0,Umbraco.Forms");
+        options.ProjectName.Should().Be("MyProject");
+        options.SolutionName.Should().Be("MySolution");
+    }
+
+    [Fact]
+    public void TemplatePackageFlag_WithPipeSeparatedVersion_CommunityTemplate_ShouldParseCorrectly()
+    {
+        // Arrange
+        var args = new[] { "-t", "Umbraco.Community.Templates.Clean|14.3.0" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Community.Templates.Clean");
+        options.TemplateVersion.Should().Be("14.3.0");
+    }
+
+    [Fact]
+    public void TemplatePackageFlag_WithInvalidPipeFormat_ShouldSetAsTemplateName()
+    {
+        // Arrange - Empty version after pipe
+        var args = new[] { "-t", "Umbraco.Templates|" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert - Should treat the whole thing as template name since format is invalid
+        options.TemplatePackageName.Should().Be("Umbraco.Templates|");
+        options.TemplateVersion.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData("Umbraco.Templates|17.0.2", "Umbraco.Templates", "17.0.2")]
+    [InlineData("Umbraco.Templates|14.3.0", "Umbraco.Templates", "14.3.0")]
+    [InlineData("Umbraco.Community.Templates.Clean|15.0.0", "Umbraco.Community.Templates.Clean", "15.0.0")]
+    [InlineData("CustomTemplate|1.0.0", "CustomTemplate", "1.0.0")]
+    public void TemplatePackageFlag_WithVariousPipeSeparatedVersions_ShouldParseCorrectly(
+        string templateArg, string expectedName, string expectedVersion)
+    {
+        // Arrange
+        var args = new[] { "-t", templateArg };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be(expectedName);
+        options.TemplateVersion.Should().Be(expectedVersion);
+    }
 }

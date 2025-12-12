@@ -18,6 +18,7 @@ public class CommandLineOptions
     public string? SolutionName { get; set; }
     public bool? IncludeStarterKit { get; set; }
     public string? StarterKitPackage { get; set; }
+    public string? StarterKitVersion { get; set; }
     public bool? IncludeDockerfile { get; set; }
     public bool? IncludeDockerCompose { get; set; }
     public bool? UseUnattended { get; set; }
@@ -81,6 +82,7 @@ public class CommandLineOptions
                !string.IsNullOrWhiteSpace(SolutionName) ||
                IncludeStarterKit.HasValue ||
                !string.IsNullOrWhiteSpace(StarterKitPackage) ||
+               !string.IsNullOrWhiteSpace(StarterKitVersion) ||
                IncludeDockerfile.HasValue ||
                IncludeDockerCompose.HasValue ||
                UseUnattended.HasValue ||
@@ -131,7 +133,29 @@ public class CommandLineOptions
 
                 case "-t":
                 case "--template-package":
-                    options.TemplatePackageName = GetNextArgument(args, ref i);
+                    var templateArg = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(templateArg))
+                    {
+                        // Check if version is specified with pipe character (e.g., "Umbraco.Templates|17.0.2")
+                        if (templateArg.Contains('|'))
+                        {
+                            var parts = templateArg.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length == 2)
+                            {
+                                options.TemplatePackageName = parts[0].Trim();
+                                options.TemplateVersion = parts[1].Trim();
+                            }
+                            else
+                            {
+                                // Invalid format, just set the whole thing as template name
+                                options.TemplatePackageName = templateArg;
+                            }
+                        }
+                        else
+                        {
+                            options.TemplatePackageName = templateArg;
+                        }
+                    }
                     break;
 
                 case "-n":
@@ -147,8 +171,30 @@ public class CommandLineOptions
 
                 case "-k":
                 case "--starter-kit":
-                    options.StarterKitPackage = GetNextArgument(args, ref i);
-                    options.IncludeStarterKit = !string.IsNullOrWhiteSpace(options.StarterKitPackage);
+                    var starterKitArg = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(starterKitArg))
+                    {
+                        // Check if version is specified with pipe character (e.g., "clean|7.0.3")
+                        if (starterKitArg.Contains('|'))
+                        {
+                            var parts = starterKitArg.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length == 2)
+                            {
+                                options.StarterKitPackage = parts[0].Trim();
+                                options.StarterKitVersion = parts[1].Trim();
+                            }
+                            else
+                            {
+                                // Invalid format, just set the whole thing as starter kit package
+                                options.StarterKitPackage = starterKitArg;
+                            }
+                        }
+                        else
+                        {
+                            options.StarterKitPackage = starterKitArg;
+                        }
+                        options.IncludeStarterKit = true;
+                    }
                     break;
 
                 case "--dockerfile":

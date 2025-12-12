@@ -116,6 +116,7 @@ public class CliModeWorkflow
 
         HandlePackages(options, model);
         HandleStarterKitPackage(options, model);
+        HandleTemplatePackage(options, model);
 
         var script = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
@@ -211,6 +212,7 @@ public class CliModeWorkflow
 
         HandlePackages(options, model);
         HandleStarterKitPackage(options, model);
+        HandleTemplatePackage(options, model);
 
         // Generate the script
         _logger?.LogInformation("Generating installation script via API");
@@ -299,53 +301,61 @@ public class CliModeWorkflow
         {
             _logger?.LogDebug("Processing starter kit package: {StarterKitPackage}", options.StarterKitPackage);
 
-            var packageEntries = options.StarterKitPackage.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(p => p.Trim())
-                .ToList();
+            // Validate starter kit package name
+            InputValidator.ValidatePackageName(options.StarterKitPackage);
 
-            if (packageEntries.Count > 0)
+            model.IncludeStarterKit = true;
+
+            // Handle starter kit version if specified
+            if (!string.IsNullOrWhiteSpace(options.StarterKitVersion))
             {
-                var processedPackages = new List<string>();
-                var firstPackage = packageEntries[0];
-                // Check if version is specified with pipe character (e.g., "clean|7.0.3")
-                if (firstPackage.Contains('|'))
-                {
-                    var parts = firstPackage.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length == 2)
-                    {
-                        var packageName = parts[0].Trim();
-                        var version = parts[1].Trim();
+                // Validate version
+                InputValidator.ValidateVersion(options.StarterKitVersion);
 
-                        // Validate package name and version
-                        InputValidator.ValidatePackageName(packageName);
-                        InputValidator.ValidateVersion(version);
+                // Store with --version flag for the model
+                model.StarterKitPackage = $"{options.StarterKitPackage} --version {options.StarterKitVersion}";
 
-                        processedPackages.Add($"{packageName}|{version}");
-                        AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
-                        _logger?.LogDebug("Added starter kit package {Package} with version {Version}", packageName, version);
-                    }
-                    else
-                    {
-                        ErrorHandler.Warning($"Invalid package format: {firstPackage}, skipping...", _logger);
-                    }
-                }
-                else
-                {
-                    // No version specified, use package name without version
-                    var packageName = firstPackage.Trim();
-                    InputValidator.ValidatePackageName(packageName);
+                AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} version {options.StarterKitVersion}");
+                _logger?.LogDebug("Using starter kit {Package} with version {Version}", options.StarterKitPackage, options.StarterKitVersion);
+            }
+            else
+            {
+                model.StarterKitPackage = options.StarterKitPackage;
 
-                    processedPackages.Add(packageName);
-                    AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
-                    _logger?.LogDebug("Added starter kit package {Package} with latest version", packageName);
-                }
+                AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} (latest version)");
+                _logger?.LogDebug("Using starter kit {Package} with latest version", options.StarterKitPackage);
+            }
+        }
+    }
 
-                // Build packages string - can be mixed format: "Package1|Version1,Package2,Package3|Version3"
-                if (processedPackages.Count > 0)
-                {
-                    model.IncludeStarterKit = true;
-                    model.StarterKitPackage = processedPackages[0];
-                }
+    private void HandleTemplatePackage(CommandLineOptions options, ScriptModel model)
+    {
+        // Handle template package
+        if (!string.IsNullOrWhiteSpace(options.TemplatePackageName))
+        {
+            _logger?.LogDebug("Processing template package: {TemplatePackageName}", options.TemplatePackageName);
+
+            // Validate template package name
+            InputValidator.ValidatePackageName(options.TemplatePackageName);
+
+            // Update model with template package name
+            model.TemplateName = options.TemplatePackageName;
+
+            // Handle template version if specified
+            if (!string.IsNullOrWhiteSpace(options.TemplateVersion))
+            {
+                // Validate version
+                InputValidator.ValidateVersion(options.TemplateVersion);
+
+                model.TemplateVersion = options.TemplateVersion;
+
+                AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} version {options.TemplateVersion}");
+                _logger?.LogDebug("Using template {Template} with version {Version}", options.TemplatePackageName, options.TemplateVersion);
+            }
+            else
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} (latest version)");
+                _logger?.LogDebug("Using template {Template} with latest version", options.TemplatePackageName);
             }
         }
     }

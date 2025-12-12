@@ -472,4 +472,108 @@ public class CommandLineOptionsTests
         // Assert
         options.IncludePrerelease.Should().BeTrue();
     }
+
+    [Fact]
+    public void Parse_WithStarterKitPipeSeparatedVersion_ShouldParseCorrectly()
+    {
+        // Arrange
+        var args = new[] { "-k", "clean|7.0.3" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.StarterKitPackage.Should().Be("clean");
+        options.StarterKitVersion.Should().Be("7.0.3");
+        options.IncludeStarterKit.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithStarterKitPipeSeparatedVersion_UsingLongForm_ShouldParseCorrectly()
+    {
+        // Arrange
+        var args = new[] { "--starter-kit", "clean|7.0.3" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.StarterKitPackage.Should().Be("clean");
+        options.StarterKitVersion.Should().Be("7.0.3");
+        options.IncludeStarterKit.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithStarterKitPipeSeparatedVersion_InComplexCommand_ShouldParseWithOtherFlags()
+    {
+        // Arrange
+        var args = new[]
+        {
+            "-k", "clean|7.0.3",
+            "-t", "Umbraco.Templates|17.0.2",
+            "-p", "uSync|17.0.0",
+            "-n", "MyProject"
+        };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.StarterKitPackage.Should().Be("clean");
+        options.StarterKitVersion.Should().Be("7.0.3");
+        options.IncludeStarterKit.Should().BeTrue();
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.2");
+        options.Packages.Should().Be("uSync|17.0.0");
+        options.ProjectName.Should().Be("MyProject");
+    }
+
+    [Fact]
+    public void Parse_WithStarterKitWithoutVersion_ShouldOnlySetPackageName()
+    {
+        // Arrange
+        var args = new[] { "-k", "clean" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.StarterKitPackage.Should().Be("clean");
+        options.StarterKitVersion.Should().BeNull();
+        options.IncludeStarterKit.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithStarterKitInvalidPipeFormat_ShouldSetAsPackageName()
+    {
+        // Arrange - Empty version after pipe
+        var args = new[] { "-k", "clean|" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert - Should treat the whole thing as package name since format is invalid
+        options.StarterKitPackage.Should().Be("clean|");
+        options.StarterKitVersion.Should().BeNull();
+        options.IncludeStarterKit.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("clean|7.0.3", "clean", "7.0.3")]
+    [InlineData("minimal|8.0.0", "minimal", "8.0.0")]
+    [InlineData("CustomStarterKit|1.0.0", "CustomStarterKit", "1.0.0")]
+    public void Parse_WithVariousStarterKitPipeSeparatedVersions_ShouldParseCorrectly(
+        string starterKitArg, string expectedName, string expectedVersion)
+    {
+        // Arrange
+        var args = new[] { "-k", starterKitArg };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.StarterKitPackage.Should().Be(expectedName);
+        options.StarterKitVersion.Should().Be(expectedVersion);
+        options.IncludeStarterKit.Should().BeTrue();
+    }
 }
