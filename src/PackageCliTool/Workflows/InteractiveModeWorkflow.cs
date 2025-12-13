@@ -26,6 +26,17 @@ public class InteractiveModeWorkflow
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly PSWConfig _pswConfig;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="InteractiveModeWorkflow"/> class
+    /// </summary>
+    /// <param name="apiClient">The API client for making requests</param>
+    /// <param name="packageSelector">The service for package selection</param>
+    /// <param name="scriptExecutor">The script executor for running generated scripts</param>
+    /// <param name="scriptGeneratorService">The service for generating scripts</param>
+    /// <param name="versionCheckService">The service for checking version updates</param>
+    /// <param name="historyService">The service for managing command history</param>
+    /// <param name="pswConfig">The PSW configuration</param>
+    /// <param name="logger">Optional logger instance</param>
     public InteractiveModeWorkflow(
         ApiClient apiClient,
         PackageSelector packageSelector,

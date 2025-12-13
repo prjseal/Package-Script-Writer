@@ -19,6 +19,12 @@ public class ApiClient
     private readonly ILogger? _logger;
     private readonly CacheService? _cacheService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApiClient"/> class
+    /// </summary>
+    /// <param name="baseUrl">The base URL for API requests</param>
+    /// <param name="logger">Optional logger instance</param>
+    /// <param name="cacheService">Optional cache service for caching API responses</param>
     public ApiClient(string baseUrl, ILogger? logger = null, CacheService? cacheService = null)
     {
         _baseUrl = baseUrl;

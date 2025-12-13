@@ -22,6 +22,14 @@ public class CliModeWorkflow
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly HistoryService _historyService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CliModeWorkflow"/> class
+    /// </summary>
+    /// <param name="apiClient">The API client for making requests</param>
+    /// <param name="scriptExecutor">The script executor for running generated scripts</param>
+    /// <param name="scriptGeneratorService">The service for generating scripts</param>
+    /// <param name="historyService">The service for managing command history</param>
+    /// <param name="logger">Optional logger instance</param>
     public CliModeWorkflow(
         ApiClient apiClient,
         ScriptExecutor scriptExecutor,
@@ -167,13 +175,13 @@ public class CliModeWorkflow
         {
             TemplateName = !string.IsNullOrWhiteSpace(options.TemplatePackageName)
                 ? options.TemplatePackageName
-                : null,
+                : string.Empty,
             TemplateVersion = !string.IsNullOrWhiteSpace(options.TemplateVersion)
                 ? options.TemplateVersion
-                : null,
+                : string.Empty,
             ProjectName = !string.IsNullOrWhiteSpace(options.ProjectName)
                 ? options.ProjectName
-                : null,
+                : string.Empty,
             CreateSolutionFile = options.CreateSolution.HasValue
                 ? options.CreateSolution.Value
                 : !string.IsNullOrWhiteSpace(options.SolutionName),

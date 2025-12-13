@@ -22,6 +22,14 @@ public class TemplateWorkflow
     private readonly HistoryService _historyService;
     private readonly ILogger? _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TemplateWorkflow"/> class
+    /// </summary>
+    /// <param name="templateService">The service for managing templates</param>
+    /// <param name="scriptExecutor">The script executor for running generated scripts</param>
+    /// <param name="scriptGeneratorService">The service for generating scripts</param>
+    /// <param name="historyService">The service for managing command history</param>
+    /// <param name="logger">Optional logger instance</param>
     public TemplateWorkflow(
         TemplateService templateService,
         ScriptExecutor scriptExecutor,
