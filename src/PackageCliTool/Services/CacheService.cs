@@ -71,13 +71,13 @@ public class CacheService
         if (!_enabled)
         {
             _logger?.LogDebug("Cache is disabled");
-            return new CachedData { DefaultTtlHours = _ttlHours };
+            return new CachedData();
         }
 
         if (!File.Exists(_cacheFile))
         {
             _logger?.LogDebug("Cache file not found, creating new cache");
-            return new CachedData { DefaultTtlHours = _ttlHours };
+            return new CachedData();
         }
 
         try
@@ -205,34 +205,6 @@ public class CacheService
     }
 
     /// <summary>
-    /// Checks if a key exists and is valid
-    /// </summary>
-    public bool Has(string key, CacheType type = CacheType.Generic)
-    {
-        if (!_enabled)
-        {
-            return false;
-        }
-
-        var cache = GetCacheForType(type);
-        return cache.TryGetValue(key, out var entry) && entry.IsValid();
-    }
-
-    /// <summary>
-    /// Removes a specific cache entry
-    /// </summary>
-    public void Remove(string key, CacheType type = CacheType.Generic)
-    {
-        var cache = GetCacheForType(type);
-
-        if (cache.Remove(key))
-        {
-            SaveCache();
-            _logger?.LogDebug("Removed cache entry: {Key}", key);
-        }
-    }
-
-    /// <summary>
     /// Clears all cache entries
     /// </summary>
     public void Clear()
@@ -254,25 +226,6 @@ public class CacheService
         cache.Clear();
         SaveCache();
         _logger?.LogInformation("Cleared {Count} {Type} cache entries", count, type);
-    }
-
-    /// <summary>
-    /// Gets cache statistics
-    /// </summary>
-    public CacheStats GetStats()
-    {
-        CleanExpiredEntries(_cache);
-
-        return new CacheStats
-        {
-            PackageEntries = _cache.PackageCache.Count,
-            TemplateEntries = _cache.TemplateVersionCache.Count,
-            GenericEntries = _cache.GenericCache.Count,
-            TotalEntries = _cache.PackageCache.Count + _cache.TemplateVersionCache.Count + _cache.GenericCache.Count,
-            LastModified = _cache.LastModified,
-            TtlHours = _ttlHours,
-            IsEnabled = _enabled
-        };
     }
 
     /// <summary>
@@ -303,18 +256,4 @@ public enum CacheType
     Package,
     TemplateVersion,
     Generic
-}
-
-/// <summary>
-/// Cache statistics
-/// </summary>
-public class CacheStats
-{
-    public int PackageEntries { get; set; }
-    public int TemplateEntries { get; set; }
-    public int GenericEntries { get; set; }
-    public int TotalEntries { get; set; }
-    public DateTime LastModified { get; set; }
-    public int TtlHours { get; set; }
-    public bool IsEnabled { get; set; }
 }

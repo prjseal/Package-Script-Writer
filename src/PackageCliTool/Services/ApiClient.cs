@@ -154,34 +154,6 @@ public class ApiClient
     }
 
     /// <summary>
-    /// Generates an installation script using the API
-    /// </summary>
-    public async Task<string> GenerateScriptAsync(ScriptModel request)
-    {
-        _logger?.LogInformation("Generating installation script via API");
-
-        var json = JsonSerializer.Serialize(request);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _resilientClient.PostAsync("/api/scriptgeneratorapi/generatescript", content);
-        var responseContent = await response.Content.ReadAsStringAsync();
-
-        _logger?.LogDebug("Received script response with length {Length}", responseContent.Length);
-
-        if (string.IsNullOrWhiteSpace(responseContent))
-        {
-            _logger?.LogWarning("Received empty script response from API");
-            throw new ApiException(
-                "API returned an empty script",
-                null,
-                "The API did not return a valid script. Try again or check your configuration."
-            );
-        }
-
-        return responseContent;
-    }
-
-    /// <summary>
     /// Retrieves all available Umbraco packages from the marketplace
     /// </summary>
     public async Task<List<PSW.Shared.Models.PagedPackagesPackage>> GetAllPackagesAsync()

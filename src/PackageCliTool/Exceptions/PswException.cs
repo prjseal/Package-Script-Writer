@@ -79,14 +79,3 @@ public class ScriptExecutionException : PswException
         ExitCode = exitCode;
     }
 }
-
-/// <summary>
-/// Exception thrown when configuration is invalid
-/// </summary>
-public class ConfigurationException : PswException
-{
-    public ConfigurationException(string message, string? suggestion = null)
-        : base("PSW-CFG-001", message, message, suggestion)
-    {
-    }
-}
