@@ -21,11 +21,6 @@ public class CachedData
     public Dictionary<string, CacheEntry<string>> TemplateVersionCache { get; set; } = new();
 
     /// <summary>
-    /// Generic string cache entries for other API responses
-    /// </summary>
-    public Dictionary<string, CacheEntry<string>> GenericCache { get; set; } = new();
-
-    /// <summary>
     /// When the cache file was last modified
     /// </summary>
     public DateTime LastModified { get; set; } = DateTime.UtcNow;
