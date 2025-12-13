@@ -4,8 +4,8 @@ namespace PSW.Shared.Models;
 
 public class PackageViewModel
 {
-    public PagedPackagesPackage Package { get; set; }
-    public List<string> PickedPackageIds { get; set; }
+    public PagedPackagesPackage Package { get; set; } = new();
+    public List<string> PickedPackageIds { get; set; } = new();
     public int Downloads { get; set; }
     public bool IsChecked { get; set; }
     public int PackageId { get; set; }

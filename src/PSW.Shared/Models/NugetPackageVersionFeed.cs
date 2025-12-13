@@ -1,6 +1,8 @@
 ﻿namespace PSW.Shared.Models;
 #pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 public class NugetPackageVersionFeed
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 #pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
 {
     // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.

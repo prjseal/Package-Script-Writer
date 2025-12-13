@@ -2,6 +2,6 @@
 
 public class PackageWithVersion
 {
-    public string PackageId { get; set; }
-    public string PackageVersion { get; set; }
+    public string PackageId { get; set; } = string.Empty;
+    public string PackageVersion { get; set; } = string.Empty;
 }

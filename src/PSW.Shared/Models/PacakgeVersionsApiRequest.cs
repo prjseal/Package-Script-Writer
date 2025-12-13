@@ -6,5 +6,5 @@
 public class PackageVersionsApiRequest
 {
     /// <summary>The NuGet package ID to retrieve versions for</summary>
-    public string PackageId { get; set; }
+    public string PackageId { get; set; } = string.Empty;
 }
