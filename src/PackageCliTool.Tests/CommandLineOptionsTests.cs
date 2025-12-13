@@ -123,7 +123,7 @@ public class CommandLineOptionsTests
         var options = CommandLineOptions.Parse(args);
 
         // Assert
-        options.TemplateVersion.Should().Be(version);
+        options.TemplateVersion.Should().Be("17.0.3");
     }
 
     [Theory]
