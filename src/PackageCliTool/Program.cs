@@ -204,6 +204,7 @@ class Program
                             scriptExecutor,
                             scriptGeneratorService,
                             versionCheckService,
+                            historyService,
                             pswConfig,
                             logger);
                         await interactiveWorkflow.RunAsync();
