@@ -178,25 +178,26 @@ psw template validate my-blog.yaml
 
 Templates are stored as YAML files in `~/.psw/templates/`.
 
-### Example Template
+### Complete Example File
+
+`~/.psw/templates/my-blog.yaml`:
 
 ```yaml
 metadata:
-  name: my-blog-stack
-  description: "Standard blog setup with uSync and Forms"
-  author: "john.doe@example.com"
-  created: "2025-01-15T10:30:00Z"
-  modified: "2025-01-15T10:30:00Z"
-  version: "1.0.0"
+  name: my-blog
+  description: Standard blog setup with uSync and Forms
+  author: john.doe
+  created: 2025-12-13T15:30:42.1234567Z
+  modified: 2025-12-13T15:30:42.1234567Z
+  version: 1.0.0
   tags:
-    - blog
-    - umbraco-14
-    - sqlite
+  - blog
+  - umbraco14
 
 configuration:
   template:
-    name: Umbraco.Templates  # Set via -t flag
-    version: "17.0.2"         # Set via -t flag
+    name: Umbraco.Templates
+    version: ""
 
   project:
     name: MyBlog
@@ -204,12 +205,10 @@ configuration:
     solutionName: MyBlog
 
   packages:
-    - name: uSync
-      version: "17.0.0"
-    - name: Umbraco.Forms
-      version: "14.2.0"
-    - name: clean
-      version: "7.0.1"
+  - name: uSync
+    version: 13.2.1
+  - name: Umbraco.Community.BlockPreview
+    version: 13.0.0
 
   starterKit:
     enabled: true
@@ -223,10 +222,11 @@ configuration:
     enabled: true
     database:
       type: SQLite
+      connectionString: null
     admin:
       name: Administrator
-      email: admin@example.com
-      password: 1234567890
+      email: admin@myblog.com
+      password: SecurePass123!
 
   output:
     oneliner: false
@@ -235,7 +235,114 @@ configuration:
 
   execution:
     autoRun: false
-    runDirectory: "."
+    runDirectory: .
+```
+
+### Template Structure
+
+| Section | Description |
+|---------|-------------|
+| **metadata** | Template information (name, author, tags, etc.) |
+| **configuration** | Script generation settings (organized into subsections) |
+| └─ **template** | Umbraco template package name and version |
+| └─ **project** | Project and solution settings |
+| └─ **packages** | List of NuGet packages to install |
+| └─ **starterKit** | Starter kit configuration |
+| └─ **docker** | Docker setup options |
+| └─ **unattended** | Unattended install settings (DB, admin) |
+| └─ **output** | Script formatting options |
+| └─ **execution** | Auto-run and directory settings |
+
+### Field Details
+
+#### Metadata Section
+
+```yaml
+metadata:
+  name: my-template           # Required: Template identifier
+  description: "..."          # Recommended: What this template does
+  author: username            # Auto-filled: Creator username
+  created: 2025-12-13T...     # Auto-filled: Creation timestamp
+  modified: 2025-12-13T...    # Auto-updated: Last modification
+  version: 1.0.0              # Template version (semver)
+  tags: [tag1, tag2]          # Optional: For categorization
+```
+
+#### Configuration.Template Section
+
+```yaml
+template:
+  name: Umbraco.Templates      # Template package name
+  version: "14.3.0"            # Specific version or "" for latest
+```
+
+#### Configuration.Project Section
+
+```yaml
+project:
+  name: MyProject              # Project name
+  createSolution: true         # Create .sln file?
+  solutionName: MySolution     # Solution name (if creating)
+```
+
+#### Configuration.Packages Section
+
+```yaml
+packages:                      # List of NuGet packages
+- name: uSync
+  version: 13.2.1              # Specific version
+- name: Umbraco.Forms
+  version: latest              # Latest stable
+- name: MyPackage
+  version: prerelease          # Latest prerelease
+```
+
+#### Configuration.StarterKit Section
+
+```yaml
+starterKit:
+  enabled: true                # Include starter kit?
+  package: clean               # Package name (or with version)
+                               # e.g., "clean --version 7.0.1"
+```
+
+#### Configuration.Docker Section
+
+```yaml
+docker:
+  dockerfile: false            # Create Dockerfile?
+  dockerCompose: false         # Create docker-compose.yml?
+```
+
+#### Configuration.Unattended Section
+
+```yaml
+unattended:
+  enabled: true                # Use unattended install?
+  database:
+    type: SQLite               # SQLite, LocalDb, SQLServer, etc.
+    connectionString: null     # Required for SQLServer/SQLAzure
+  admin:
+    name: Administrator        # Admin user name
+    email: admin@example.com   # Admin email
+    password: <prompt>         # Password (see security options)
+```
+
+#### Configuration.Output Section
+
+```yaml
+output:
+  oneliner: false              # Output as single line?
+  removeComments: false        # Remove script comments?
+  includePrerelease: false     # Include prerelease packages?
+```
+
+#### Configuration.Execution Section
+
+```yaml
+execution:
+  autoRun: false               # Auto-execute after generation?
+  runDirectory: .              # Directory to run in
 ```
 
 ## Advanced Features
