@@ -134,7 +134,6 @@ public class CliModeWorkflow
 
         // Save to history
         _historyService.AddEntry(
-            script,
             model,
             templateName: model.TemplateName,
             description: $"Default script for {model.ProjectName}");
@@ -240,7 +239,6 @@ public class CliModeWorkflow
 
         // Save to history
         _historyService.AddEntry(
-            script,
             model,
             templateName: model.TemplateName,
             description: $"Custom script for {model.ProjectName ?? "project"}");

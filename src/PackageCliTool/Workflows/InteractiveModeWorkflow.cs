@@ -21,6 +21,7 @@ public class InteractiveModeWorkflow
     private readonly ScriptExecutor _scriptExecutor;
     private readonly TemplateService _templateService;
     private readonly VersionCheckService _versionCheckService;
+    private readonly HistoryService _historyService;
     private readonly ILogger? _logger;
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly PSWConfig _pswConfig;
@@ -31,6 +32,7 @@ public class InteractiveModeWorkflow
         ScriptExecutor scriptExecutor,
         IScriptGeneratorService scriptGeneratorService,
         VersionCheckService versionCheckService,
+        HistoryService historyService,
         PSWConfig pswConfig,
         ILogger? logger = null)
     {
@@ -39,6 +41,7 @@ public class InteractiveModeWorkflow
         _scriptExecutor = scriptExecutor;
         _templateService = new TemplateService(logger: logger);
         _versionCheckService = versionCheckService;
+        _historyService = historyService;
         _scriptGeneratorService = scriptGeneratorService;
         _pswConfig = pswConfig;
         _logger = logger;
@@ -162,6 +165,12 @@ public class InteractiveModeWorkflow
 
         _logger?.LogInformation("Default script generated successfully");
 
+        // Save to history
+        _historyService.AddEntry(
+            model,
+            templateName: model.TemplateName,
+            description: $"Default script for {model.ProjectName}");
+
         ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
 
         // Option to save and run the script
@@ -250,6 +259,12 @@ public class InteractiveModeWorkflow
             });
 
         _logger?.LogInformation("Script generated successfully");
+
+        // Save to history
+        _historyService.AddEntry(
+            model,
+            templateName: templateName,
+            description: $"Custom script for {model.ProjectName ?? "project"}");
 
         ConsoleDisplay.DisplayGeneratedScript(script);
 
@@ -522,6 +537,12 @@ public class InteractiveModeWorkflow
 
                     _logger?.LogInformation("Script generated successfully");
 
+                    // Save to history
+                    _historyService.AddEntry(
+                        config,
+                        templateName: templateName,
+                        description: $"Script for {config.ProjectName ?? "project"}");
+
                     ConsoleDisplay.DisplayGeneratedScript(script);
 
                     // Handle script actions (returns to main menu when done)
@@ -630,6 +651,12 @@ public class InteractiveModeWorkflow
                     });
 
                 _logger?.LogInformation("Script generated successfully");
+
+                // Save to history
+                _historyService.AddEntry(
+                    config,
+                    templateName: templateName,
+                    description: $"Script for {config.ProjectName ?? "project"}");
 
                 ConsoleDisplay.DisplayGeneratedScript(script);
 
@@ -1059,6 +1086,12 @@ public class InteractiveModeWorkflow
 
                 _logger?.LogInformation("Script generated successfully");
 
+                // Save to history
+                _historyService.AddEntry(
+                    config,
+                    templateName: templateName,
+                    description: $"Script for {config.ProjectName ?? "project"}");
+
                 ConsoleDisplay.DisplayGeneratedScript(script);
 
                 // Handle script actions (returns to main menu when done)
@@ -1219,12 +1252,10 @@ public class InteractiveModeWorkflow
     {
         _logger?.LogInformation("Displaying history list");
 
-        var historyService = new HistoryService(null, _logger);
-
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold blue]Script Generation History[/]\n");
 
-        var history = await historyService.GetAllHistoryAsync();
+        var history = await _historyService.GetAllHistoryAsync();
 
         if (!history.Any())
         {

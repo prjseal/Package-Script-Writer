@@ -213,17 +213,7 @@ public class HistoryWorkflow
         AnsiConsole.Write(configTable);
         AnsiConsole.WriteLine();
 
-        // Show script preview
-        var preview = entry.ScriptContent.Length > 500
-            ? entry.ScriptContent[..500] + "..."
-            : entry.ScriptContent;
-
-        var scriptPanel = new Panel(preview)
-            .Header("[bold yellow]Script Preview[/]")
-            .Border(BoxBorder.Rounded)
-            .BorderColor(Color.Yellow);
-
-        AnsiConsole.Write(scriptPanel);
+        AnsiConsole.MarkupLine("[dim]Note: Script content is regenerated on re-run for security[/]");
     }
 
     /// <summary>
@@ -344,7 +334,6 @@ public class HistoryWorkflow
 
             // Update history with new execution info
             var newEntry = _historyService.AddEntry(
-                script,
                 entry.ScriptModel,
                 entry.TemplateName,
                 $"Re-run of: {entry.GetDisplayName()}",

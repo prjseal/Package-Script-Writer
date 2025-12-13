@@ -18,11 +18,6 @@ public class HistoryEntry
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// The generated script content
-    /// </summary>
-    public string ScriptContent { get; set; } = "";
-
-    /// <summary>
     /// The script model used to generate the script
     /// </summary>
     public ScriptModel ScriptModel { get; set; } = new();

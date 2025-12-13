@@ -106,7 +106,6 @@ public class HistoryService
     /// Adds a new history entry
     /// </summary>
     public HistoryEntry AddEntry(
-        string scriptContent,
         ScriptModel scriptModel,
         string? templateName = null,
         string? description = null,
@@ -114,7 +113,6 @@ public class HistoryService
     {
         var entry = new HistoryEntry
         {
-            ScriptContent = scriptContent,
             ScriptModel = scriptModel,
             TemplateName = templateName,
             Description = description,
