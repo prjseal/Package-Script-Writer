@@ -11,7 +11,7 @@ public class PackagesViewModel
 
     public PackagesViewModel(GeneratorApiRequest apiRequest)
     {
-        TemplateName = apiRequest.TemplateName;
+        TemplateName = apiRequest.TemplateName ?? string.Empty;
         TemplateVersion = apiRequest.TemplateVersion;
         CreateSolutionFile = apiRequest.CreateSolutionFile;
         SolutionName = apiRequest.SolutionName;
@@ -31,10 +31,10 @@ public class PackagesViewModel
         RemoveComments = apiRequest.RemoveComments;
     }
 
-    public List<SelectListItem> TemplateNames { get; set; }
+    public List<SelectListItem> TemplateNames { get; set; } = new();
 
     [Display(Name = "Template Name:")]
-    public string TemplateName { get; set; }
+    public string TemplateName { get; set; } = string.Empty;
 
     [Display(Name = "Template Version:")]
     public string? TemplateVersion { get; set; }

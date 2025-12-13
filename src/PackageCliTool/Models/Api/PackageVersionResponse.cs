@@ -7,6 +7,7 @@ namespace PackageCliTool.Models.Api;
 /// </summary>
 public class PackageVersionResponse
 {
+    /// <summary>Gets or sets the list of available package versions</summary>
     [JsonPropertyName("versions")]
     public List<string> Versions { get; set; } = new();
 }

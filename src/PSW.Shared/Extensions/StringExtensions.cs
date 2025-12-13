@@ -35,6 +35,8 @@ public static class StringExtensions
 
         var versionInUse = pswConfig.UmbracoVersions.FirstOrDefault(x => x.Version == majorVersionNumber);
 
+        if (versionInUse == null) return version;
+
         var oneYearFromNow = DateTime.UtcNow.AddYears(1);
         var isLTS = versionInUse.ReleaseType == "LTS";
         var isEndOfLife = DateTime.UtcNow >= versionInUse.EndOfLife;

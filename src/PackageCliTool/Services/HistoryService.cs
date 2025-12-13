@@ -18,6 +18,11 @@ public class HistoryService
     private readonly IDeserializer _deserializer;
     private ScriptHistory _history;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HistoryService"/> class
+    /// </summary>
+    /// <param name="historyDirectory">The directory to store history files (defaults to ~/.psw/history/)</param>
+    /// <param name="logger">Optional logger instance</param>
     public HistoryService(string? historyDirectory = null, ILogger? logger = null)
     {
         // Default to ~/.psw/history/
@@ -152,14 +157,6 @@ public class HistoryService
     }
 
     /// <summary>
-    /// Gets all history entries
-    /// </summary>
-    public List<HistoryEntry> GetAllEntries()
-    {
-        return _history.Entries;
-    }
-
-    /// <summary>
     /// Gets an entry by ID or index
     /// </summary>
     public HistoryEntry? GetEntry(string idOrIndex)
@@ -180,26 +177,6 @@ public class HistoryService
     public List<HistoryEntry> GetRecentEntries(int count = 10)
     {
         return _history.Entries.Take(count).ToList();
-    }
-
-    /// <summary>
-    /// Gets entries by tag
-    /// </summary>
-    public List<HistoryEntry> GetEntriesByTag(string tag)
-    {
-        return _history.Entries
-            .Where(e => e.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
-            .ToList();
-    }
-
-    /// <summary>
-    /// Gets entries by template name
-    /// </summary>
-    public List<HistoryEntry> GetEntriesByTemplate(string templateName)
-    {
-        return _history.Entries
-            .Where(e => e.TemplateName?.Equals(templateName, StringComparison.OrdinalIgnoreCase) == true)
-            .ToList();
     }
 
     /// <summary>
@@ -245,76 +222,6 @@ public class HistoryService
     }
 
     /// <summary>
-    /// Sets the maximum number of entries to keep
-    /// </summary>
-    public void SetMaxEntries(int maxEntries)
-    {
-        if (maxEntries < 1)
-        {
-            throw new PswException("Max entries must be at least 1", "Provide a valid number");
-        }
-
-        _history.MaxEntries = maxEntries;
-
-        // Trim if necessary
-        while (_history.Entries.Count > maxEntries)
-        {
-            _history.Entries.RemoveAt(_history.Entries.Count - 1);
-        }
-
-        SaveHistory();
-        _logger?.LogInformation("Set max entries to {Max}", maxEntries);
-    }
-
-    /// <summary>
-    /// Adds tags to an entry
-    /// </summary>
-    public bool AddTags(string idOrIndex, params string[] tags)
-    {
-        var entry = GetEntry(idOrIndex);
-        if (entry != null)
-        {
-            foreach (var tag in tags)
-            {
-                if (!entry.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
-                {
-                    entry.Tags.Add(tag);
-                }
-            }
-            SaveHistory();
-            _logger?.LogInformation("Added tags to history entry: {Id}", entry.Id);
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Sets the description for an entry
-    /// </summary>
-    public bool SetDescription(string idOrIndex, string description)
-    {
-        var entry = GetEntry(idOrIndex);
-        if (entry != null)
-        {
-            entry.Description = description;
-            SaveHistory();
-            _logger?.LogInformation("Updated description for history entry: {Id}", entry.Id);
-            return true;
-        }
-        return false;
-    }
-
-    /// <summary>
-    /// Exports history to a file
-    /// </summary>
-    public void ExportHistory(string outputPath)
-    {
-        var yaml = _serializer.Serialize(_history);
-        File.WriteAllText(outputPath, yaml);
-        _logger?.LogInformation("Exported history to {Path}", outputPath);
-    }
-
-    /// <summary>
     /// Gets statistics about the history
     /// </summary>
     public HistoryStats GetStats()
@@ -337,11 +244,24 @@ public class HistoryService
 /// </summary>
 public class HistoryStats
 {
+    /// <summary>Gets or sets the total number of history entries</summary>
     public int TotalEntries { get; set; }
+
+    /// <summary>Gets or sets the number of executed scripts</summary>
     public int ExecutedCount { get; set; }
+
+    /// <summary>Gets or sets the number of successful script executions</summary>
     public int SuccessfulCount { get; set; }
+
+    /// <summary>Gets or sets the number of failed script executions</summary>
     public int FailedCount { get; set; }
+
+    /// <summary>Gets or sets the number of entries created from templates</summary>
     public int FromTemplateCount { get; set; }
+
+    /// <summary>Gets or sets the timestamp of the most recent entry</summary>
     public DateTime? MostRecentDate { get; set; }
+
+    /// <summary>Gets or sets the timestamp of the oldest entry</summary>
     public DateTime? OldestDate { get; set; }
 }

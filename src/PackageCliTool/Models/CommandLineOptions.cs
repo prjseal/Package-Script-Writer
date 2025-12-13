@@ -7,53 +7,122 @@ namespace PackageCliTool.Models;
 /// </summary>
 public class CommandLineOptions
 {
+    /// <summary>Gets or sets whether to show help information</summary>
     public bool ShowHelp { get; set; }
+
+    /// <summary>Gets or sets whether to show version information</summary>
     public bool ShowVersion { get; set; }
+
+    /// <summary>Gets or sets whether to use default values without prompts</summary>
     public bool UseDefault { get; set; }
+
+    /// <summary>Gets or sets the comma-separated list of packages to install</summary>
     public string? Packages { get; set; }
+
+    /// <summary>Gets or sets the template package name</summary>
     public string? TemplatePackageName { get; set; }
+
+    /// <summary>Gets or sets the template version</summary>
     public string? TemplateVersion { get; set; }
+
+    /// <summary>Gets or sets the project name</summary>
     public string? ProjectName { get; set; }
+
+    /// <summary>Gets or sets whether to create a solution file</summary>
     public bool? CreateSolution { get; set; }
+
+    /// <summary>Gets or sets the solution name</summary>
     public string? SolutionName { get; set; }
+
+    /// <summary>Gets or sets whether to include a starter kit</summary>
     public bool? IncludeStarterKit { get; set; }
+
+    /// <summary>Gets or sets the starter kit package name</summary>
     public string? StarterKitPackage { get; set; }
+
+    /// <summary>Gets or sets the starter kit version</summary>
     public string? StarterKitVersion { get; set; }
+
+    /// <summary>Gets or sets whether to include a Dockerfile</summary>
     public bool? IncludeDockerfile { get; set; }
+
+    /// <summary>Gets or sets whether to include Docker Compose configuration</summary>
     public bool? IncludeDockerCompose { get; set; }
+
+    /// <summary>Gets or sets whether to use unattended installation</summary>
     public bool? UseUnattended { get; set; }
+
+    /// <summary>Gets or sets the database type</summary>
     public string? DatabaseType { get; set; }
+
+    /// <summary>Gets or sets the database connection string</summary>
     public string? ConnectionString { get; set; }
+
+    /// <summary>Gets or sets the admin user name</summary>
     public string? AdminName { get; set; }
+
+    /// <summary>Gets or sets the admin user email</summary>
     public string? AdminEmail { get; set; }
+
+    /// <summary>Gets or sets the admin user password</summary>
     public string? AdminPassword { get; set; }
+
+    /// <summary>Gets or sets whether to output as a one-liner script</summary>
     public bool? OnelinerOutput { get; set; }
+
+    /// <summary>Gets or sets whether to remove comments from the generated script</summary>
     public bool? RemoveComments { get; set; }
+
+    /// <summary>Gets or sets whether to include prerelease versions</summary>
     public bool? IncludePrerelease { get; set; }
+
+    /// <summary>Gets or sets whether to automatically run the generated script</summary>
     public bool AutoRun { get; set; }
+
+    /// <summary>Gets or sets the directory where the script should be run</summary>
     public string? RunDirectory { get; set; }
+
+    /// <summary>Gets or sets whether to enable verbose logging</summary>
     public bool VerboseMode { get; set; }
 
-    // Template-related options
-    public string? TemplateCommand { get; set; }  // save, load, list, show, delete, export, import
+    /// <summary>Gets or sets the template command (save, load, list, show, delete, export, import)</summary>
+    public string? TemplateCommand { get; set; }
+
+    /// <summary>Gets or sets the template name</summary>
     public string? TemplateName { get; set; }
+
+    /// <summary>Gets or sets the template description</summary>
     public string? TemplateDescription { get; set; }
+
+    /// <summary>Gets or sets the template file path</summary>
     public string? TemplateFile { get; set; }
+
+    /// <summary>Gets or sets the template tags</summary>
     public List<string> TemplateTags { get; set; } = new();
+
+    /// <summary>Gets or sets the template property overrides</summary>
     public Dictionary<string, string> TemplateOverrides { get; set; } = new();
 
-    // History-related options
-    public string? HistoryCommand { get; set; }  // list, show, rerun, delete, clear, stats
-    public string? HistoryId { get; set; }  // ID or index of history entry
-    public int HistoryLimit { get; set; } = 10;  // Number of entries to show
+    /// <summary>Gets or sets the history command (list, show, rerun, delete, clear, stats)</summary>
+    public string? HistoryCommand { get; set; }
 
-    // Cache-related options
-    public bool NoCache { get; set; }  // Disable caching
-    public bool ClearCache { get; set; }  // Clear all cache
-    public bool UpdatePackageCache { get; set; }  // Force update package cache from marketplace
+    /// <summary>Gets or sets the history entry ID or index</summary>
+    public string? HistoryId { get; set; }
 
-    // Versions-related options
-    public bool ShowVersionsTable { get; set; }  // Show Umbraco versions table
+    /// <summary>Gets or sets the number of history entries to show</summary>
+    public int HistoryLimit { get; set; } = 10;
+
+    /// <summary>Gets or sets whether to disable caching</summary>
+    public bool NoCache { get; set; }
+
+    /// <summary>Gets or sets whether to clear all cache</summary>
+    public bool ClearCache { get; set; }
+
+    /// <summary>Gets or sets whether to force update package cache from marketplace</summary>
+    public bool UpdatePackageCache { get; set; }
+
+    /// <summary>Gets or sets whether to show Umbraco versions table</summary>
+    public bool ShowVersionsTable { get; set; }
 
     /// <summary>
     /// Checks if this is a template command

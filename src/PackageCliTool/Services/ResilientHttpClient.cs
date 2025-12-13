@@ -15,6 +15,12 @@ public class ResilientHttpClient
     private readonly ILogger? _logger;
     private readonly AsyncRetryPolicy<HttpResponseMessage> _retryPolicy;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ResilientHttpClient"/> class
+    /// </summary>
+    /// <param name="httpClient">The HTTP client to use</param>
+    /// <param name="logger">Optional logger instance</param>
+    /// <param name="maxRetries">Maximum number of retry attempts</param>
     public ResilientHttpClient(HttpClient httpClient, ILogger? logger = null, int maxRetries = 3)
     {
         _httpClient = httpClient;

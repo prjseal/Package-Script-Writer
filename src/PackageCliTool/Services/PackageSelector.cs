@@ -20,6 +20,13 @@ public class PackageSelector
     private readonly ILogger? _logger;
     private List<PSW.Shared.Models.PagedPackagesPackage> _allPackages = new();
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PackageSelector"/> class
+    /// </summary>
+    /// <param name="apiClient">The API client for package operations</param>
+    /// <param name="packageService">The package service for NuGet operations</param>
+    /// <param name="memoryCache">The memory cache for caching package data</param>
+    /// <param name="logger">Optional logger instance</param>
     public PackageSelector(ApiClient apiClient, IPackageService packageService, IMemoryCache memoryCache, ILogger? logger = null)
     {
         _apiClient = apiClient;

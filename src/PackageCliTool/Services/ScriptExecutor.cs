@@ -11,6 +11,10 @@ public class ScriptExecutor
 {
     private readonly ILogger? _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ScriptExecutor"/> class
+    /// </summary>
+    /// <param name="logger">Optional logger instance</param>
     public ScriptExecutor(ILogger? logger = null)
     {
         _logger = logger;

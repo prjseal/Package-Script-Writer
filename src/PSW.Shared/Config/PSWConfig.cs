@@ -4,7 +4,7 @@ public class PSWConfig
 {
     public static string SectionName => "PSW";
     public int CachingTimeInMins { get; set; }
-    public List<UmbracoVersion> UmbracoVersions { get; set; }
+    public List<UmbracoVersion> UmbracoVersions { get; set; } = new();
 }
 
 public class UmbracoVersion

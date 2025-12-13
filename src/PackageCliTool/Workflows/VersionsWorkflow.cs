@@ -15,6 +15,11 @@ public class VersionsWorkflow
     private readonly PSWConfig _pswConfig;
     private readonly ILogger? _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VersionsWorkflow"/> class
+    /// </summary>
+    /// <param name="pswConfig">The PSW configuration options</param>
+    /// <param name="logger">Optional logger instance</param>
     public VersionsWorkflow(
         IOptions<PSWConfig> pswConfig,
         ILogger? logger = null)

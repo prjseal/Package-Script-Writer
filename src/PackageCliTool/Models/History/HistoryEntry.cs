@@ -69,29 +69,4 @@ public class HistoryEntry
 
         return $"{ScriptModel.ProjectName ?? "Script"} - {Timestamp:yyyy-MM-dd HH:mm}";
     }
-
-    /// <summary>
-    /// Gets a short summary of this entry
-    /// </summary>
-    public string GetSummary()
-    {
-        var parts = new List<string>();
-
-        if (!string.IsNullOrWhiteSpace(ScriptModel.ProjectName))
-        {
-            parts.Add($"Project: {ScriptModel.ProjectName}");
-        }
-
-        if (!string.IsNullOrWhiteSpace(TemplateName))
-        {
-            parts.Add($"Template: {TemplateName}");
-        }
-
-        if (WasExecuted)
-        {
-            parts.Add($"Executed (exit code: {ExitCode ?? 0})");
-        }
-
-        return parts.Count > 0 ? string.Join(", ", parts) : "No details";
-    }
 }

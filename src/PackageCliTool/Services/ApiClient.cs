@@ -19,6 +19,12 @@ public class ApiClient
     private readonly ILogger? _logger;
     private readonly CacheService? _cacheService;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApiClient"/> class
+    /// </summary>
+    /// <param name="baseUrl">The base URL for API requests</param>
+    /// <param name="logger">Optional logger instance</param>
+    /// <param name="cacheService">Optional cache service for caching API responses</param>
     public ApiClient(string baseUrl, ILogger? logger = null, CacheService? cacheService = null)
     {
         _baseUrl = baseUrl;
@@ -151,34 +157,6 @@ public class ApiClient
         }
 
         return versions;
-    }
-
-    /// <summary>
-    /// Generates an installation script using the API
-    /// </summary>
-    public async Task<string> GenerateScriptAsync(ScriptModel request)
-    {
-        _logger?.LogInformation("Generating installation script via API");
-
-        var json = JsonSerializer.Serialize(request);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await _resilientClient.PostAsync("/api/scriptgeneratorapi/generatescript", content);
-        var responseContent = await response.Content.ReadAsStringAsync();
-
-        _logger?.LogDebug("Received script response with length {Length}", responseContent.Length);
-
-        if (string.IsNullOrWhiteSpace(responseContent))
-        {
-            _logger?.LogWarning("Received empty script response from API");
-            throw new ApiException(
-                "API returned an empty script",
-                null,
-                "The API did not return a valid script. Try again or check your configuration."
-            );
-        }
-
-        return responseContent;
     }
 
     /// <summary>

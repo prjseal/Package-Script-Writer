@@ -378,10 +378,10 @@ public class PackageFeed
             }
         }
 
-        public List<string> PackageVersions { get; set; }
+        public List<string> PackageVersions { get; set; } = new();
 
         [Display(Name = "Version")]
-        public string SelectedVersion { get; set; }
+        public string SelectedVersion { get; set; } = string.Empty;
     }
 
     /// <remarks/>

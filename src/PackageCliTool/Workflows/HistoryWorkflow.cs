@@ -19,6 +19,13 @@ public class HistoryWorkflow
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly ILogger? _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HistoryWorkflow"/> class
+    /// </summary>
+    /// <param name="historyService">The service for managing command history</param>
+    /// <param name="scriptExecutor">The script executor for running generated scripts</param>
+    /// <param name="scriptGeneratorService">The service for generating scripts</param>
+    /// <param name="logger">Optional logger instance</param>
     public HistoryWorkflow(
         HistoryService historyService,
         ScriptExecutor scriptExecutor,

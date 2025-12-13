@@ -11,11 +11,6 @@ public class CachedData
     public string Version { get; set; } = "1.0.0";
 
     /// <summary>
-    /// Default TTL in hours
-    /// </summary>
-    public int DefaultTtlHours { get; set; } = 1;
-
-    /// <summary>
     /// Package list cache entries (keyed by API endpoint/query)
     /// </summary>
     public Dictionary<string, CacheEntry<string>> PackageCache { get; set; } = new();

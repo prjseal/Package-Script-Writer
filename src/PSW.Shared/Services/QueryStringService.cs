@@ -43,7 +43,7 @@ public class QueryStringService : IQueryStringService
         var packageOptions = new PackagesViewModel()
         {
             Packages = packages,
-            TemplateName = templateName,
+            TemplateName = templateName ?? string.Empty,
             TemplateVersion = templateVersion,
             IncludeStarterKit = includeStarterKit,
             IncludeDockerfile = includeDockerfile,
