@@ -209,6 +209,14 @@ public class HistoryService
     }
 
     /// <summary>
+    /// Gets the maximum number of entries to keep
+    /// </summary>
+    public int GetMaxEntries()
+    {
+        return _history.MaxEntries;
+    }
+
+    /// <summary>
     /// Gets statistics about the history
     /// </summary>
     public HistoryStats GetStats()

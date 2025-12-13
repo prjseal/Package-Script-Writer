@@ -96,7 +96,7 @@ public class CacheService
         catch (Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to load cache file, creating new cache");
-            return new CachedData { DefaultTtlHours = _ttlHours };
+            return new CachedData();
         }
     }
 
