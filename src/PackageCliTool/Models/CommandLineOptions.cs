@@ -143,11 +143,37 @@ public class CommandLineOptions
                     break;
 
                 case "-t":
+                    var tArg = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(tArg))
+                    {
+                        // -t flag: if contains pipe, split into name|version. Otherwise, treat as version only
+                        if (tArg.Contains('|'))
+                        {
+                            var parts = tArg.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length == 2)
+                            {
+                                options.TemplatePackageName = parts[0].Trim();
+                                options.TemplateVersion = parts[1].Trim();
+                            }
+                            else
+                            {
+                                // Invalid format, just set the whole thing as template name
+                                options.TemplatePackageName = tArg;
+                            }
+                        }
+                        else
+                        {
+                            // No pipe, treat as template version only
+                            options.TemplateVersion = tArg;
+                        }
+                    }
+                    break;
+
                 case "--template-package":
                     var templateArg = GetNextArgument(args, ref i);
                     if (!string.IsNullOrWhiteSpace(templateArg))
                     {
-                        // Check if version is specified with pipe character (e.g., "Umbraco.Templates|17.0.2")
+                        // --template-package flag: if contains pipe, split into name|version. Otherwise, treat as name only
                         if (templateArg.Contains('|'))
                         {
                             var parts = templateArg.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
@@ -164,6 +190,7 @@ public class CommandLineOptions
                         }
                         else
                         {
+                            // No pipe, treat as template package name only
                             options.TemplatePackageName = templateArg;
                         }
                     }

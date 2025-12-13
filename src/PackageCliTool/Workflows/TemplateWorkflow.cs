@@ -19,17 +19,20 @@ public class TemplateWorkflow
     private readonly TemplateService _templateService;
     private readonly ScriptExecutor _scriptExecutor;
     private readonly IScriptGeneratorService _scriptGeneratorService;
+    private readonly HistoryService _historyService;
     private readonly ILogger? _logger;
 
     public TemplateWorkflow(
         TemplateService templateService,
         ScriptExecutor scriptExecutor,
         IScriptGeneratorService scriptGeneratorService,
+        HistoryService historyService,
         ILogger? logger = null)
     {
         _templateService = templateService;
         _scriptExecutor = scriptExecutor;
         _scriptGeneratorService = scriptGeneratorService;
+        _historyService = historyService;
         _logger = logger;
     }
 
@@ -231,6 +234,13 @@ public class TemplateWorkflow
             });
 
         _logger?.LogInformation("Script generated successfully");
+
+        // Save to history
+        _historyService.AddEntry(
+            script,
+            scriptModel,
+            templateName: template.Metadata.Name,
+            description: $"From template: {template.Metadata.Name}");
 
         AnsiConsole.MarkupLine("\n[green]✓ Script generated from template[/]");
 

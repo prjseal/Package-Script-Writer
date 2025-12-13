@@ -180,13 +180,13 @@ class Program
             // Check if this is a template command
             else if (options.IsTemplateCommand())
             {
-                var templateWorkflow = new TemplateWorkflow(templateService, scriptExecutor, scriptGeneratorService, logger);
+                var templateWorkflow = new TemplateWorkflow(templateService, scriptExecutor, scriptGeneratorService, historyService, logger);
                 await templateWorkflow.RunAsync(options);
             }
             // Determine if we should use CLI mode or interactive mode
             else if (options.HasAnyOptions())
             {
-                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, scriptGeneratorService, logger);
+                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, scriptGeneratorService, historyService, logger);
                 await cliWorkflow.RunAsync(options);
             }
             else
