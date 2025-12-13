@@ -167,7 +167,6 @@ public class InteractiveModeWorkflow
 
         // Save to history
         _historyService.AddEntry(
-            script,
             model,
             templateName: model.TemplateName,
             description: $"Default script for {model.ProjectName}");
@@ -263,7 +262,6 @@ public class InteractiveModeWorkflow
 
         // Save to history
         _historyService.AddEntry(
-            script,
             model,
             templateName: templateName,
             description: $"Custom script for {model.ProjectName ?? "project"}");
@@ -541,7 +539,6 @@ public class InteractiveModeWorkflow
 
                     // Save to history
                     _historyService.AddEntry(
-                        script,
                         config,
                         templateName: templateName,
                         description: $"Script for {config.ProjectName ?? "project"}");
@@ -657,7 +654,6 @@ public class InteractiveModeWorkflow
 
                 // Save to history
                 _historyService.AddEntry(
-                    script,
                     config,
                     templateName: templateName,
                     description: $"Script for {config.ProjectName ?? "project"}");
@@ -1092,7 +1088,6 @@ public class InteractiveModeWorkflow
 
                 // Save to history
                 _historyService.AddEntry(
-                    script,
                     config,
                     templateName: templateName,
                     description: $"Script for {config.ProjectName ?? "project"}");

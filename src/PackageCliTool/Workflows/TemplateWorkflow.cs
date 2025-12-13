@@ -237,7 +237,6 @@ public class TemplateWorkflow
 
         // Save to history
         _historyService.AddEntry(
-            script,
             scriptModel,
             templateName: template.Metadata.Name,
             description: $"From template: {template.Metadata.Name}");
