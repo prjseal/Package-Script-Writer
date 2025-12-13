@@ -7,9 +7,11 @@ namespace PackageCliTool.Models.Api;
 /// </summary>
 public class PackageVersionRequest
 {
+    /// <summary>Gets or sets the NuGet package identifier</summary>
     [JsonPropertyName("packageId")]
     public string PackageId { get; set; } = string.Empty;
 
+    /// <summary>Gets or sets whether to include prerelease versions</summary>
     [JsonPropertyName("includePrerelease")]
     public bool IncludePrerelease { get; set; }
 }

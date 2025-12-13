@@ -18,6 +18,13 @@ public class CacheService
     private readonly int _ttlHours;
     private readonly bool _enabled;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CacheService"/> class
+    /// </summary>
+    /// <param name="ttlHours">The time-to-live in hours for cached entries</param>
+    /// <param name="enabled">Whether caching is enabled</param>
+    /// <param name="cacheDirectory">The directory to store cache files (defaults to ~/.psw/cache/)</param>
+    /// <param name="logger">Optional logger instance</param>
     public CacheService(int ttlHours = 1, bool enabled = true, string? cacheDirectory = null, ILogger? logger = null)
     {
         _ttlHours = ttlHours;
@@ -253,7 +260,12 @@ public class CacheService
 /// </summary>
 public enum CacheType
 {
+    /// <summary>Package information cache</summary>
     Package,
+
+    /// <summary>Template version information cache</summary>
     TemplateVersion,
+
+    /// <summary>Generic cache for other data</summary>
     Generic
 }

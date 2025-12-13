@@ -16,6 +16,11 @@ public class VersionCheckService
     private readonly HttpClient _httpClient;
     private readonly ILogger? _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VersionCheckService"/> class
+    /// </summary>
+    /// <param name="httpClient">The HTTP client to use for NuGet API calls</param>
+    /// <param name="logger">Optional logger instance</param>
     public VersionCheckService(HttpClient httpClient, ILogger? logger = null)
     {
         _httpClient = httpClient;
@@ -166,9 +171,16 @@ public class VersionCheckService
 /// </summary>
 public class VersionCheckResult
 {
+    /// <summary>Gets or sets whether a newer version is available</summary>
     public bool IsUpdateAvailable { get; set; }
+
+    /// <summary>Gets or sets the current installed version</summary>
     public string CurrentVersion { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the latest available version</summary>
     public string LatestVersion { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the command to update to the latest version</summary>
     public string UpdateCommand { get; set; } = string.Empty;
 }
 

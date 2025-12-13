@@ -17,6 +17,11 @@ public class TemplateService
     private readonly ISerializer _serializer;
     private readonly IDeserializer _deserializer;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TemplateService"/> class
+    /// </summary>
+    /// <param name="templatesDirectory">The directory to store templates (defaults to ~/.psw/templates/)</param>
+    /// <param name="logger">Optional logger instance</param>
     public TemplateService(string? templatesDirectory = null, ILogger? logger = null)
     {
         // Default to ~/.psw/templates/

@@ -18,6 +18,11 @@ public class HistoryService
     private readonly IDeserializer _deserializer;
     private ScriptHistory _history;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="HistoryService"/> class
+    /// </summary>
+    /// <param name="historyDirectory">The directory to store history files (defaults to ~/.psw/history/)</param>
+    /// <param name="logger">Optional logger instance</param>
     public HistoryService(string? historyDirectory = null, ILogger? logger = null)
     {
         // Default to ~/.psw/history/
@@ -239,11 +244,24 @@ public class HistoryService
 /// </summary>
 public class HistoryStats
 {
+    /// <summary>Gets or sets the total number of history entries</summary>
     public int TotalEntries { get; set; }
+
+    /// <summary>Gets or sets the number of executed scripts</summary>
     public int ExecutedCount { get; set; }
+
+    /// <summary>Gets or sets the number of successful script executions</summary>
     public int SuccessfulCount { get; set; }
+
+    /// <summary>Gets or sets the number of failed script executions</summary>
     public int FailedCount { get; set; }
+
+    /// <summary>Gets or sets the number of entries created from templates</summary>
     public int FromTemplateCount { get; set; }
+
+    /// <summary>Gets or sets the timestamp of the most recent entry</summary>
     public DateTime? MostRecentDate { get; set; }
+
+    /// <summary>Gets or sets the timestamp of the oldest entry</summary>
     public DateTime? OldestDate { get; set; }
 }
