@@ -15,7 +15,7 @@ public class PackageViewModel
         Package = package;
         PickedPackageIds = pickedPackageIds;
         Downloads = package?.Downloads ?? 0;
-        IsChecked = pickedPackageIds != null && pickedPackageIds.Contains(package.PackageId);
+        IsChecked = pickedPackageIds != null && package != null && pickedPackageIds.Contains(package.PackageId);
         PackageId = packageId;
     }
 }

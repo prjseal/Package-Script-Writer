@@ -11,7 +11,7 @@ public class PackagesViewModel
 
     public PackagesViewModel(GeneratorApiRequest apiRequest)
     {
-        TemplateName = apiRequest.TemplateName;
+        TemplateName = apiRequest.TemplateName ?? string.Empty;
         TemplateVersion = apiRequest.TemplateVersion;
         CreateSolutionFile = apiRequest.CreateSolutionFile;
         SolutionName = apiRequest.SolutionName;

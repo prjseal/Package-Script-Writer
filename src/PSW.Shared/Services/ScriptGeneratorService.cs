@@ -253,7 +253,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         if (string.IsNullOrWhiteSpace(model.Packages)) return outputList;
 
-        var starterKitName = model.IncludeStarterKit ? model.StarterKitPackage.Split(' ').FirstOrDefault() : "";
+        var starterKitName = model.IncludeStarterKit ? model.StarterKitPackage?.Split(' ').FirstOrDefault() ?? "" : "";
 
         var packages = model.Packages.Split(',', System.StringSplitOptions.RemoveEmptyEntries);
 
