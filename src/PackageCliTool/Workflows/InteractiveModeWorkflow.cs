@@ -753,31 +753,8 @@ public class InteractiveModeWorkflow
 
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine($"[green]✓ Template loaded:[/] {templateName}");
-        AnsiConsole.WriteLine();
 
-        // Display configuration table
-        DisplayConfigurationTable(config, packageVersions);
-
-        // Ask what to do next
-        AnsiConsole.WriteLine();
-        var action = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("What would you like to do?")
-                .AddChoices(new[] { "Generate script", "Edit configuration", "Cancel" }));
-
-        if (action == "Cancel")
-        {
-            return; // Return to main menu
-        }
-
-        if (action == "Edit configuration")
-        {
-            // Enter configuration editor with template values as defaults
-            await EditConfigurationAsync(config, packageVersions, config.TemplateName, config.TemplateVersion);
-            return;
-        }
-
-        // Generate script
+        // Generate script immediately
         _logger?.LogInformation("Generating installation script from template");
 
         var script = await AnsiConsole.Status()
