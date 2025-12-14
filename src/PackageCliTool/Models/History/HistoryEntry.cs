@@ -67,6 +67,10 @@ public class HistoryEntry
             return $"From template: {TemplateName}";
         }
 
-        return $"{ScriptModel.ProjectName ?? "Script"} - {Timestamp:yyyy-MM-dd HH:mm}";
+        var projectName = string.IsNullOrWhiteSpace(ScriptModel.ProjectName)
+            ? "Script"
+            : ScriptModel.ProjectName;
+
+        return $"{projectName} - {Timestamp:yyyy-MM-dd HH:mm}";
     }
 }
