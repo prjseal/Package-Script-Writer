@@ -1,11 +1,11 @@
-name: Release - Publish CLI Tool to NuGet.org
+name: Release - CLI - Publish to NuGet
 
 on:
   release:
     types: [published]
 
 jobs:
-  publish-cli-tool:
+  cli-publish-to-nuget:
     runs-on: windows-latest
     if: github.repository == 'prjseal/Package-Script-Writer'
     permissions:
