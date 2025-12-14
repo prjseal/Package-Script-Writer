@@ -55,21 +55,29 @@ jobs:
           fi
 
           # Parse test output
+          # Format: "Test Run Successful." followed by "Total tests: X", "     Passed: Y", etc.
           if [ -f test-output.log ]; then
-            if grep -q "Passed!" test-output.log; then
-              test_line=$(grep "Passed!" test-output.log | tail -1)
-              test_failed=$(echo "$test_line" | grep -oP "Failed:\s+\K\d+" || echo "0")
-              test_passed=$(echo "$test_line" | grep -oP "Passed:\s+\K\d+" || echo "0")
-              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s+\K\d+" || echo "0")
-              test_total=$(echo "$test_line" | grep -oP "Total:\s+\K\d+" || echo "0")
-              test_status="✅ Passed"
-            elif grep -q "Failed!" test-output.log; then
-              test_line=$(grep "Failed!" test-output.log | tail -1)
-              test_failed=$(echo "$test_line" | grep -oP "Failed:\s+\K\d+" || echo "0")
-              test_passed=$(echo "$test_line" | grep -oP "Passed:\s+\K\d+" || echo "0")
-              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s+\K\d+" || echo "0")
-              test_total=$(echo "$test_line" | grep -oP "Total:\s+\K\d+" || echo "0")
-              test_status="❌ Failed"
+            if grep -q "Test Run" test-output.log; then
+              # Extract total tests
+              test_total=$(grep "Total tests:" test-output.log | grep -oP "Total tests:\s*\K\d+" || echo "0")
+
+              # Extract passed tests
+              test_passed=$(grep "Passed:" test-output.log | grep -oP "Passed:\s*\K\d+" || echo "0")
+
+              # Extract failed tests (may not exist if all passed)
+              test_failed=$(grep "Failed:" test-output.log | grep -oP "Failed:\s*\K\d+" || echo "0")
+
+              # Extract skipped tests (may not exist)
+              test_skipped=$(grep "Skipped:" test-output.log | grep -oP "Skipped:\s*\K\d+" || echo "0")
+
+              # Determine status
+              if grep -q "Test Run Successful" test-output.log; then
+                test_status="✅ Passed"
+              elif grep -q "Test Run Failed" test-output.log; then
+                test_status="❌ Failed"
+              else
+                test_status="⚠️ Unknown"
+              fi
             else
               test_status="⚠️ Unknown"
               test_failed=0
