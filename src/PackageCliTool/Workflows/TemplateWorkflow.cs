@@ -192,28 +192,82 @@ public class TemplateWorkflow
 
         AnsiConsole.MarkupLine($"[green]✓ Template loaded:[/] {name}");
 
-        // Convert overrides dictionary
+        // Apply command-line overrides (similar to how --default works)
         var overrides = new Dictionary<string, object>();
-        foreach (var (key, value) in options.TemplateOverrides)
-        {
-            overrides[key] = value;
-        }
 
-        // Apply command-line overrides if provided
+        // Template package overrides
+        if (!string.IsNullOrWhiteSpace(options.TemplatePackageName))
+            overrides["TemplateName"] = options.TemplatePackageName;
+
+        if (!string.IsNullOrWhiteSpace(options.TemplateVersion))
+            overrides["TemplateVersion"] = options.TemplateVersion;
+
+        // Project overrides
         if (!string.IsNullOrWhiteSpace(options.ProjectName))
-        {
             overrides["ProjectName"] = options.ProjectName;
-        }
+
+        if (options.CreateSolution.HasValue)
+            overrides["CreateSolution"] = options.CreateSolution.Value;
+
+        if (!string.IsNullOrWhiteSpace(options.SolutionName))
+            overrides["SolutionName"] = options.SolutionName;
+
+        // Package overrides
+        if (!string.IsNullOrWhiteSpace(options.Packages))
+            overrides["Packages"] = options.Packages;
+
+        // Starter kit overrides
+        if (options.IncludeStarterKit.HasValue)
+            overrides["IncludeStarterKit"] = options.IncludeStarterKit.Value;
+
+        if (!string.IsNullOrWhiteSpace(options.StarterKitPackage))
+            overrides["StarterKitPackage"] = options.StarterKitPackage;
+
+        if (!string.IsNullOrWhiteSpace(options.StarterKitVersion))
+            overrides["StarterKitVersion"] = options.StarterKitVersion;
+
+        // Docker overrides
+        if (options.IncludeDockerfile.HasValue)
+            overrides["IncludeDockerfile"] = options.IncludeDockerfile.Value;
+
+        if (options.IncludeDockerCompose.HasValue)
+            overrides["IncludeDockerCompose"] = options.IncludeDockerCompose.Value;
+
+        // Unattended install overrides
+        if (options.UseUnattended.HasValue)
+            overrides["UseUnattended"] = options.UseUnattended.Value;
+
+        if (!string.IsNullOrWhiteSpace(options.DatabaseType))
+            overrides["DatabaseType"] = options.DatabaseType;
+
+        if (!string.IsNullOrWhiteSpace(options.ConnectionString))
+            overrides["ConnectionString"] = options.ConnectionString;
+
+        if (!string.IsNullOrWhiteSpace(options.AdminName))
+            overrides["AdminName"] = options.AdminName;
+
+        if (!string.IsNullOrWhiteSpace(options.AdminEmail))
+            overrides["AdminEmail"] = options.AdminEmail;
+
+        if (!string.IsNullOrWhiteSpace(options.AdminPassword))
+            overrides["AdminPassword"] = options.AdminPassword;
+
+        // Output overrides
+        if (options.OnelinerOutput.HasValue)
+            overrides["OnelinerOutput"] = options.OnelinerOutput.Value;
+
+        if (options.RemoveComments.HasValue)
+            overrides["RemoveComments"] = options.RemoveComments.Value;
+
+        if (options.IncludePrerelease.HasValue)
+            overrides["IncludePrerelease"] = options.IncludePrerelease.Value;
+
+        // Execution overrides
+        if (options.AutoRun)
+            overrides["AutoRun"] = true;
 
         if (!string.IsNullOrWhiteSpace(options.RunDirectory))
-        {
             overrides["RunDirectory"] = options.RunDirectory;
-        }
-
-        if (options.AutoRun)
-        {
-            overrides["AutoRun"] = true;
-        }
 
         // Convert template to script model
         var scriptModel = _templateService.ToScriptModel(template, overrides.Count > 0 ? overrides : null);
@@ -266,8 +320,31 @@ public class TemplateWorkflow
             packageVersions[package.Name] = version;
         }
 
-        // Handle script actions interactively
-        await HandleScriptActionsAsync(script, scriptModel, packageVersions, template.Metadata.Name);
+        // Handle auto-run or run-dir if specified (similar to CliModeWorkflow)
+        if (options.AutoRun || !string.IsNullOrWhiteSpace(options.RunDirectory))
+        {
+            var targetDir = !string.IsNullOrWhiteSpace(options.RunDirectory)
+                ? options.RunDirectory
+                : Directory.GetCurrentDirectory();
+
+            // Validate and expand path
+            InputValidator.ValidateDirectoryPath(targetDir);
+            targetDir = Path.GetFullPath(targetDir);
+
+            if (!Directory.Exists(targetDir))
+            {
+                _logger?.LogInformation("Creating directory: {Directory}", targetDir);
+                Directory.CreateDirectory(targetDir);
+                AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
+            }
+
+            await _scriptExecutor.RunScriptAsync(script, targetDir);
+        }
+        else
+        {
+            // Handle script actions interactively
+            await HandleScriptActionsAsync(script, scriptModel, packageVersions, template.Metadata.Name);
+        }
     }
 
     /// <summary>

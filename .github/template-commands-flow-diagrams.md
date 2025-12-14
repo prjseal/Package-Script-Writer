@@ -72,9 +72,9 @@ flowchart TD
 
 ## Template Load
 
-**Command**: `psw template load <name> [--set key=value] [options]`
+**Command**: `psw template load <name> [options]`
 
-**Purpose**: Loads and executes a saved template with optional overrides.
+**Purpose**: Loads and executes a saved template with optional overrides using standard CLI options.
 
 **File Reference**: `src/PackageCliTool/Workflows/TemplateWorkflow.cs:167-271`
 
@@ -91,7 +91,7 @@ flowchart TD
     PromptSelect --> LoadTemplate
 
     LoadTemplate --> ShowLoaded[Display: ✓ Template loaded]
-    ShowLoaded --> ApplyOverrides[Apply command-line overrides<br/>--set, -n, --run-dir, --auto-run]
+    ShowLoaded --> ApplyOverrides[Apply command-line overrides<br/>-n, -s, -p, -t, -k, etc. same as --default]
 
     ApplyOverrides --> ConvertModel[Convert to ScriptModel]
     ConvertModel --> NeedPassword{Unattended +<br/>No password?}
@@ -541,7 +541,7 @@ stateDiagram-v2
 1. All template operations use YAML serialization/deserialization
 2. Templates are stored as individual `.yaml` files in the user's home directory
 3. Template validation runs automatically on save and import
-4. The `load` command supports runtime overrides via `--set key=value` syntax
+4. The `load` command supports runtime overrides using standard CLI options (same as `--default` mode)
 5. Password fields support three formats: literal, `${ENV_VAR}`, or `<prompt>`
 6. Templates include metadata (name, description, author, version, tags, timestamps)
 7. Script generation from templates uses the same engine as interactive mode
