@@ -615,24 +615,99 @@ public class TemplateService
     }
 
     /// <summary>
-    /// Applies overrides to configuration (simple implementation)
+    /// Applies overrides to configuration from command-line options
     /// </summary>
     private TemplateConfiguration ApplyOverrides(TemplateConfiguration config, Dictionary<string, object> overrides)
     {
-        // Simple implementation - can be extended for nested property paths
         foreach (var (key, value) in overrides)
         {
             switch (key.ToLower())
             {
+                // Template overrides
+                case "templatename":
+                    config.Template.Name = value.ToString() ?? config.Template.Name;
+                    break;
+                case "templateversion":
+                    config.Template.Version = value.ToString() ?? config.Template.Version;
+                    break;
+
+                // Project overrides
                 case "projectname":
                     config.Project.Name = value.ToString() ?? config.Project.Name;
+                    break;
+                case "createsolution":
+                    config.Project.CreateSolution = Convert.ToBoolean(value);
                     break;
                 case "solutionname":
                     config.Project.SolutionName = value.ToString();
                     break;
+
+                // Package overrides
+                case "packages":
+                    config.Packages = ParsePackages(value.ToString());
+                    break;
+
+                // Starter kit overrides
+                case "includestarterkit":
+                    config.StarterKit.Enabled = Convert.ToBoolean(value);
+                    break;
+                case "starterkitpackage":
+                    config.StarterKit.Package = value.ToString();
+                    break;
+                case "starterkitversion":
+                    // Append version to package name
+                    if (!string.IsNullOrWhiteSpace(value.ToString()))
+                    {
+                        var currentPackage = config.StarterKit.Package ?? "";
+                        // Remove any existing version specification
+                        if (currentPackage.Contains("--version"))
+                        {
+                            currentPackage = currentPackage.Split(new[] { "--version" }, StringSplitOptions.None)[0].Trim();
+                        }
+                        config.StarterKit.Package = $"{currentPackage} --version {value}".Trim();
+                    }
+                    break;
+
+                // Docker overrides
+                case "includedockerfile":
+                    config.Docker.Dockerfile = Convert.ToBoolean(value);
+                    break;
+                case "includedockercompose":
+                    config.Docker.DockerCompose = Convert.ToBoolean(value);
+                    break;
+
+                // Unattended install overrides
+                case "useunattended":
+                    config.Unattended.Enabled = Convert.ToBoolean(value);
+                    break;
                 case "databasetype":
                     config.Unattended.Database.Type = value.ToString() ?? config.Unattended.Database.Type;
                     break;
+                case "connectionstring":
+                    config.Unattended.Database.ConnectionString = value.ToString();
+                    break;
+                case "adminname":
+                    config.Unattended.Admin.Name = value.ToString() ?? config.Unattended.Admin.Name;
+                    break;
+                case "adminemail":
+                    config.Unattended.Admin.Email = value.ToString() ?? config.Unattended.Admin.Email;
+                    break;
+                case "adminpassword":
+                    config.Unattended.Admin.Password = value.ToString() ?? config.Unattended.Admin.Password;
+                    break;
+
+                // Output overrides
+                case "onelineroutput":
+                    config.Output.Oneliner = Convert.ToBoolean(value);
+                    break;
+                case "removecomments":
+                    config.Output.RemoveComments = Convert.ToBoolean(value);
+                    break;
+                case "includeprerelease":
+                    config.Output.IncludePrerelease = Convert.ToBoolean(value);
+                    break;
+
+                // Execution overrides
                 case "autorun":
                     config.Execution.AutoRun = Convert.ToBoolean(value);
                     break;

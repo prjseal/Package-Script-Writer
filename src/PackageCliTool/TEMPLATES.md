@@ -64,10 +64,23 @@ psw template save company-standard \
 Loads and executes a saved template.
 
 **Options:**
+
+You can override any template value using the same command-line options as the default mode:
 - `-n, --project-name <name>` - Override project name
-- `--run-dir <dir>` - Override run directory
+- `-s, --solution <name>` - Override solution name
+- `-p, --packages <packages>` - Override packages
+- `-t <version>` or `--template-package <name|version>` - Override template package/version
+- `-k, --starter-kit <name|version>` - Override starter kit
+- `-u, --unattended-defaults` - Enable unattended install with defaults
+- `--database-type <type>` - Override database type
+- `--admin-email <email>` - Override admin email
+- `--admin-password <password>` - Override admin password
+- `--dockerfile` - Include Dockerfile
+- `--docker-compose` - Include Docker Compose
+- `-o, --oneliner` - Output as one-liner
+- `-r, --remove-comments` - Remove comments
 - `--auto-run` - Automatically execute the script
-- `--set <key=value>` - Override specific values
+- `--run-dir <dir>` - Override run directory
 
 **Examples:**
 ```bash
@@ -77,11 +90,11 @@ psw template load my-blog
 # Load with project name override
 psw template load my-blog -n ClientBlog
 
-# Load with multiple overrides
+# Load with multiple overrides (just like --default mode)
 psw template load my-blog \
     -n ClientBlog \
-    --set DatabaseType=SQLServer \
-    --set AutoRun=true \
+    -s ClientSolution \
+    --database-type SQLServer \
     --auto-run
 ```
 
@@ -368,17 +381,18 @@ Templates support three ways to handle passwords:
 
 ### Overrides
 
-You can override specific template values when loading:
+You can override any template value when loading using the same command-line options as the `--default` mode:
 
 ```bash
 # Override project name
 psw template load my-blog -n NewBlog
 
-# Override multiple values
+# Override multiple values (just like --default mode)
 psw template load my-blog \
-    --set ProjectName=NewBlog \
-    --set DatabaseType=SQLServer \
-    --set AutoRun=true
+    -n NewBlog \
+    -s NewSolution \
+    --database-type SQLServer \
+    --auto-run
 ```
 
 ### Package Version Formats
@@ -537,22 +551,20 @@ psw template load my-template
 
 ### Override not working
 
-Ensure you're using the correct override key names:
+Use the standard command-line options to override template values:
 
 ```bash
-# Correct
-psw template load my-blog --set ProjectName=NewBlog
+# Correct - use standard CLI options
+psw template load my-blog -n NewBlog -s NewSolution
 
-# Incorrect (wrong case)
-psw template load my-blog --set projectname=NewBlog
+# Override database type
+psw template load my-blog --database-type SQLServer
+
+# Multiple overrides
+psw template load my-blog -n NewBlog --database-type SQLServer --auto-run
 ```
 
-Valid override keys:
-- `ProjectName`
-- `SolutionName`
-- `DatabaseType`
-- `AutoRun`
-- `RunDirectory`
+You can use any of the standard command-line options to override template values, just like with `--default` mode.
 
 ## Examples
 

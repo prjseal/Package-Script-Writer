@@ -92,7 +92,6 @@ public static class ConsoleDisplay
   [green]    --template-description[/] <desc> Template description
   [green]    --template-tags[/] <tags>   Comma-separated tags
   [green]    --template-file[/] <path>   Template file path
-  [green]    --set[/] <key=value>        Override template values
 
 [bold yellow]HISTORY COMMANDS:[/]
   [green]psw history list[/]              List recent script generation history
@@ -141,7 +140,7 @@ public static class ConsoleDisplay
     [cyan]psw template load my-blog[/]
 
   Load template with overrides:
-    [cyan]psw template load my-blog --project-name NewBlog --set AutoRun=true[/]
+    [cyan]psw template load my-blog -n NewBlog -s MySolution --auto-run[/]
 
   Export template to file:
     [cyan]psw template export my-blog --template-file my-blog.yaml[/]
@@ -206,7 +205,6 @@ public static class ConsoleDisplay
   [green]    --template-description[/] <desc> Template description
   [green]    --template-tags[/] <tags>   Comma-separated tags
   [green]    --template-file[/] <path>   Template file path
-  [green]    --set[/] <key=value>        Override template values
 
 [bold yellow]EXAMPLES:[/]
   Save current configuration as template:
@@ -219,7 +217,7 @@ public static class ConsoleDisplay
     [cyan]psw template load my-blog[/]
 
   Load template with overrides:
-    [cyan]psw template load my-blog --project-name NewBlog --set AutoRun=true[/]
+    [cyan]psw template load my-blog -n NewBlog -s MySolution --auto-run[/]
 
   Export template to file:
     [cyan]psw template export my-blog --template-file my-blog.yaml[/]

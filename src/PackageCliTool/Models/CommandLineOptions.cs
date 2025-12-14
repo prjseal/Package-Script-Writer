@@ -100,9 +100,6 @@ public class CommandLineOptions
     /// <summary>Gets or sets the template tags</summary>
     public List<string> TemplateTags { get; set; } = new();
 
-    /// <summary>Gets or sets the template property overrides</summary>
-    public Dictionary<string, string> TemplateOverrides { get; set; } = new();
-
     /// <summary>Gets or sets the history command (list, show, rerun, delete, clear, stats)</summary>
     public string? HistoryCommand { get; set; }
 
@@ -406,16 +403,6 @@ public class CommandLineOptions
                         options.TemplateTags = tags.Split(',', StringSplitOptions.RemoveEmptyEntries)
                             .Select(t => t.Trim())
                             .ToList();
-                    }
-                    break;
-
-                case "--set":
-                    // Format: --set key=value
-                    var setValue = GetNextArgument(args, ref i);
-                    if (!string.IsNullOrWhiteSpace(setValue) && setValue.Contains('='))
-                    {
-                        var parts = setValue.Split('=', 2);
-                        options.TemplateOverrides[parts[0].Trim()] = parts[1].Trim();
                     }
                     break;
 
