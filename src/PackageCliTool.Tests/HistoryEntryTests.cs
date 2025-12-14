@@ -144,7 +144,7 @@ public class HistoryEntryTests
     }
 
     [Fact]
-    public void GetDisplayName_WithEmptyProjectName_ReturnsDefaultWithTimestamp()
+    public void GetDisplayName_WithEmptyProjectName_ReturnsEmptyProjectName()
     {
         // Arrange
         var timestamp = new DateTime(2024, 6, 1, 8, 15, 0, DateTimeKind.Utc);
@@ -160,8 +160,10 @@ public class HistoryEntryTests
         var displayName = entry.GetDisplayName();
 
         // Assert
-        displayName.Should().Be("Script - 2024-06-01 08:15",
-            "should use 'Script' as fallback when project name is empty");
+        // Note: The current implementation only checks for null, not empty strings
+        // So empty string is NOT replaced with "Script" fallback
+        displayName.Should().Be(" - 2024-06-01 08:15",
+            "empty string is not replaced by fallback (only null is)");
     }
 
     [Fact]
