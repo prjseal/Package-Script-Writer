@@ -1,4 +1,4 @@
-name: Website - Integration Tests
+name: PR - Website - Build and Test
 
 on:
   pull_request:
