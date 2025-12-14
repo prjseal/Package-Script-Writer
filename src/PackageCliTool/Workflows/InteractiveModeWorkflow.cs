@@ -84,6 +84,7 @@ public class InteractiveModeWorkflow
                     {
                         "Create script from scratch",
                         "Create script from defaults",
+                        "Create script from template",
                         "See Umbraco versions table",
                         "See templates",
                         "See history",
@@ -100,6 +101,10 @@ public class InteractiveModeWorkflow
 
                 case "Create script from defaults":
                     await RunConfigurationEditorAsync(useDefaults: true);
+                    break;
+
+                case "Create script from template":
+                    await RunTemplateFlowAsync();
                     break;
 
                 case "See Umbraco versions table":
@@ -680,6 +685,121 @@ public class InteractiveModeWorkflow
                 return; // Return to main menu
             }
         }
+    }
+
+    /// <summary>
+    /// Runs the template-based script generation workflow
+    /// </summary>
+    private async Task RunTemplateFlowAsync()
+    {
+        _logger?.LogInformation("Starting template-based script generation flow");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Create Script from Template[/]\n");
+
+        // Get all available templates
+        var templates = await _templateService.GetAllTemplatesAsync();
+
+        if (!templates.Any())
+        {
+            AnsiConsole.MarkupLine("[yellow]No templates found.[/]");
+            AnsiConsole.MarkupLine("[dim]You can save a template from the script generation flow.[/]");
+            AnsiConsole.WriteLine();
+            return;
+        }
+
+        // Create template selection prompt
+        var templateChoices = templates
+            .Select(t => $"{t.Name} - {(string.IsNullOrEmpty(t.Description) ? "No description" : t.Description)}")
+            .ToList();
+
+        var selectedTemplateDisplay = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Select a [green]template[/]:")
+                .PageSize(10)
+                .MoreChoicesText("[grey](Move up and down to see more templates)[/]")
+                .AddChoices(templateChoices));
+
+        // Extract template name from selection
+        var templateName = selectedTemplateDisplay.Split(" - ")[0];
+
+        _logger?.LogInformation("Loading template: {TemplateName}", templateName);
+
+        // Load the template
+        var template = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync($"Loading template [yellow]{templateName}[/]...", async ctx =>
+            {
+                return await _templateService.LoadTemplateAsync(templateName);
+            });
+
+        // Convert template to ScriptModel
+        var config = _templateService.ToScriptModel(template);
+
+        // Build packageVersions dictionary from template
+        var packageVersions = new Dictionary<string, string>();
+        foreach (var package in template.Configuration.Packages)
+        {
+            // Map template package version format to packageVersions format
+            var version = package.Version.ToLower() switch
+            {
+                "latest" => "",
+                "prerelease" => "--prerelease",
+                _ => package.Version
+            };
+            packageVersions[package.Name] = version;
+        }
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[green]✓ Template loaded:[/] {templateName}");
+        AnsiConsole.WriteLine();
+
+        // Display configuration table
+        DisplayConfigurationTable(config, packageVersions);
+
+        // Ask what to do next
+        AnsiConsole.WriteLine();
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("What would you like to do?")
+                .AddChoices(new[] { "Generate script", "Edit configuration", "Cancel" }));
+
+        if (action == "Cancel")
+        {
+            return; // Return to main menu
+        }
+
+        if (action == "Edit configuration")
+        {
+            // Enter configuration editor with template values as defaults
+            await EditConfigurationAsync(config, packageVersions, config.TemplateName, config.TemplateVersion);
+            return;
+        }
+
+        // Generate script
+        _logger?.LogInformation("Generating installation script from template");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+            });
+
+        _logger?.LogInformation("Script generated successfully from template");
+
+        // Save to history
+        _historyService.AddEntry(
+            config,
+            templateName: config.TemplateName,
+            description: $"Script from template '{templateName}' for {config.ProjectName ?? "project"}");
+
+        ConsoleDisplay.DisplayGeneratedScript(script);
+
+        // Handle script actions (returns to main menu when done)
+        await HandleScriptActionsAsync(script, config, packageVersions, config.TemplateName, config.TemplateVersion);
     }
 
     /// <summary>
