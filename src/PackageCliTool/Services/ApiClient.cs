@@ -244,10 +244,10 @@ public class ApiClient
     }
 
     /// <summary>
-    /// Retrieves available versions for a template from NuGet
+    /// Retrieves available versions for a template from NuGet (includes prerelease versions)
     /// </summary>
     /// <param name="templateId">The template package ID (e.g., "Umbraco.Templates")</param>
-    /// <returns>List of available versions</returns>
+    /// <returns>List of available versions including prereleases</returns>
     public async Task<List<string>> GetTemplateVersionsAsync(string templateId)
     {
         if (_packageService == null)
@@ -278,11 +278,12 @@ public class ApiClient
             }
         }
 
-        _logger?.LogInformation("Fetching template versions for {TemplateId} from NuGet", templateId);
+        _logger?.LogInformation("Fetching template versions for {TemplateId} from NuGet (includes prereleases)", templateId);
 
         try
         {
             var templateUniqueId = templateId.ToLower();
+            // NuGet flat container API returns ALL versions including prereleases
             var versions = await _packageService.GetNugetPackageVersionsAsync(
                 $"https://api.nuget.org/v3-flatcontainer/{templateUniqueId}/index.json");
 

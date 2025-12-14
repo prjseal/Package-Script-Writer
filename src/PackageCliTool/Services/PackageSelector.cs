@@ -400,7 +400,7 @@ public class PackageSelector
 
         try
         {
-            // Fetch versions with spinner (async) - uses file-based cache for templates
+            // Fetch versions with spinner (async) - uses file-based cache and includes prereleases
             var versions = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
