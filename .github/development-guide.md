@@ -280,7 +280,7 @@ public async Task GenerateScript_WithValidRequest_ReturnsScript()
 
 Every pull request automatically runs all tests via **GitHub Actions**:
 
-**Workflow**: `.github/workflows/integration-tests.yml`
+**Workflow**: `.github/workflows/website-build-and-test.yml`
 
 **Features**:
 - 🔄 Runs on every pull request
@@ -300,7 +300,7 @@ on:
 **Manual Workflow Run**:
 ```bash
 # Via GitHub CLI
-gh workflow run integration-tests.yml
+gh workflow run website-build-and-test.yml
 ```
 
 **View Test Results**:

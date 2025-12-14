@@ -4,7 +4,7 @@ This document describes the automated release process for publishing the Package
 
 ## Overview
 
-The CLI tool (`PackageScriptWriter.Cli`) is automatically packaged and published to NuGet.org whenever a new GitHub release is created. This is handled by the `release-cli-nuget.yml` GitHub Actions workflow.
+The CLI tool (`PackageScriptWriter.Cli`) is automatically packaged and published to NuGet.org whenever a new GitHub release is created. This is handled by the `cli-publish.yml` GitHub Actions workflow.
 
 ## Prerequisites
 
@@ -138,7 +138,7 @@ dotnet nuget push bin/Release/PackageScriptWriter.Cli.1.0.0.nupkg \
 
 ## Related Files
 
-- **Workflow**: `.github/workflows/release-cli-nuget.yml`
+- **Workflow**: `.github/workflows/cli-publish.yml`
 - **Project File**: `src/PackageCliTool/PackageCliTool.csproj`
 - **Package Metadata**: Defined in `PackageCliTool.csproj`
 
