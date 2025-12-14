@@ -55,28 +55,28 @@ jobs:
           fi
 
           # Parse test output
+          # Format: "Test Run Successful." followed by "Total tests: X", "     Passed: Y", etc.
           if [ -f test-output.log ]; then
-            # Look for the test summary line (format: "Passed! - Failed: X, Passed: Y, Skipped: Z, Total: W")
-            if grep -qE "(Passed!|Failed!)\s+-\s+Failed:\s+[0-9]+,\s+Passed:\s+[0-9]+,\s+Skipped:\s+[0-9]+,\s+Total:\s+[0-9]+" test-output.log; then
-              test_line=$(grep -E "(Passed!|Failed!)\s+-\s+Failed:\s+[0-9]+,\s+Passed:\s+[0-9]+,\s+Skipped:\s+[0-9]+,\s+Total:\s+[0-9]+" test-output.log | tail -1)
+            if grep -q "Test Run" test-output.log; then
+              # Extract total tests
+              test_total=$(grep "Total tests:" test-output.log | grep -oP "Total tests:\s*\K\d+" || echo "0")
 
-              # Extract values using sed for more reliable parsing
-              test_failed=$(echo "$test_line" | sed -n 's/.*Failed:\s*\([0-9]\+\).*/\1/p')
-              test_passed=$(echo "$test_line" | sed -n 's/.*,\s*Passed:\s*\([0-9]\+\).*/\1/p')
-              test_skipped=$(echo "$test_line" | sed -n 's/.*,\s*Skipped:\s*\([0-9]\+\).*/\1/p')
-              test_total=$(echo "$test_line" | sed -n 's/.*,\s*Total:\s*\([0-9]\+\).*/\1/p')
+              # Extract passed tests
+              test_passed=$(grep "Passed:" test-output.log | grep -oP "Passed:\s*\K\d+" || echo "0")
 
-              # Default to 0 if extraction failed
-              test_failed=${test_failed:-0}
-              test_passed=${test_passed:-0}
-              test_skipped=${test_skipped:-0}
-              test_total=${test_total:-0}
+              # Extract failed tests (may not exist if all passed)
+              test_failed=$(grep "Failed:" test-output.log | grep -oP "Failed:\s*\K\d+" || echo "0")
 
-              # Determine status based on the line content
-              if echo "$test_line" | grep -q "^Passed!"; then
+              # Extract skipped tests (may not exist)
+              test_skipped=$(grep "Skipped:" test-output.log | grep -oP "Skipped:\s*\K\d+" || echo "0")
+
+              # Determine status
+              if grep -q "Test Run Successful" test-output.log; then
                 test_status="✅ Passed"
-              else
+              elif grep -q "Test Run Failed" test-output.log; then
                 test_status="❌ Failed"
+              else
+                test_status="⚠️ Unknown"
               fi
             else
               test_status="⚠️ Unknown"
