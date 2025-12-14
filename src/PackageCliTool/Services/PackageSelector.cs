@@ -400,13 +400,13 @@ public class PackageSelector
 
         try
         {
-            // Fetch versions with spinner (async)
+            // Fetch versions with spinner (async) - uses file-based cache for templates
             var versions = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
                 .SpinnerStyle(Style.Parse("green"))
                 .StartAsync($"Fetching versions for [yellow]{templateName}[/]...", async ctx =>
                 {
-                    return await GetPackageVersionsAsync(templateName);
+                    return await _apiClient.GetTemplateVersionsAsync(templateName);
                 });
 
             _logger?.LogDebug("Found {Count} versions for template {Template}", versions.Count, templateName);

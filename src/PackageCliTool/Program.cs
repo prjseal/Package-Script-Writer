@@ -142,7 +142,7 @@ class Program
             {
                 AnsiConsole.MarkupLine("[yellow]Updating package cache from PSW API...[/]");
                 var tempPackageSelector = new PackageSelector(
-                    new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService),
+                    new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService, packageService),
                     packageService,
                     memoryCache,
                     logger);
@@ -157,7 +157,7 @@ class Program
             }
 
             // Initialize services that depend on configuration
-            var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService);
+            var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService, packageService);
             var packageSelector = new PackageSelector(apiClient, packageService, memoryCache, logger);
             var scriptExecutor = new ScriptExecutor(logger);
             var templateService = new TemplateService(logger: logger);
