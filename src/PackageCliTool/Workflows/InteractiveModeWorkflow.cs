@@ -101,7 +101,7 @@ public class InteractiveModeWorkflow
                     break;
 
                 case "Create script from defaults":
-                    await RunConfigurationEditorAsync(useDefaults: true);
+                    await RunDefaultScriptFlowAsync();
                     break;
 
                 case "Create script from template":
@@ -139,65 +139,6 @@ public class InteractiveModeWorkflow
                     break;
             }
         }
-    }
-
-    /// <summary>
-    /// Generates a default script with minimal configuration
-    /// </summary>
-    private async Task GenerateDefaultScriptAsync()
-    {
-        _logger?.LogInformation("Generating default script");
-
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
-        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
-        AnsiConsole.WriteLine();
-
-        // Create default script model matching website defaults
-        var model = new ScriptModel
-        {
-            TemplateName = "Umbraco.Templates",
-            TemplateVersion = "", // Latest stable
-            ProjectName = "MyProject",
-            CreateSolutionFile = true,
-            SolutionName = "MySolution",
-            IncludeStarterKit = true,
-            StarterKitPackage = "clean",
-            IncludeDockerfile = false,
-            IncludeDockerCompose = false,
-            CanIncludeDocker = false,
-            UseUnattendedInstall = true,
-            DatabaseType = "SQLite",
-            UserEmail = "admin@example.com",
-            UserPassword = "1234567890",
-            UserFriendlyName = "Administrator",
-            OnelinerOutput = false,
-            RemoveComments = false
-        };
-
-        var script = await AnsiConsole.Status()
-            .Spinner(Spinner.Known.Star)
-            .SpinnerStyle(Style.Parse("green"))
-            .StartAsync("Generating default installation script...", async ctx =>
-            {
-                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-                //return await _apiClient.GenerateScriptAsync(model);
-            });
-
-        _logger?.LogInformation("Default script generated successfully");
-
-        // Save to history
-        _historyService.AddEntry(
-            model,
-            templateName: model.TemplateName,
-            description: $"Default script for {model.ProjectName}");
-
-        ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
-
-        // Option to save and run the script
-        // Create empty packageVersions dict since default script has no packages
-        var packageVersions = new Dictionary<string, string>();
-        await HandleScriptSaveAndRunAsync(script, model, packageVersions);
     }
 
     /// <summary>
@@ -690,6 +631,66 @@ public class InteractiveModeWorkflow
                 return; // Return to main menu
             }
         }
+    }
+
+    /// <summary>
+    /// Runs the default script generation workflow
+    /// </summary>
+    private async Task RunDefaultScriptFlowAsync()
+    {
+        _logger?.LogInformation("Starting default script generation flow");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Create Script with Default Configuration[/]\n");
+        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
+
+        // Create default script model matching website defaults
+        var config = new ScriptModel
+        {
+            TemplateName = "Umbraco.Templates",
+            TemplateVersion = "", // Latest stable
+            ProjectName = "MyProject",
+            CreateSolutionFile = true,
+            SolutionName = "MySolution",
+            IncludeStarterKit = true,
+            StarterKitPackage = "clean",
+            IncludeDockerfile = false,
+            IncludeDockerCompose = false,
+            CanIncludeDocker = false,
+            UseUnattendedInstall = true,
+            DatabaseType = "SQLite",
+            UserEmail = "admin@example.com",
+            UserPassword = "1234567890",
+            UserFriendlyName = "Administrator",
+            OnelinerOutput = false,
+            RemoveComments = false
+        };
+
+        var packageVersions = new Dictionary<string, string>(); // No packages in default script
+
+        // Generate script immediately
+        _logger?.LogInformation("Generating default installation script");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating default installation script...", async ctx =>
+            {
+                return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+            });
+
+        _logger?.LogInformation("Default script generated successfully");
+
+        // Save to history
+        _historyService.AddEntry(
+            config,
+            templateName: config.TemplateName,
+            description: $"Default script for {config.ProjectName}");
+
+        ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
+
+        // Handle script actions (returns to main menu when done)
+        await HandleScriptActionsAsync(script, config, packageVersions, config.TemplateName, config.TemplateVersion);
     }
 
     /// <summary>
