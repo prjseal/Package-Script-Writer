@@ -56,20 +56,22 @@ jobs:
 
           # Parse test output
           if [ -f test-output.log ]; then
-            if grep -q "Passed!" test-output.log; then
-              test_line=$(grep "Passed!" test-output.log | tail -1)
-              test_failed=$(echo "$test_line" | grep -oP "Failed:\s+\K\d+" || echo "0")
-              test_passed=$(echo "$test_line" | grep -oP "Passed:\s+\K\d+" || echo "0")
-              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s+\K\d+" || echo "0")
-              test_total=$(echo "$test_line" | grep -oP "Total:\s+\K\d+" || echo "0")
-              test_status="✅ Passed"
-            elif grep -q "Failed!" test-output.log; then
-              test_line=$(grep "Failed!" test-output.log | tail -1)
-              test_failed=$(echo "$test_line" | grep -oP "Failed:\s+\K\d+" || echo "0")
-              test_passed=$(echo "$test_line" | grep -oP "Passed:\s+\K\d+" || echo "0")
-              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s+\K\d+" || echo "0")
-              test_total=$(echo "$test_line" | grep -oP "Total:\s+\K\d+" || echo "0")
-              test_status="❌ Failed"
+            # Look for the test summary line (format: "Passed! - Failed: X, Passed: Y, Skipped: Z, Total: W")
+            if grep -qE "(Passed!|Failed!).*-.*Failed:.*Passed:.*Skipped:.*Total:" test-output.log; then
+              test_line=$(grep -E "(Passed!|Failed!).*-.*Failed:.*Passed:.*Skipped:.*Total:" test-output.log | tail -1)
+
+              # Extract values using regex - handle multiple spaces
+              test_failed=$(echo "$test_line" | grep -oP "Failed:\s*\K\d+" | head -1 || echo "0")
+              test_passed=$(echo "$test_line" | grep -oP "Passed:\s*\K\d+" | head -1 || echo "0")
+              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s*\K\d+" | head -1 || echo "0")
+              test_total=$(echo "$test_line" | grep -oP "Total:\s*\K\d+" | head -1 || echo "0")
+
+              # Determine status based on the line content
+              if echo "$test_line" | grep -q "^Passed!"; then
+                test_status="✅ Passed"
+              else
+                test_status="❌ Failed"
+              fi
             else
               test_status="⚠️ Unknown"
               test_failed=0
