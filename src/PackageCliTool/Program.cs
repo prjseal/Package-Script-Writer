@@ -121,8 +121,8 @@ class Program
                 return;
             }
 
-            // Initialize cache service (1-hour TTL, disabled if --no-cache is set)
-            var cacheService = new CacheService(ttlHours: 1, enabled: !options.NoCache, logger: logger);
+            // Initialize cache service (1-hour TTL)
+            var cacheService = new CacheService(ttlHours: 1, enabled: true, logger: logger);
 
             // Handle clear cache flag
             if (options.ClearCache)
@@ -131,25 +131,6 @@ class Program
                 AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
 
                 // If only clearing cache, exit
-                if (!options.HasAnyOptions() && !options.IsTemplateCommand() && !options.IsHistoryCommand())
-                {
-                    return;
-                }
-            }
-
-            // Handle update packages flag
-            if (options.UpdatePackageCache)
-            {
-                AnsiConsole.MarkupLine("[yellow]Updating package cache from PSW API...[/]");
-                var tempPackageSelector = new PackageSelector(
-                    new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService, packageService),
-                    packageService,
-                    memoryCache,
-                    logger);
-                await tempPackageSelector.PopulateAllPackagesAsync(forceUpdate: true);
-                AnsiConsole.MarkupLine("[green]✓ Package cache updated successfully[/]");
-
-                // If only updating cache, exit
                 if (!options.HasAnyOptions() && !options.IsTemplateCommand() && !options.IsHistoryCommand())
                 {
                     return;

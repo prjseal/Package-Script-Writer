@@ -61,7 +61,6 @@ public static class ConsoleDisplay
   [green]    --include-prerelease[/]      Include prerelease package versions
   [green]-k, --starter-kit[/] <package>   Starter kit package name
   [green]-n, --project-name[/] <name>     Project name (default: MyProject)
-  [green]    --no-cache[/]                Disable API response caching (bypass cache)
   [green]-o, --oneliner[/]                Output script as one-liner
   [green]-p, --packages[/] <packages>     Comma-separated list of packages with optional versions
                                    Format: ""Package1|Version1,Package2|Version2""
@@ -76,7 +75,6 @@ public static class ConsoleDisplay
                                    Or just template name: ""Umbraco.Templates"" (uses latest)
                                    Example: ""Umbraco.Templates|17.0.3""
   [green]-u, --unattended-defaults[/]     Use unattended install defaults
-  [green]    --update-packages[/]         Update package list cache from marketplace
   [green]-v, --version[/]                 Show version information
   [green]    --verbose[/]                 Enable verbose logging mode
 
@@ -170,12 +168,6 @@ public static class ConsoleDisplay
 [bold yellow]CACHE EXAMPLES:[/]
   Clear the cache:
     [cyan]psw --clear-cache[/]
-
-  Update package list from marketplace:
-    [cyan]psw --update-packages[/]
-
-  Generate script without using cache:
-    [cyan]psw --default --no-cache[/]
 
   Clear cache and generate fresh script:
     [cyan]psw --clear-cache --packages ""uSync"" --project-name MyProject[/]

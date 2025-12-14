@@ -19,7 +19,6 @@ flowchart TD
     CheckFlags -->|--help| ShowHelp[Display Help]
     CheckFlags -->|--version| ShowVersion[Display Version]
     CheckFlags -->|--clear-cache| ClearCache[Clear Cache]
-    CheckFlags -->|--update-packages| UpdateCache[Update Package Cache]
     CheckFlags -->|history command| HistoryWorkflow[Run History Workflow]
     CheckFlags -->|template command| TemplateWorkflow[Run Template Workflow]
     CheckFlags -->|Has CLI options| CliWorkflow[Run CLI Mode Workflow]
@@ -28,7 +27,6 @@ flowchart TD
     ShowHelp --> End([Exit])
     ShowVersion --> End
     ClearCache --> CheckMore{More to do?}
-    UpdateCache --> CheckMore
     CheckMore -->|Yes| CheckFlags
     CheckMore -->|No| End
 
@@ -475,7 +473,7 @@ flowchart TD
 #### Caching Strategy
 - Package list: 60 minutes in memory cache
 - Package versions: 60 minutes in memory cache
-- API responses: 1 hour TTL via ApiClient (configurable with `--no-cache`)
+- API responses: 1 hour TTL via ApiClient
 
 #### Error Handling
 **Non-Fatal (Warnings):**
