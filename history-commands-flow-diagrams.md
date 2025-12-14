@@ -191,7 +191,7 @@ flowchart TD
     CreateDir --> ShowCreated[Display: ✓ Created directory]
     ShowCreated --> ExecuteScript
 
-    ExecuteScript --> AddNewEntry[Add new history entry:<br/>"Re-run of: originalname"]
+    ExecuteScript --> AddNewEntry[Add new history entry:<br/>Re-run of original entry]
     AddNewEntry --> UpdateExec[Update execution info:<br/>Directory, Exit code 0]
 
     UpdateExec --> End
