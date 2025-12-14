@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  integration-tests:
+  website-build-and-test:
     runs-on: ubuntu-latest
     if: github.repository == 'prjseal/Package-Script-Writer'
 
