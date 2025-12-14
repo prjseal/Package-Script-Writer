@@ -137,7 +137,6 @@ public class CacheService
     {
         var originalPackageCount = cache.PackageCache.Count;
         var originalTemplateCount = cache.TemplateVersionCache.Count;
-        var originalGenericCount = cache.GenericCache.Count;
 
         cache.PackageCache = cache.PackageCache
             .Where(kvp => kvp.Value.IsValid())
@@ -147,13 +146,8 @@ public class CacheService
             .Where(kvp => kvp.Value.IsValid())
             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-        cache.GenericCache = cache.GenericCache
-            .Where(kvp => kvp.Value.IsValid())
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
         var removedCount = (originalPackageCount - cache.PackageCache.Count) +
-                          (originalTemplateCount - cache.TemplateVersionCache.Count) +
-                          (originalGenericCount - cache.GenericCache.Count);
+                          (originalTemplateCount - cache.TemplateVersionCache.Count);
 
         if (removedCount > 0)
         {
@@ -164,7 +158,7 @@ public class CacheService
     /// <summary>
     /// Gets a cached value by key
     /// </summary>
-    public string? Get(string key, CacheType type = CacheType.Generic)
+    public string? Get(string key, CacheType type = CacheType.Package)
     {
         if (!_enabled)
         {
@@ -187,7 +181,7 @@ public class CacheService
     /// <summary>
     /// Sets a cached value with TTL
     /// </summary>
-    public void Set(string key, string value, CacheType type = CacheType.Generic, int? ttlHours = null)
+    public void Set(string key, string value, CacheType type = CacheType.Package, int? ttlHours = null)
     {
         if (!_enabled)
         {
@@ -218,7 +212,6 @@ public class CacheService
     {
         _cache.PackageCache.Clear();
         _cache.TemplateVersionCache.Clear();
-        _cache.GenericCache.Clear();
         SaveCache();
         _logger?.LogInformation("Cleared all cache entries");
     }
@@ -244,8 +237,7 @@ public class CacheService
         {
             CacheType.Package => _cache.PackageCache,
             CacheType.TemplateVersion => _cache.TemplateVersionCache,
-            CacheType.Generic => _cache.GenericCache,
-            _ => _cache.GenericCache
+            _ => _cache.PackageCache
         };
     }
 
@@ -264,8 +256,5 @@ public enum CacheType
     Package,
 
     /// <summary>Template version information cache</summary>
-    TemplateVersion,
-
-    /// <summary>Generic cache for other data</summary>
-    Generic
+    TemplateVersion
 }

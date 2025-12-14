@@ -447,16 +447,15 @@ public class CommandLineOptionsTests
     }
 
     [Fact]
-    public void Parse_WithCacheFlags_SetsCacheOptions()
+    public void Parse_WithClearCacheFlag_SetsClearCache()
     {
         // Arrange
-        var args = new[] { "--no-cache", "--clear-cache" };
+        var args = new[] { "--clear-cache" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
 
         // Assert
-        options.NoCache.Should().BeTrue();
         options.ClearCache.Should().BeTrue();
     }
 

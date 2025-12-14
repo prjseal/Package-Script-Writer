@@ -112,14 +112,8 @@ public class CommandLineOptions
     /// <summary>Gets or sets the number of history entries to show</summary>
     public int HistoryLimit { get; set; } = 10;
 
-    /// <summary>Gets or sets whether to disable caching</summary>
-    public bool NoCache { get; set; }
-
     /// <summary>Gets or sets whether to clear all cache</summary>
     public bool ClearCache { get; set; }
-
-    /// <summary>Gets or sets whether to force update package cache from marketplace</summary>
-    public bool UpdatePackageCache { get; set; }
 
     /// <summary>Gets or sets whether to show Umbraco versions table</summary>
     public bool ShowVersionsTable { get; set; }
@@ -455,16 +449,8 @@ public class CommandLineOptions
                     }
                     break;
 
-                case "--no-cache":
-                    options.NoCache = true;
-                    break;
-
                 case "--clear-cache":
                     options.ClearCache = true;
-                    break;
-
-                case "--update-packages":
-                    options.UpdatePackageCache = true;
                     break;
 
                 case "versions":
