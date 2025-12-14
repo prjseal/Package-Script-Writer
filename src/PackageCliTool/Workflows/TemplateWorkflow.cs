@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Models;
+using PackageCliTool.Models.Api;
 using PackageCliTool.Models.Templates;
 using PackageCliTool.Services;
 using PackageCliTool.UI;
@@ -249,38 +250,171 @@ public class TemplateWorkflow
             templateName: template.Metadata.Name,
             description: $"From template: {template.Metadata.Name}");
 
-        AnsiConsole.MarkupLine("\n[green]✓ Script generated from template[/]");
-
         // Display script
-        var panel = new Panel(script)
+        ConsoleDisplay.DisplayGeneratedScript(script, "Generated Installation Script");
+
+        // Build packageVersions dictionary for template saving
+        var packageVersions = new Dictionary<string, string>();
+        foreach (var package in template.Configuration.Packages)
         {
-            Header = new PanelHeader("Generated Installation Script"),
-            Border = BoxBorder.Rounded,
-            BorderStyle = new Style(Color.Grey),
-            Padding = new Padding(4, 2)
-        };
-
-        AnsiConsole.Write(panel);
-
-        // Handle execution
-        if (scriptModel.UseUnattendedInstall && template.Configuration.Execution.AutoRun)
-        {
-            var runDir = template.Configuration.Execution.RunDirectory;
-
-            if (!string.IsNullOrWhiteSpace(runDir) && runDir != ".")
+            var version = package.Version.ToLower() switch
             {
-                if (!Directory.Exists(runDir))
-                {
-                    Directory.CreateDirectory(runDir);
-                    AnsiConsole.MarkupLine($"[green]✓ Created directory:[/] {runDir}");
-                }
+                "latest" => "",
+                "prerelease" => "--prerelease",
+                _ => package.Version
+            };
+            packageVersions[package.Name] = version;
+        }
 
-                await _scriptExecutor.RunScriptAsync(script, runDir);
+        // Handle script actions interactively
+        await HandleScriptActionsAsync(script, scriptModel, packageVersions, template.Metadata.Name);
+    }
+
+    /// <summary>
+    /// Handles script actions after generation
+    /// </summary>
+    private async Task HandleScriptActionsAsync(string script, ScriptModel scriptModel, Dictionary<string, string> packageVersions, string templateName)
+    {
+        var action = InteractivePrompts.PromptForScriptAction();
+
+        if (action == "Run")
+        {
+            var targetDir = InteractivePrompts.PromptForRunDirectory();
+
+            if (!string.IsNullOrWhiteSpace(targetDir) && targetDir != Directory.GetCurrentDirectory())
+            {
+                // Validate and expand path
+                InputValidator.ValidateDirectoryPath(targetDir);
+                targetDir = Path.GetFullPath(targetDir);
+
+                if (!Directory.Exists(targetDir))
+                {
+                    if (InteractivePrompts.ConfirmDirectoryCreation(targetDir))
+                    {
+                        _logger?.LogInformation("Creating directory: {Directory}", targetDir);
+                        Directory.CreateDirectory(targetDir);
+                        AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
+                    }
+                    else
+                    {
+                        _logger?.LogInformation("Script execution cancelled by user");
+                        AnsiConsole.MarkupLine("[yellow]Script execution cancelled.[/]");
+                        return;
+                    }
+                }
             }
             else
             {
-                await _scriptExecutor.RunScriptAsync(script, Directory.GetCurrentDirectory());
+                targetDir = Directory.GetCurrentDirectory();
             }
+
+            await _scriptExecutor.RunScriptAsync(script, targetDir);
+        }
+        else if (action == "Edit")
+        {
+            AnsiConsole.MarkupLine("[yellow]To edit the configuration, please use the interactive mode.[/]");
+            AnsiConsole.MarkupLine("[dim]Run 'psw' without arguments to enter interactive mode.[/]");
+        }
+        else if (action == "Copy")
+        {
+            await ClipboardHelper.CopyToClipboardAsync(script, _logger);
+
+            // Ask if they want to do something else with the script
+            var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
+            if (continueAction)
+            {
+                await HandleScriptActionsAsync(script, scriptModel, packageVersions, templateName);
+            }
+        }
+        else if (action == "Save")
+        {
+            await SaveAsTemplateAsync(scriptModel, packageVersions);
+
+            // Ask if they want to do something else with the script
+            var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
+            if (continueAction)
+            {
+                await HandleScriptActionsAsync(script, scriptModel, packageVersions, templateName);
+            }
+        }
+        else if (action == "Start over")
+        {
+            AnsiConsole.MarkupLine("[yellow]To start over, please re-run the command with different options.[/]");
+        }
+    }
+
+    /// <summary>
+    /// Saves the current script configuration as a template
+    /// </summary>
+    private async Task SaveAsTemplateAsync(ScriptModel scriptModel, Dictionary<string, string> packageVersions)
+    {
+        _logger?.LogInformation("Saving script configuration as template");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Save as Template[/]\n");
+
+        // Prompt for template name
+        var templateName = AnsiConsole.Ask<string>("Enter [green]template name[/]:");
+
+        // Prompt for description
+        var description = AnsiConsole.Ask<string>(
+            "Enter [green]template description[/] (optional):",
+            string.Empty);
+
+        // Prompt for tags
+        var tagsInput = AnsiConsole.Ask<string>(
+            "Enter [green]tags[/] (comma-separated, optional):",
+            string.Empty);
+
+        List<string> tags = new List<string>();
+        if (!string.IsNullOrWhiteSpace(tagsInput))
+        {
+            tags = tagsInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim())
+                .ToList();
+        }
+
+        // Create template from script model
+        var template = _templateService.FromScriptModel(
+            scriptModel,
+            packageVersions,
+            templateName,
+            string.IsNullOrWhiteSpace(description) ? null : description);
+
+        // Add tags if provided
+        if (tags.Count > 0)
+        {
+            template.Metadata.Tags = tags;
+        }
+
+        // Check if template already exists
+        if (_templateService.TemplateExists(templateName))
+        {
+            var overwrite = AnsiConsole.Confirm(
+                $"Template [yellow]{templateName}[/] already exists. Overwrite?",
+                false);
+
+            if (!overwrite)
+            {
+                AnsiConsole.MarkupLine("[yellow]Template save cancelled.[/]");
+                return;
+            }
+        }
+
+        // Save template
+        try
+        {
+            await _templateService.SaveTemplateAsync(template);
+            AnsiConsole.MarkupLine($"[green]✓ Template saved:[/] {templateName}");
+            _logger?.LogInformation("Template saved successfully: {Name}", templateName);
+
+            // Show helpful message
+            AnsiConsole.MarkupLine($"[dim]You can load this template with: psw template load {templateName}[/]");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to save template: {Name}", templateName);
+            AnsiConsole.MarkupLine($"[red]✗ Failed to save template:[/] {ex.Message}");
         }
     }
 

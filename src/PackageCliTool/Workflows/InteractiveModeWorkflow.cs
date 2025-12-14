@@ -84,6 +84,8 @@ public class InteractiveModeWorkflow
                     {
                         "Create script from scratch",
                         "Create script from defaults",
+                        "Create script from template",
+                        "Create script from history",
                         "See Umbraco versions table",
                         "See templates",
                         "See history",
@@ -99,7 +101,15 @@ public class InteractiveModeWorkflow
                     break;
 
                 case "Create script from defaults":
-                    await RunConfigurationEditorAsync(useDefaults: true);
+                    await RunDefaultScriptFlowAsync();
+                    break;
+
+                case "Create script from template":
+                    await RunTemplateFlowAsync();
+                    break;
+
+                case "Create script from history":
+                    await RunHistoryFlowAsync();
                     break;
 
                 case "See Umbraco versions table":
@@ -129,65 +139,6 @@ public class InteractiveModeWorkflow
                     break;
             }
         }
-    }
-
-    /// <summary>
-    /// Generates a default script with minimal configuration
-    /// </summary>
-    private async Task GenerateDefaultScriptAsync()
-    {
-        _logger?.LogInformation("Generating default script");
-
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
-        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
-        AnsiConsole.WriteLine();
-
-        // Create default script model matching website defaults
-        var model = new ScriptModel
-        {
-            TemplateName = "Umbraco.Templates",
-            TemplateVersion = "", // Latest stable
-            ProjectName = "MyProject",
-            CreateSolutionFile = true,
-            SolutionName = "MySolution",
-            IncludeStarterKit = true,
-            StarterKitPackage = "clean",
-            IncludeDockerfile = false,
-            IncludeDockerCompose = false,
-            CanIncludeDocker = false,
-            UseUnattendedInstall = true,
-            DatabaseType = "SQLite",
-            UserEmail = "admin@example.com",
-            UserPassword = "1234567890",
-            UserFriendlyName = "Administrator",
-            OnelinerOutput = false,
-            RemoveComments = false
-        };
-
-        var script = await AnsiConsole.Status()
-            .Spinner(Spinner.Known.Star)
-            .SpinnerStyle(Style.Parse("green"))
-            .StartAsync("Generating default installation script...", async ctx =>
-            {
-                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-                //return await _apiClient.GenerateScriptAsync(model);
-            });
-
-        _logger?.LogInformation("Default script generated successfully");
-
-        // Save to history
-        _historyService.AddEntry(
-            model,
-            templateName: model.TemplateName,
-            description: $"Default script for {model.ProjectName}");
-
-        ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
-
-        // Option to save and run the script
-        // Create empty packageVersions dict since default script has no packages
-        var packageVersions = new Dictionary<string, string>();
-        await HandleScriptSaveAndRunAsync(script, model, packageVersions);
     }
 
     /// <summary>
@@ -680,6 +631,268 @@ public class InteractiveModeWorkflow
                 return; // Return to main menu
             }
         }
+    }
+
+    /// <summary>
+    /// Runs the default script generation workflow
+    /// </summary>
+    private async Task RunDefaultScriptFlowAsync()
+    {
+        _logger?.LogInformation("Starting default script generation flow");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Create Script with Default Configuration[/]\n");
+        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
+
+        // Create default script model matching website defaults
+        var config = new ScriptModel
+        {
+            TemplateName = "Umbraco.Templates",
+            TemplateVersion = "", // Latest stable
+            ProjectName = "MyProject",
+            CreateSolutionFile = true,
+            SolutionName = "MySolution",
+            IncludeStarterKit = true,
+            StarterKitPackage = "clean",
+            IncludeDockerfile = false,
+            IncludeDockerCompose = false,
+            CanIncludeDocker = false,
+            UseUnattendedInstall = true,
+            DatabaseType = "SQLite",
+            UserEmail = "admin@example.com",
+            UserPassword = "1234567890",
+            UserFriendlyName = "Administrator",
+            OnelinerOutput = false,
+            RemoveComments = false
+        };
+
+        var packageVersions = new Dictionary<string, string>(); // No packages in default script
+
+        // Generate script immediately
+        _logger?.LogInformation("Generating default installation script");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating default installation script...", async ctx =>
+            {
+                return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+            });
+
+        _logger?.LogInformation("Default script generated successfully");
+
+        // Save to history
+        _historyService.AddEntry(
+            config,
+            templateName: config.TemplateName,
+            description: $"Default script for {config.ProjectName}");
+
+        ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
+
+        // Handle script actions (returns to main menu when done)
+        await HandleScriptActionsAsync(script, config, packageVersions, config.TemplateName, config.TemplateVersion);
+    }
+
+    /// <summary>
+    /// Runs the template-based script generation workflow
+    /// </summary>
+    private async Task RunTemplateFlowAsync()
+    {
+        _logger?.LogInformation("Starting template-based script generation flow");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Create Script from Template[/]\n");
+
+        // Get all available templates
+        var templates = await _templateService.GetAllTemplatesAsync();
+
+        if (!templates.Any())
+        {
+            AnsiConsole.MarkupLine("[yellow]No templates found.[/]");
+            AnsiConsole.MarkupLine("[dim]You can save a template from the script generation flow.[/]");
+            AnsiConsole.WriteLine();
+            return;
+        }
+
+        // Create template selection prompt
+        var templateChoices = templates
+            .Select(t => $"{t.Name} - {(string.IsNullOrEmpty(t.Description) ? "No description" : t.Description)}")
+            .ToList();
+
+        var selectedTemplateDisplay = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Select a [green]template[/]:")
+                .PageSize(10)
+                .MoreChoicesText("[grey](Move up and down to see more templates)[/]")
+                .AddChoices(templateChoices));
+
+        // Extract template name from selection
+        var templateName = selectedTemplateDisplay.Split(" - ")[0];
+
+        _logger?.LogInformation("Loading template: {TemplateName}", templateName);
+
+        // Load the template
+        var template = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync($"Loading template [yellow]{templateName}[/]...", async ctx =>
+            {
+                return await _templateService.LoadTemplateAsync(templateName);
+            });
+
+        // Convert template to ScriptModel
+        var config = _templateService.ToScriptModel(template);
+
+        // Build packageVersions dictionary from template
+        var packageVersions = new Dictionary<string, string>();
+        foreach (var package in template.Configuration.Packages)
+        {
+            // Map template package version format to packageVersions format
+            var version = package.Version.ToLower() switch
+            {
+                "latest" => "",
+                "prerelease" => "--prerelease",
+                _ => package.Version
+            };
+            packageVersions[package.Name] = version;
+        }
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[green]✓ Template loaded:[/] {templateName}");
+
+        // Generate script immediately
+        _logger?.LogInformation("Generating installation script from template");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+            });
+
+        _logger?.LogInformation("Script generated successfully from template");
+
+        // Save to history
+        _historyService.AddEntry(
+            config,
+            templateName: config.TemplateName,
+            description: $"Script from template '{templateName}' for {config.ProjectName ?? "project"}");
+
+        ConsoleDisplay.DisplayGeneratedScript(script);
+
+        // Handle script actions (returns to main menu when done)
+        await HandleScriptActionsAsync(script, config, packageVersions, config.TemplateName, config.TemplateVersion);
+    }
+
+    /// <summary>
+    /// Runs the history-based script generation workflow
+    /// </summary>
+    private async Task RunHistoryFlowAsync()
+    {
+        _logger?.LogInformation("Starting history-based script generation flow");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Create Script from History[/]\n");
+
+        // Get all history entries
+        var history = await _historyService.GetAllHistoryAsync();
+
+        if (!history.Any())
+        {
+            AnsiConsole.MarkupLine("[yellow]No history found.[/]");
+            AnsiConsole.MarkupLine("[dim]History is saved automatically when you generate scripts.[/]");
+            AnsiConsole.WriteLine();
+            return;
+        }
+
+        // Create history selection prompt
+        var historyChoices = history
+            .OrderByDescending(h => h.Timestamp)
+            .Take(20) // Show last 20 entries
+            .Select(h => $"{h.Timestamp:yyyy-MM-dd HH:mm} - {h.GetDisplayName()}")
+            .ToList();
+
+        var selectedHistoryDisplay = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Select a [green]history entry[/]:")
+                .PageSize(15)
+                .MoreChoicesText("[grey](Move up and down to see more entries)[/]")
+                .AddChoices(historyChoices));
+
+        // Extract timestamp from selection to find the entry
+        var selectedTimestamp = selectedHistoryDisplay.Substring(0, 16); // "yyyy-MM-dd HH:mm"
+        var selectedEntry = history.FirstOrDefault(h => h.Timestamp.ToString("yyyy-MM-dd HH:mm") == selectedTimestamp);
+
+        if (selectedEntry == null)
+        {
+            AnsiConsole.MarkupLine("[red]Error: Could not load selected history entry.[/]");
+            return;
+        }
+
+        _logger?.LogInformation("Loading history entry: {Id}", selectedEntry.Id);
+
+        // Get the ScriptModel from the history entry
+        var config = selectedEntry.ScriptModel;
+
+        // Build packageVersions dictionary from Packages string
+        var packageVersions = new Dictionary<string, string>();
+        if (!string.IsNullOrWhiteSpace(config.Packages))
+        {
+            var packages = config.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pkg in packages)
+            {
+                var trimmedPkg = pkg.Trim();
+
+                // Check for prerelease format: "PackageName --prerelease"
+                if (trimmedPkg.Contains(" --prerelease"))
+                {
+                    var packageName = trimmedPkg.Replace(" --prerelease", "").Trim();
+                    packageVersions[packageName] = "--prerelease";
+                }
+                // Check for version format: "PackageName|version"
+                else if (trimmedPkg.Contains('|'))
+                {
+                    var parts = trimmedPkg.Split('|');
+                    if (parts.Length == 2)
+                    {
+                        packageVersions[parts[0].Trim()] = parts[1].Trim();
+                    }
+                }
+                // No version specified (latest)
+                else
+                {
+                    packageVersions[trimmedPkg] = "";
+                }
+            }
+        }
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[green]✓ History entry loaded:[/] {selectedEntry.GetDisplayName()}");
+
+        // Generate script immediately
+        _logger?.LogInformation("Generating installation script from history");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+            });
+
+        _logger?.LogInformation("Script generated successfully from history");
+
+        // Save to history (new entry based on the old one)
+        _historyService.AddEntry(
+            config,
+            templateName: config.TemplateName,
+            description: $"Regenerated from history: {selectedEntry.GetDisplayName()}");
+
+        ConsoleDisplay.DisplayGeneratedScript(script);
+
+        // Handle script actions (returns to main menu when done)
+        await HandleScriptActionsAsync(script, config, packageVersions, config.TemplateName, config.TemplateVersion);
     }
 
     /// <summary>
