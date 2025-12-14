@@ -1,4 +1,4 @@
-name: Build, publish and deploy project to UmbHost
+name: Website - Deploy
 permissions:
   contents: read
 
