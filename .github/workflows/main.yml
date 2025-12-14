@@ -11,7 +11,7 @@ env:
     BuildConfiguration: Release
 
 jobs:
-  build:
+  website-deploy-to-umbhost:
 
     runs-on: windows-latest
     if: github.repository == 'prjseal/Package-Script-Writer'
