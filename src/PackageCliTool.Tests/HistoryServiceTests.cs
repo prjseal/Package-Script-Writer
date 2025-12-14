@@ -366,41 +366,34 @@ public class HistoryServiceTests : IDisposable
         var scriptModel = CreateTestScriptModel("PersistentProject");
         string entryId;
 
-        // Act - Create service, add entry, dispose
-        using (var historyService1 = new HistoryService(historyDirectory: _testHistoryDirectory))
-        {
-            var entry = historyService1.AddEntry(scriptModel, "PersistentTemplate");
-            entryId = entry.Id;
-        }
+        // Act - Create service, add entry
+        var historyService1 = new HistoryService(historyDirectory: _testHistoryDirectory);
+        var entry = historyService1.AddEntry(scriptModel, "PersistentTemplate");
+        entryId = entry.Id;
 
         // Create new instance - should load from disk
-        using (var historyService2 = new HistoryService(historyDirectory: _testHistoryDirectory))
-        {
-            var retrieved = historyService2.GetEntry(entryId);
+        var historyService2 = new HistoryService(historyDirectory: _testHistoryDirectory);
+        var retrieved = historyService2.GetEntry(entryId);
 
-            // Assert
-            retrieved.Should().NotBeNull();
-            retrieved!.ScriptModel.ProjectName.Should().Be("PersistentProject");
-            retrieved.TemplateName.Should().Be("PersistentTemplate");
-        }
+        // Assert
+        retrieved.Should().NotBeNull();
+        retrieved!.ScriptModel.ProjectName.Should().Be("PersistentProject");
+        retrieved.TemplateName.Should().Be("PersistentTemplate");
     }
 
     [Fact]
     public void HistoryService_LoadsExistingHistoryOnInitialization()
     {
         // Arrange - Create and populate history
-        using (var historyService1 = new HistoryService(historyDirectory: _testHistoryDirectory))
-        {
-            historyService1.AddEntry(CreateTestScriptModel("Project1"));
-            historyService1.AddEntry(CreateTestScriptModel("Project2"));
-        }
+        var historyService1 = new HistoryService(historyDirectory: _testHistoryDirectory);
+        historyService1.AddEntry(CreateTestScriptModel("Project1"));
+        historyService1.AddEntry(CreateTestScriptModel("Project2"));
 
         // Act - Create new instance
-        using (var historyService2 = new HistoryService(historyDirectory: _testHistoryDirectory))
-        {
-            // Assert
-            historyService2.GetCount().Should().Be(2, "existing history should be loaded on initialization");
-        }
+        var historyService2 = new HistoryService(historyDirectory: _testHistoryDirectory);
+
+        // Assert
+        historyService2.GetCount().Should().Be(2, "existing history should be loaded on initialization");
     }
 
     [Fact]
@@ -416,10 +409,8 @@ public class HistoryServiceTests : IDisposable
 
         // Assert
         act.Should().NotThrow("should handle corrupted history file gracefully");
-        using (var historyService = new HistoryService(historyDirectory: _testHistoryDirectory))
-        {
-            historyService.GetCount().Should().Be(0, "should start with empty history");
-        }
+        var historyService = new HistoryService(historyDirectory: _testHistoryDirectory);
+        historyService.GetCount().Should().Be(0, "should start with empty history");
     }
 
     [Fact]

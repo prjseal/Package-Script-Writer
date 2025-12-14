@@ -171,20 +171,16 @@ public class CacheServiceTests : IDisposable
         var key = "persistent-key";
         var value = "persistent-value";
 
-        // Act - Create cache, set value, dispose
-        using (var cacheService1 = new CacheService(cacheDirectory: _testCacheDirectory))
-        {
-            cacheService1.Set(key, value);
-        }
+        // Act - Create cache, set value
+        var cacheService1 = new CacheService(cacheDirectory: _testCacheDirectory);
+        cacheService1.Set(key, value);
 
         // Create new instance - should load from disk
-        using (var cacheService2 = new CacheService(cacheDirectory: _testCacheDirectory))
-        {
-            var retrieved = cacheService2.Get(key);
+        var cacheService2 = new CacheService(cacheDirectory: _testCacheDirectory);
+        var retrieved = cacheService2.Get(key);
 
-            // Assert
-            retrieved.Should().Be(value, "cache should persist across service instances");
-        }
+        // Assert
+        retrieved.Should().Be(value, "cache should persist across service instances");
     }
 
     [Fact]
@@ -209,18 +205,15 @@ public class CacheServiceTests : IDisposable
         // Arrange - Create and populate cache
         var key = "preload-key";
         var value = "preload-value";
-        using (var cacheService1 = new CacheService(cacheDirectory: _testCacheDirectory))
-        {
-            cacheService1.Set(key, value);
-        }
+        var cacheService1 = new CacheService(cacheDirectory: _testCacheDirectory);
+        cacheService1.Set(key, value);
 
         // Act - Create new instance
-        using (var cacheService2 = new CacheService(cacheDirectory: _testCacheDirectory))
-        {
-            // Assert
-            var retrieved = cacheService2.Get(key);
-            retrieved.Should().Be(value, "existing cache should be loaded on initialization");
-        }
+        var cacheService2 = new CacheService(cacheDirectory: _testCacheDirectory);
+
+        // Assert
+        var retrieved = cacheService2.Get(key);
+        retrieved.Should().Be(value, "existing cache should be loaded on initialization");
     }
 
     [Fact]
@@ -236,10 +229,8 @@ public class CacheServiceTests : IDisposable
 
         // Assert
         act.Should().NotThrow("should handle corrupted cache file gracefully");
-        using (var cacheService = new CacheService(cacheDirectory: _testCacheDirectory))
-        {
-            cacheService.Get("any-key").Should().BeNull("should start with empty cache");
-        }
+        var cacheService = new CacheService(cacheDirectory: _testCacheDirectory);
+        cacheService.Get("any-key").Should().BeNull("should start with empty cache");
     }
 
     [Fact]
