@@ -94,18 +94,21 @@ class Program
             services.Configure<PSWConfig>(
                 configuration.GetSection(PSWConfig.SectionName));
 
-            // Your services (register as before)
-            services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
-            services.AddScoped<IPackageService, MarketplacePackageService>();
-            services.AddScoped<IQueryStringService, QueryStringService>();
-            services.AddScoped<IUmbracoVersionService, UmbracoVersionService>();
+            // Register all services using proper DI
+            ConfigureServices(services, logger);
 
-            // Build the service provider
-            var serviceProvider = services.BuildServiceProvider();
+            // Build the service provider with proper disposal
+            using var serviceProvider = services.BuildServiceProvider();
 
+            // Resolve services from DI container
             var scriptGeneratorService = serviceProvider.GetRequiredService<IScriptGeneratorService>();
-            var packageService = serviceProvider.GetRequiredService<IPackageService>();
-            var memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
+            var cacheService = serviceProvider.GetRequiredService<CacheService>();
+            var apiClient = serviceProvider.GetRequiredService<ApiClient>();
+            var packageSelector = serviceProvider.GetRequiredService<PackageSelector>();
+            var scriptExecutor = serviceProvider.GetRequiredService<ScriptExecutor>();
+            var templateService = serviceProvider.GetRequiredService<TemplateService>();
+            var historyService = serviceProvider.GetRequiredService<HistoryService>();
+            var versionCheckService = serviceProvider.GetRequiredService<VersionCheckService>();
 
             // Handle help flag
             if (options.ShowHelp)
@@ -121,9 +124,6 @@ class Program
                 return;
             }
 
-            // Initialize cache service (1-hour TTL)
-            var cacheService = new CacheService(ttlHours: 1, enabled: true, logger: logger);
-
             // Handle clear cache flag
             if (options.ClearCache)
             {
@@ -136,15 +136,6 @@ class Program
                     return;
                 }
             }
-
-            // Initialize services that depend on configuration
-            var apiClient = new ApiClient(ApiConfiguration.ApiBaseUrl, logger, cacheService, packageService);
-            var packageSelector = new PackageSelector(apiClient, packageService, memoryCache, logger);
-            var scriptExecutor = new ScriptExecutor(logger);
-            var templateService = new TemplateService(logger: logger);
-            var historyService = new HistoryService(logger: logger);
-            var httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-            var versionCheckService = new VersionCheckService(httpClientFactory.CreateClient(), logger);
 
             // Check if this is a versions command
             if (options.IsVersionsCommand())
@@ -215,5 +206,73 @@ class Program
         {
             LoggerSetup.Shutdown();
         }
+    }
+
+    /// <summary>
+    /// Configures all services for dependency injection
+    /// </summary>
+    /// <param name="services">The service collection to configure</param>
+    /// <param name="logger">Optional logger instance for service initialization</param>
+    private static void ConfigureServices(IServiceCollection services, ILogger? logger)
+    {
+        // Register core services with interfaces (Singleton for console app)
+        services.AddSingleton<IScriptGeneratorService, ScriptGeneratorService>();
+        services.AddSingleton<IPackageService, MarketplacePackageService>();
+        services.AddSingleton<IUmbracoVersionService, UmbracoVersionService>();
+
+        // Register CacheService with factory pattern for logger injection
+        services.AddSingleton<CacheService>(sp =>
+        {
+            var cacheLogger = LoggerSetup.CreateLogger("CacheService");
+            return new CacheService(ttlHours: 1, enabled: true, logger: cacheLogger);
+        });
+
+        // Register ApiClient with dependencies
+        services.AddSingleton<ApiClient>(sp =>
+        {
+            var apiLogger = LoggerSetup.CreateLogger("ApiClient");
+            var cacheService = sp.GetRequiredService<CacheService>();
+            var packageService = sp.GetRequiredService<IPackageService>();
+            return new ApiClient(ApiConfiguration.ApiBaseUrl, apiLogger, cacheService, packageService);
+        });
+
+        // Register PackageSelector with dependencies
+        services.AddSingleton<PackageSelector>(sp =>
+        {
+            var apiClient = sp.GetRequiredService<ApiClient>();
+            var packageService = sp.GetRequiredService<IPackageService>();
+            var memoryCache = sp.GetRequiredService<IMemoryCache>();
+            var packageLogger = LoggerSetup.CreateLogger("PackageSelector");
+            return new PackageSelector(apiClient, packageService, memoryCache, packageLogger);
+        });
+
+        // Register ScriptExecutor with logger
+        services.AddSingleton<ScriptExecutor>(sp =>
+        {
+            var scriptLogger = LoggerSetup.CreateLogger("ScriptExecutor");
+            return new ScriptExecutor(scriptLogger);
+        });
+
+        // Register TemplateService with logger
+        services.AddSingleton<TemplateService>(sp =>
+        {
+            var templateLogger = LoggerSetup.CreateLogger("TemplateService");
+            return new TemplateService(logger: templateLogger);
+        });
+
+        // Register HistoryService with logger
+        services.AddSingleton<HistoryService>(sp =>
+        {
+            var historyLogger = LoggerSetup.CreateLogger("HistoryService");
+            return new HistoryService(logger: historyLogger);
+        });
+
+        // Register VersionCheckService with dependencies
+        services.AddSingleton<VersionCheckService>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var versionLogger = LoggerSetup.CreateLogger("VersionCheckService");
+            return new VersionCheckService(httpClientFactory.CreateClient(), versionLogger);
+        });
     }
 }
