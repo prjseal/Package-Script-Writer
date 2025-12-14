@@ -39,7 +39,7 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Building PackageCliTool solution..." -ForegroundColor Cyan
-          dotnet build ./src/PackageCliTool.sln --configuration Release --no-restore
+          dotnet build ./src/PackageCliTool.sln --configuration Release --no-restore /p:RunPreBuildEvent=false
 
       - name: Run tests
         shell: pwsh

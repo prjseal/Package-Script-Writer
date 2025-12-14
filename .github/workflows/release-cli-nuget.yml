@@ -71,7 +71,8 @@ jobs:
           dotnet build ./src/PackageCliTool/PackageCliTool.csproj `
             --configuration Release `
             --no-restore `
-            /p:Version="${{ steps.version.outputs.version }}"
+            /p:Version="${{ steps.version.outputs.version }}" `
+            /p:RunPreBuildEvent=false
 
       - name: Pack CLI tool
         shell: pwsh
