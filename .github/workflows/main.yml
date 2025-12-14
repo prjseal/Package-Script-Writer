@@ -1,4 +1,4 @@
-name: Website - Deploy
+name: PR - Website - Deploy to UmbHost
 permissions:
   contents: read
 
