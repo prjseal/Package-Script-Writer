@@ -133,12 +133,12 @@ public class TemplateServiceTests : IDisposable
     }
 
     [Fact]
-    public void TemplateExists_WithExistingTemplate_ReturnsTrue()
+    public async Task TemplateExists_WithExistingTemplate_ReturnsTrue()
     {
         // Arrange
         var templateService = new TemplateService(templatesDirectory: _testTemplatesDirectory);
         var template = CreateTestTemplate("exists-test");
-        templateService.SaveTemplateAsync(template).Wait();
+        await templateService.SaveTemplateAsync(template);
 
         // Act
         var exists = templateService.TemplateExists("exists-test");
@@ -446,13 +446,13 @@ public class TemplateServiceTests : IDisposable
     }
 
     [Fact]
-    public void ListTemplates_WithCorruptedTemplateFile_SkipsCorruptedFile()
+    public async Task ListTemplates_WithCorruptedTemplateFile_SkipsCorruptedFile()
     {
         // Arrange
         var templateService = new TemplateService(templatesDirectory: _testTemplatesDirectory);
 
         // Create a valid template
-        templateService.SaveTemplateAsync(CreateTestTemplate("valid-template")).Wait();
+        await templateService.SaveTemplateAsync(CreateTestTemplate("valid-template"));
 
         // Create a corrupted YAML file
         var corruptedFile = Path.Combine(_testTemplatesDirectory, "corrupted.yaml");
