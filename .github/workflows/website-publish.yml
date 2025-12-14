@@ -24,10 +24,12 @@ jobs:
           run: mkdir _build
 
         - name: Build Solution
+          shell: pwsh
           run: |
-            dotnet build .\src\${{env.SolutionName}} /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:DeleteExistingFiles=True /p:SkipInvalidConfigurations=true /p:IncludeSetAclProviderOnDestination=False /p:AutoParameterizationWebConfigConnectionStrings=False /p:platform="${{env.BuildPlatform}}" /p:configuration="${{env.BuildConfiguration}}" /p:PackageLocation="../../_build" /p:RunPreBuildEvent=false
-            
+            dotnet build .\src\${{env.SolutionName}} /nologo /nr:false /p:DeployOnBuild=true /p:DeployDefaultTarget=WebPublish /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:DeleteExistingFiles=True /p:SkipInvalidConfigurations=true /p:IncludeSetAclProviderOnDestination=False /p:AutoParameterizationWebConfigConnectionStrings=False /p:platform="${{env.BuildPlatform}}" /p:configuration="${{env.BuildConfiguration}}" /p:PackageLocation="../../_build" /p:RunPreBuildEvent=false 2>&1 | Tee-Object -FilePath build-output.log
+
         - name: Deploy to UmbHost
+          id: deploy
           uses: UmbHost/umbhost-web-deploy@v1.0.1
           with:
             website-name: ${{ secrets.WEBSITE_NAME }}
@@ -36,3 +38,102 @@ jobs:
             server-password: ${{ secrets.PASSWORD }}
             source-path: '_build'
             source-fileName: PSW.zip
+
+        - name: Generate Summary
+          if: always()
+          shell: pwsh
+          run: |
+            # Parse build output for errors and warnings
+            $buildOutput = if (Test-Path build-output.log) { Get-Content build-output.log -Raw } else { "" }
+            $warningCount = ([regex]::Matches($buildOutput, "warning [A-Z0-9]+:")).Count
+            $errorCount = ([regex]::Matches($buildOutput, "error [A-Z0-9]+:")).Count
+
+            # Determine build status
+            $buildStatus = if ($errorCount -gt 0) { "❌ Failed" } elseif ($warningCount -gt 0) { "⚠️ Warning" } else { "✅ Success" }
+
+            # Determine deployment status
+            $deployStatus = if ("${{ steps.deploy.outcome }}" -eq "success") {
+              "✅ Success"
+            } elseif ("${{ steps.deploy.outcome }}" -eq "failure") {
+              "❌ Failed"
+            } elseif ("${{ steps.deploy.outcome }}" -eq "skipped") {
+              "⏭️ Skipped"
+            } else {
+              "⚠️ Unknown"
+            }
+
+            # Get package info
+            $packageFile = Get-ChildItem "_build\PSW.zip" -ErrorAction SilentlyContinue
+            $packageSize = if ($packageFile) {
+              "{0:N2} MB" -f ($packageFile.Length / 1MB)
+            } else {
+              "Unknown"
+            }
+
+            # Create GitHub Actions Summary
+            @"
+            # 🚀 Website Deployment Summary
+
+            ## Overview
+            - **Branch**: ${{ github.ref_name }}
+            - **Commit**: ${{ github.sha }}
+            - **Triggered by**: ${{ github.actor }}
+            - **Deployment Target**: UmbHost Production
+
+            ## Build Results
+            | Metric | Count | Status |
+            |--------|-------|--------|
+            | Errors | $errorCount | $buildStatus |
+            | Warnings | $warningCount | $(if ($warningCount -gt 0) { "⚠️" } else { "✅" }) |
+
+            ## Package Information
+            | Property | Value |
+            |----------|-------|
+            | Package File | \`PSW.zip\` |
+            | Package Size | $packageSize |
+            | Configuration | Release |
+            | Platform | Any CPU |
+
+            ## Deployment Results
+            | Property | Value |
+            |----------|-------|
+            | **Status** | **$deployStatus** |
+            | Target | UmbHost |
+            | Website Name | \`${{ secrets.WEBSITE_NAME }}\` |
+            | Server | \`${{ secrets.SERVER_COMPUTER_NAME }}\` |
+            | Method | WebDeploy (MSDeploy) |
+
+            $(if ("${{ steps.deploy.outcome }}" -eq "success") {
+              @"
+            ## ✅ Deployment Successful
+
+            The website has been successfully deployed to production.
+
+            **Live URL**: [https://psw.codeshare.co.uk](https://psw.codeshare.co.uk)
+
+            ### Post-Deployment Checklist
+            - [ ] Verify website is accessible
+            - [ ] Test package generation functionality
+            - [ ] Check API endpoints
+            - [ ] Monitor application logs
+            "@
+            } elseif ("${{ steps.deploy.outcome }}" -eq "failure") {
+              @"
+            ## ❌ Deployment Failed
+
+            The deployment encountered errors. Please review the workflow logs for details.
+
+            ### Troubleshooting Steps
+            1. Check UmbHost credentials and server status
+            2. Review deployment logs above
+            3. Verify package was created successfully
+            4. Check server connectivity
+            "@
+            } else {
+              ""
+            })
+
+            ---
+            *Deployed: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss UTC")*
+            *Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+            "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

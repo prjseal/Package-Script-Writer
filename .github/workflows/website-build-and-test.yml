@@ -28,10 +28,10 @@ jobs:
         run: dotnet restore ./src/PSW.sln
 
       - name: Build solution
-        run: dotnet build ./src/PSW.sln --configuration Release --no-restore /p:RunPreBuildEvent=false
+        run: dotnet build ./src/PSW.sln --configuration Release --no-restore /p:RunPreBuildEvent=false 2>&1 | tee build-output.log
 
       - name: Run integration tests
-        run: dotnet test ./src/PSW.IntegrationTests/PSW.IntegrationTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --logger "console;verbosity=detailed"
+        run: dotnet test ./src/PSW.IntegrationTests/PSW.IntegrationTests.csproj --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --logger "console;verbosity=detailed" 2>&1 | tee test-output.log
 
       - name: Upload test results
         if: always()
@@ -41,14 +41,87 @@ jobs:
           path: '**/test-results.trx'
           if-no-files-found: warn
 
-      - name: Test Summary
+      - name: Generate Summary
         if: always()
+        shell: bash
         run: |
-          echo "================================================"
-          echo "Integration Tests Summary"
-          echo "================================================"
-          echo "Workflow: ${{ github.workflow }}"
-          echo "Run Number: ${{ github.run_number }}"
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Actor: ${{ github.actor }}"
-          echo "================================================"
+          # Parse build output for errors and warnings
+          if [ -f build-output.log ]; then
+            warning_count=$(grep -c "warning [A-Z0-9]*:" build-output.log || echo "0")
+            error_count=$(grep -c "error [A-Z0-9]*:" build-output.log || echo "0")
+          else
+            warning_count=0
+            error_count=0
+          fi
+
+          # Parse test output
+          if [ -f test-output.log ]; then
+            if grep -q "Passed!" test-output.log; then
+              test_line=$(grep "Passed!" test-output.log | tail -1)
+              test_failed=$(echo "$test_line" | grep -oP "Failed:\s+\K\d+" || echo "0")
+              test_passed=$(echo "$test_line" | grep -oP "Passed:\s+\K\d+" || echo "0")
+              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s+\K\d+" || echo "0")
+              test_total=$(echo "$test_line" | grep -oP "Total:\s+\K\d+" || echo "0")
+              test_status="✅ Passed"
+            elif grep -q "Failed!" test-output.log; then
+              test_line=$(grep "Failed!" test-output.log | tail -1)
+              test_failed=$(echo "$test_line" | grep -oP "Failed:\s+\K\d+" || echo "0")
+              test_passed=$(echo "$test_line" | grep -oP "Passed:\s+\K\d+" || echo "0")
+              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s+\K\d+" || echo "0")
+              test_total=$(echo "$test_line" | grep -oP "Total:\s+\K\d+" || echo "0")
+              test_status="❌ Failed"
+            else
+              test_status="⚠️ Unknown"
+              test_failed=0
+              test_passed=0
+              test_skipped=0
+              test_total=0
+            fi
+          else
+            test_status="⚠️ Unknown"
+            test_failed=0
+            test_passed=0
+            test_skipped=0
+            test_total=0
+          fi
+
+          # Determine build status
+          if [ "$error_count" -gt 0 ]; then
+            build_status="❌ Failed"
+          elif [ "$warning_count" -gt 0 ]; then
+            build_status="⚠️ Warning"
+          else
+            build_status="✅ Success"
+          fi
+
+          # Create GitHub Actions Summary
+          cat >> $GITHUB_STEP_SUMMARY <<EOF
+          # 🌐 Website Build and Test Summary
+
+          ## Overview
+          - **PR Number**: ${{ github.event.pull_request.number }}
+          - **Branch**: ${{ github.head_ref }}
+          - **Triggered by**: ${{ github.actor }}
+          - **Commit**: ${{ github.sha }}
+
+          ## Build Results
+          | Metric | Count | Status |
+          |--------|-------|--------|
+          | Errors | $error_count | $build_status |
+          | Warnings | $warning_count | $([ "$warning_count" -gt 0 ] && echo "⚠️" || echo "✅") |
+
+          ## Integration Test Results
+          | Metric | Count |
+          |--------|-------|
+          | **Status** | **$test_status** |
+          | Total | $test_total |
+          | Passed | ✅ $test_passed |
+          | Failed | ❌ $test_failed |
+          | Skipped | ⏭️ $test_skipped |
+
+          ## Artifacts
+          - 📄 Test results uploaded as artifact: \`integration-test-results-${{ github.run_number }}\`
+
+          ---
+          *Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+          EOF
