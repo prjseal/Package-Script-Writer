@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-test:
+  cli-build-and-test:
     runs-on: windows-latest
     if: github.repository == 'prjseal/Package-Script-Writer'
     permissions:
