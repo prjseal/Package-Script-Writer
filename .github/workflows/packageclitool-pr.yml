@@ -1,4 +1,4 @@
-name: PackageCliTool - PR Build and Test
+name: PR - CLI - Build and Test
 
 on:
   pull_request:
