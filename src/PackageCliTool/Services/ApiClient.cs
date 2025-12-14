@@ -153,7 +153,7 @@ public class ApiClient
             }
         }
 
-        // Cache the successful response
+        // Cache the successful response (1 hour TTL - default)
         if (versions.Any())
         {
             var versionsJson = JsonSerializer.Serialize(versions);
@@ -218,7 +218,7 @@ public class ApiClient
                 .ToList();
             _logger?.LogInformation("Successfully fetched {Count} packages from marketplace", distinctPackages.Count);
 
-            // Cache the successful response
+            // Cache the successful response (24 hour TTL)
             if (distinctPackages.Any())
             {
                 var packagesJson = JsonSerializer.Serialize(distinctPackages,
@@ -226,7 +226,7 @@ public class ApiClient
                     {
                         PropertyNameCaseInsensitive = true
                     });
-                _cacheService?.Set(cacheKey, packagesJson, CacheType.Package);
+                _cacheService?.Set(cacheKey, packagesJson, CacheType.Package, ttlHours: 24);
             }
 
             return distinctPackages;
