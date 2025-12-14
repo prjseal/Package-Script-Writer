@@ -9,6 +9,7 @@ on:
 jobs:
   build-and-test:
     runs-on: windows-latest
+    if: github.repository == 'prjseal/Package-Script-Writer'
     permissions:
       contents: read
       pull-requests: read

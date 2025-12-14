@@ -7,6 +7,7 @@ on:
 jobs:
   publish-cli-tool:
     runs-on: windows-latest
+    if: github.repository == 'prjseal/Package-Script-Writer'
     permissions:
       contents: write # Allow uploading release assets
 
