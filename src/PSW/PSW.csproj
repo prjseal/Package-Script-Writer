@@ -17,7 +17,7 @@
     <ProjectReference Include="..\PSW.Shared\PSW.Shared.csproj" />
   </ItemGroup>
 
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(RunPreBuildEvent)' != 'false'">
     <Exec Command="dotnet format --severity warn --verbosity diagnostic" />
   </Target>
 </Project>
