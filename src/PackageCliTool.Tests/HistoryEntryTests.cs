@@ -131,7 +131,7 @@ public class HistoryEntryTests
         {
             Description = null,
             TemplateName = null,
-            ScriptModel = new ScriptModel { ProjectName = null },
+            ScriptModel = new ScriptModel { ProjectName = null! },
             Timestamp = timestamp
         };
 
