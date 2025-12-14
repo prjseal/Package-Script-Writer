@@ -85,6 +85,7 @@ public class InteractiveModeWorkflow
                         "Create script from scratch",
                         "Create script from defaults",
                         "Create script from template",
+                        "Create script from history",
                         "See Umbraco versions table",
                         "See templates",
                         "See history",
@@ -105,6 +106,10 @@ public class InteractiveModeWorkflow
 
                 case "Create script from template":
                     await RunTemplateFlowAsync();
+                    break;
+
+                case "Create script from history":
+                    await RunHistoryFlowAsync();
                     break;
 
                 case "See Umbraco versions table":
@@ -772,6 +777,116 @@ public class InteractiveModeWorkflow
             config,
             templateName: config.TemplateName,
             description: $"Script from template '{templateName}' for {config.ProjectName ?? "project"}");
+
+        ConsoleDisplay.DisplayGeneratedScript(script);
+
+        // Handle script actions (returns to main menu when done)
+        await HandleScriptActionsAsync(script, config, packageVersions, config.TemplateName, config.TemplateVersion);
+    }
+
+    /// <summary>
+    /// Runs the history-based script generation workflow
+    /// </summary>
+    private async Task RunHistoryFlowAsync()
+    {
+        _logger?.LogInformation("Starting history-based script generation flow");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Create Script from History[/]\n");
+
+        // Get all history entries
+        var history = await _historyService.GetAllHistoryAsync();
+
+        if (!history.Any())
+        {
+            AnsiConsole.MarkupLine("[yellow]No history found.[/]");
+            AnsiConsole.MarkupLine("[dim]History is saved automatically when you generate scripts.[/]");
+            AnsiConsole.WriteLine();
+            return;
+        }
+
+        // Create history selection prompt
+        var historyChoices = history
+            .OrderByDescending(h => h.Timestamp)
+            .Take(20) // Show last 20 entries
+            .Select(h => $"{h.Timestamp:yyyy-MM-dd HH:mm} - {h.GetDisplayName()}")
+            .ToList();
+
+        var selectedHistoryDisplay = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("Select a [green]history entry[/]:")
+                .PageSize(15)
+                .MoreChoicesText("[grey](Move up and down to see more entries)[/]")
+                .AddChoices(historyChoices));
+
+        // Extract timestamp from selection to find the entry
+        var selectedTimestamp = selectedHistoryDisplay.Substring(0, 16); // "yyyy-MM-dd HH:mm"
+        var selectedEntry = history.FirstOrDefault(h => h.Timestamp.ToString("yyyy-MM-dd HH:mm") == selectedTimestamp);
+
+        if (selectedEntry == null)
+        {
+            AnsiConsole.MarkupLine("[red]Error: Could not load selected history entry.[/]");
+            return;
+        }
+
+        _logger?.LogInformation("Loading history entry: {Id}", selectedEntry.Id);
+
+        // Get the ScriptModel from the history entry
+        var config = selectedEntry.ScriptModel;
+
+        // Build packageVersions dictionary from Packages string
+        var packageVersions = new Dictionary<string, string>();
+        if (!string.IsNullOrWhiteSpace(config.Packages))
+        {
+            var packages = config.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pkg in packages)
+            {
+                var trimmedPkg = pkg.Trim();
+
+                // Check for prerelease format: "PackageName --prerelease"
+                if (trimmedPkg.Contains(" --prerelease"))
+                {
+                    var packageName = trimmedPkg.Replace(" --prerelease", "").Trim();
+                    packageVersions[packageName] = "--prerelease";
+                }
+                // Check for version format: "PackageName|version"
+                else if (trimmedPkg.Contains('|'))
+                {
+                    var parts = trimmedPkg.Split('|');
+                    if (parts.Length == 2)
+                    {
+                        packageVersions[parts[0].Trim()] = parts[1].Trim();
+                    }
+                }
+                // No version specified (latest)
+                else
+                {
+                    packageVersions[trimmedPkg] = "";
+                }
+            }
+        }
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine($"[green]✓ History entry loaded:[/] {selectedEntry.GetDisplayName()}");
+
+        // Generate script immediately
+        _logger?.LogInformation("Generating installation script from history");
+
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+            });
+
+        _logger?.LogInformation("Script generated successfully from history");
+
+        // Save to history (new entry based on the old one)
+        _historyService.AddEntry(
+            config,
+            templateName: config.TemplateName,
+            description: $"Regenerated from history: {selectedEntry.GetDisplayName()}");
 
         ConsoleDisplay.DisplayGeneratedScript(script);
 
