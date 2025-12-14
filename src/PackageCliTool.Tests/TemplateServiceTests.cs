@@ -84,7 +84,7 @@ public class TemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Template name cannot be empty*");
+            .WithMessage("*Provide a valid template name*");
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public class TemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Template 'non-existent' not found*");
+            .WithMessage("*Available templates:*");
     }
 
     [Fact]
@@ -186,7 +186,7 @@ public class TemplateServiceTests : IDisposable
 
         // Assert
         act.Should().Throw<PswException>()
-            .WithMessage("*Template 'non-existent' not found*");
+            .WithMessage("*Available templates:*");
     }
 
     [Fact]
@@ -383,7 +383,7 @@ public class TemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Template file not found*");
+            .WithMessage("*Provide a valid template file path*");
     }
 
     [Fact]
