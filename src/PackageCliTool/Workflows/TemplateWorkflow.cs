@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Models;
+using PackageCliTool.Models.Api;
 using PackageCliTool.Models.Templates;
 using PackageCliTool.Services;
 using PackageCliTool.UI;
