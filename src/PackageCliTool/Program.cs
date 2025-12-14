@@ -192,9 +192,6 @@ class Program
                     }
                 }
             }
-
-            // Display completion message
-            AnsiConsole.MarkupLine("\n[green]✓ Process completed successfully![/]");
             logger?.LogInformation("PSW CLI completed successfully");
         }
         catch (Exception ex)
