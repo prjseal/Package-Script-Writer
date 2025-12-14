@@ -366,7 +366,7 @@ Invoke-RestMethod -Uri "https://localhost:5001/api/scriptgeneratorapi/generatesc
 
 Every pull request automatically runs all tests via GitHub Actions, ensuring code quality and preventing regressions.
 
-**Workflow File**: `.github/workflows/integration-tests.yml`
+**Workflow File**: `.github/workflows/website-build-and-test.yml`
 
 #### Workflow Configuration
 
@@ -412,20 +412,20 @@ jobs:
 
 **Manual trigger** (via GitHub CLI):
 ```bash
-gh workflow run integration-tests.yml
+gh workflow run website-build-and-test.yml
 ```
 
 #### Viewing Results
 
 1. Go to the **Pull Request** on GitHub
 2. Click the **"Checks"** tab
-3. View **"Integration Tests"** workflow
+3. View **"PR - Website - Build and Test"** workflow
 4. Expand to see detailed test results
 
 **From command line**:
 ```bash
 # List workflow runs
-gh run list --workflow=integration-tests.yml
+gh run list --workflow=website-build-and-test.yml
 
 # View specific run
 gh run view <run-id>

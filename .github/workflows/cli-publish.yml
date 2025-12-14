@@ -1,12 +1,13 @@
-name: Release - Publish CLI Tool to NuGet.org
+name: Release - CLI - Publish to NuGet
 
 on:
   release:
     types: [published]
 
 jobs:
-  publish-cli-tool:
+  cli-publish-to-nuget:
     runs-on: windows-latest
+    if: github.repository == 'prjseal/Package-Script-Writer'
     permissions:
       contents: write # Allow uploading release assets
 
@@ -70,7 +71,8 @@ jobs:
           dotnet build ./src/PackageCliTool/PackageCliTool.csproj `
             --configuration Release `
             --no-restore `
-            /p:Version="${{ steps.version.outputs.version }}"
+            /p:Version="${{ steps.version.outputs.version }}" `
+            /p:RunPreBuildEvent=false
 
       - name: Pack CLI tool
         shell: pwsh
@@ -103,11 +105,18 @@ jobs:
           if-no-files-found: error
 
       - name: Publish to NuGet.org
+        id: publish
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           Write-Host "Publishing CLI tool to NuGet.org..."
+
+          $publishResults = @{
+            MainPackages = @()
+            SymbolPackages = @()
+            Errors = @()
+          }
 
           # Publish main package (.nupkg)
           $packages = Get-ChildItem "./artifacts/nuget/*.nupkg"
@@ -118,12 +127,14 @@ jobs:
             dotnet nuget push $package.FullName `
               --api-key $env:NUGET_API_KEY `
               --source https://api.nuget.org/v3/index.json `
-              --skip-duplicate
+              --skip-duplicate 2>&1 | Tee-Object -Variable publishOutput
 
             if ($LASTEXITCODE -eq 0) {
               Write-Host "✅ Successfully published $($package.Name)"
+              $publishResults.MainPackages += $package.Name
             } else {
               Write-Error "❌ Failed to publish $($package.Name)"
+              $publishResults.Errors += "Failed to publish $($package.Name)"
               exit 1
             }
           }
@@ -138,10 +149,11 @@ jobs:
               dotnet nuget push $symbolPackage.FullName `
                 --api-key $env:NUGET_API_KEY `
                 --source https://api.nuget.org/v3/index.json `
-                --skip-duplicate
+                --skip-duplicate 2>&1 | Out-Null
 
               if ($LASTEXITCODE -eq 0) {
                 Write-Host "✅ Successfully published $($symbolPackage.Name)"
+                $publishResults.SymbolPackages += $symbolPackage.Name
               } else {
                 Write-Warning "⚠️ Failed to publish $($symbolPackage.Name) (non-critical)"
               }
@@ -151,6 +163,9 @@ jobs:
           }
 
           Write-Host "All packages published successfully!"
+
+          # Save results for summary
+          $publishResults | ConvertTo-Json | Out-File -FilePath "publish-results.json"
 
       - name: Add package to release assets
         shell: pwsh
@@ -174,24 +189,95 @@ jobs:
             }
           }
 
-      - name: Release Summary
+      - name: Generate Summary
         if: always()
         shell: pwsh
         run: |
-          Write-Host ""
-          Write-Host "═══════════════════════════════════════"
-          Write-Host "📊 Release Summary"
-          Write-Host "═══════════════════════════════════════"
-          Write-Host "Package:        PackageScriptWriter.Cli"
-          Write-Host "Version:        ${{ steps.version.outputs.version }}"
-          Write-Host "Release Tag:    ${{ github.event.release.tag_name }}"
-          Write-Host "Prerelease:     ${{ steps.version.outputs.is_prerelease }}"
-          Write-Host "Release URL:    ${{ github.event.release.html_url }}"
-          Write-Host "═══════════════════════════════════════"
-          Write-Host "✅ CLI tool published to NuGet.org"
-          Write-Host "📦 Package attached to GitHub release"
-          Write-Host "═══════════════════════════════════════"
-          Write-Host ""
-          Write-Host "To install the CLI tool globally:"
-          Write-Host "  dotnet tool install --global PackageScriptWriter.Cli --version ${{ steps.version.outputs.version }}"
-          Write-Host ""
+          # Load publish results if available
+          $publishResults = if (Test-Path "publish-results.json") {
+            Get-Content "publish-results.json" | ConvertFrom-Json
+          } else {
+            $null
+          }
+
+          $version = "${{ steps.version.outputs.version }}"
+          $isPrerelease = "${{ steps.version.outputs.is_prerelease }}" -eq "true"
+          $releaseTag = "${{ github.event.release.tag_name }}"
+          $releaseUrl = "${{ github.event.release.html_url }}"
+
+          # Determine overall status
+          $publishStatus = if ($publishResults -and $publishResults.Errors.Count -eq 0) {
+            "✅ Success"
+          } elseif ($publishResults -and $publishResults.Errors.Count -gt 0) {
+            "❌ Failed"
+          } else {
+            "⚠️ Unknown"
+          }
+
+          # Create GitHub Actions Summary
+          @"
+          # 🚀 CLI Publish Summary
+
+          ## Package Information
+          | Property | Value |
+          |----------|-------|
+          | **Package Name** | PackageScriptWriter.Cli |
+          | **Version** | \`$version\` |
+          | **Release Tag** | [$releaseTag]($releaseUrl) |
+          | **Prerelease** | $(if ($isPrerelease) { "⚠️ Yes" } else { "✅ No" }) |
+
+          ## Publication Results
+
+          ### Status: $publishStatus
+
+          $(if ($publishResults) {
+            if ($publishResults.MainPackages.Count -gt 0) {
+              "#### 📦 Published Packages`n"
+              foreach ($pkg in $publishResults.MainPackages) {
+                "- ✅ ``$pkg``"
+              }
+              "`n"
+            }
+
+            if ($publishResults.SymbolPackages.Count -gt 0) {
+              "#### 🔍 Published Symbol Packages`n"
+              foreach ($pkg in $publishResults.SymbolPackages) {
+                "- ✅ ``$pkg``"
+              }
+              "`n"
+            }
+
+            if ($publishResults.Errors.Count -gt 0) {
+              "#### ❌ Errors`n"
+              foreach ($err in $publishResults.Errors) {
+                "- ❌ $err"
+              }
+              "`n"
+            }
+          } else {
+            "Unable to load publication results."
+          })
+
+          ### 🌐 Published To
+          - **NuGet.org**: [https://www.nuget.org/packages/PackageScriptWriter.Cli/$version](https://www.nuget.org/packages/PackageScriptWriter.Cli/$version)
+          - **GitHub Release**: [$releaseTag]($releaseUrl)
+
+          ## Installation
+
+          Install the CLI tool globally:
+          ``````bash
+          dotnet tool install --global PackageScriptWriter.Cli --version $version
+          ``````
+
+          Or update existing installation:
+          ``````bash
+          dotnet tool update --global PackageScriptWriter.Cli --version $version
+          ``````
+
+          ## Artifacts
+          - 📦 NuGet package attached to [GitHub Release]($releaseUrl)
+
+          ---
+          *Release published: ${{ github.event.release.published_at }}*
+          *Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+          "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8

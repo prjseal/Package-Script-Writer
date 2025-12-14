@@ -261,7 +261,7 @@ Every pull request automatically runs all tests via **GitHub Actions**:
 - 📊 Test result reporting
 - 🚫 PR merge blocked if tests fail
 
-**GitHub Actions Workflow**: `.github/workflows/integration-tests.yml`
+**GitHub Actions Workflow**: `.github/workflows/website-build-and-test.yml`
 
 ---
 

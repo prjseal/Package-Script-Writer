@@ -1,0 +1,127 @@
+name: PR - CLI - Build and Test
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  cli-build-and-test:
+    runs-on: windows-latest
+    if: github.repository == 'prjseal/Package-Script-Writer'
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Clean solution
+        shell: pwsh
+        run: |
+          Write-Host "Cleaning PackageCliTool solution..." -ForegroundColor Cyan
+          dotnet clean ./src/PackageCliTool.sln --configuration Release
+
+      - name: Restore dependencies
+        shell: pwsh
+        run: |
+          Write-Host "Restoring dependencies..." -ForegroundColor Cyan
+          dotnet restore ./src/PackageCliTool.sln
+
+      - name: Build solution
+        shell: pwsh
+        run: |
+          Write-Host "Building PackageCliTool solution..." -ForegroundColor Cyan
+          dotnet build ./src/PackageCliTool.sln --configuration Release --no-restore /p:RunPreBuildEvent=false 2>&1 | Tee-Object -FilePath build-output.log
+
+      - name: Run tests
+        shell: pwsh
+        run: |
+          Write-Host "Running PackageCliTool tests..." -ForegroundColor Cyan
+          dotnet test ./src/PackageCliTool.sln --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" 2>&1 | Tee-Object -FilePath test-output.log
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.event.pull_request.number }}
+          path: '**/TestResults/*.trx'
+          if-no-files-found: warn
+
+      - name: Generate Summary
+        if: always()
+        shell: pwsh
+        run: |
+          # Parse build output for errors and warnings
+          $buildOutput = if (Test-Path build-output.log) { Get-Content build-output.log -Raw } else { "" }
+          $warningCount = ([regex]::Matches($buildOutput, "warning [A-Z0-9]+:")).Count
+          $errorCount = ([regex]::Matches($buildOutput, "error [A-Z0-9]+:")).Count
+
+          # Parse test output
+          $testOutput = if (Test-Path test-output.log) { Get-Content test-output.log -Raw } else { "" }
+          $testPassed = if ($testOutput -match "Passed!\s+-\s+Failed:\s+(\d+),\s+Passed:\s+(\d+),\s+Skipped:\s+(\d+),\s+Total:\s+(\d+)") {
+            @{
+              Failed = [int]$matches[1]
+              Passed = [int]$matches[2]
+              Skipped = [int]$matches[3]
+              Total = [int]$matches[4]
+            }
+          } elseif ($testOutput -match "Failed!\s+-\s+Failed:\s+(\d+),\s+Passed:\s+(\d+),\s+Skipped:\s+(\d+),\s+Total:\s+(\d+)") {
+            @{
+              Failed = [int]$matches[1]
+              Passed = [int]$matches[2]
+              Skipped = [int]$matches[3]
+              Total = [int]$matches[4]
+            }
+          } else {
+            $null
+          }
+
+          # Determine status
+          $buildStatus = if ($errorCount -gt 0) { "❌ Failed" } elseif ($warningCount -gt 0) { "⚠️ Warning" } else { "✅ Success" }
+          $testStatus = if ($testPassed -and $testPassed.Failed -eq 0) { "✅ Passed" } elseif ($testPassed) { "❌ Failed" } else { "⚠️ Unknown" }
+
+          # Create GitHub Actions Summary
+          @"
+          # 📦 CLI Build and Test Summary
+
+          ## Overview
+          - **PR Number**: ${{ github.event.pull_request.number }}
+          - **Branch**: ${{ github.head_ref }}
+          - **Triggered by**: ${{ github.actor }}
+          - **Commit**: ${{ github.sha }}
+
+          ## Build Results
+          | Metric | Count | Status |
+          |--------|-------|--------|
+          | Errors | $errorCount | $buildStatus |
+          | Warnings | $warningCount | $(if ($warningCount -gt 0) { "⚠️" } else { "✅" }) |
+
+          ## Test Results
+          $(if ($testPassed) {
+          @"
+          | Metric | Count |
+          |--------|-------|
+          | **Status** | **$testStatus** |
+          | Total | $($testPassed.Total) |
+          | Passed | ✅ $($testPassed.Passed) |
+          | Failed | ❌ $($testPassed.Failed) |
+          | Skipped | ⏭️ $($testPassed.Skipped) |
+          "@
+          } else {
+            "No test results found or unable to parse test output."
+          })
+
+          ## Artifacts
+          - 📄 Test results uploaded as artifact: ``test-results-${{ github.event.pull_request.number }}``
+
+          ---
+          *Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+          "@ | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8
