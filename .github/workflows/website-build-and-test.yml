@@ -57,14 +57,20 @@ jobs:
           # Parse test output
           if [ -f test-output.log ]; then
             # Look for the test summary line (format: "Passed! - Failed: X, Passed: Y, Skipped: Z, Total: W")
-            if grep -qE "(Passed!|Failed!).*-.*Failed:.*Passed:.*Skipped:.*Total:" test-output.log; then
-              test_line=$(grep -E "(Passed!|Failed!).*-.*Failed:.*Passed:.*Skipped:.*Total:" test-output.log | tail -1)
+            if grep -qE "(Passed!|Failed!)\s+-\s+Failed:\s+[0-9]+,\s+Passed:\s+[0-9]+,\s+Skipped:\s+[0-9]+,\s+Total:\s+[0-9]+" test-output.log; then
+              test_line=$(grep -E "(Passed!|Failed!)\s+-\s+Failed:\s+[0-9]+,\s+Passed:\s+[0-9]+,\s+Skipped:\s+[0-9]+,\s+Total:\s+[0-9]+" test-output.log | tail -1)
 
-              # Extract values using regex - handle multiple spaces
-              test_failed=$(echo "$test_line" | grep -oP "Failed:\s*\K\d+" | head -1 || echo "0")
-              test_passed=$(echo "$test_line" | grep -oP "Passed:\s*\K\d+" | head -1 || echo "0")
-              test_skipped=$(echo "$test_line" | grep -oP "Skipped:\s*\K\d+" | head -1 || echo "0")
-              test_total=$(echo "$test_line" | grep -oP "Total:\s*\K\d+" | head -1 || echo "0")
+              # Extract values using sed for more reliable parsing
+              test_failed=$(echo "$test_line" | sed -n 's/.*Failed:\s*\([0-9]\+\).*/\1/p')
+              test_passed=$(echo "$test_line" | sed -n 's/.*,\s*Passed:\s*\([0-9]\+\).*/\1/p')
+              test_skipped=$(echo "$test_line" | sed -n 's/.*,\s*Skipped:\s*\([0-9]\+\).*/\1/p')
+              test_total=$(echo "$test_line" | sed -n 's/.*,\s*Total:\s*\([0-9]\+\).*/\1/p')
+
+              # Default to 0 if extraction failed
+              test_failed=${test_failed:-0}
+              test_passed=${test_passed:-0}
+              test_skipped=${test_skipped:-0}
+              test_total=${test_total:-0}
 
               # Determine status based on the line content
               if echo "$test_line" | grep -q "^Passed!"; then
