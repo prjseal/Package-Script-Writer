@@ -8,6 +8,12 @@ The Package Script Writer includes a **command allowlist validation system** to 
 
 When you execute a script using the `psw` tool, the `CommandValidator` checks each command line against a predefined set of allowed patterns. If any command doesn't match the allowlist, execution is blocked and you'll see an error message.
 
+The validator supports:
+- **Multi-line scripts** - Each line validated independently
+- **Command chaining with `&&`** - One-liner scripts are split and each command validated
+- **Windows and Linux syntax** - Platform-specific commands recognized
+- **Comments and empty lines** - Automatically skipped
+
 ### Example Output When Blocked
 
 ```
@@ -118,6 +124,24 @@ $env:VARIABLE_NAME=value
 # Empty lines are also allowed
 ```
 
+### 10. Command Chaining (One-Liner Format)
+
+Commands can be chained with `&&` on a single line. Each command in the chain is validated independently:
+
+```bash
+# Full one-liner example
+dotnet new install Umbraco.Templates::14.3.0 --force && dotnet new umbraco --force -n "MyProject" && dotnet run --project "MyProject"
+
+# Another valid chain
+dotnet new sln --name "MySolution" && dotnet new umbraco -n "MySite" && dotnet sln add "MySite"
+```
+
+**How it works:**
+- Line is split on `&&`
+- Each command segment is trimmed and validated separately
+- ALL commands in the chain must pass validation
+- If any command fails, the entire line is blocked
+
 ## Commands NOT Allowed
 
 The following types of commands are **blocked** by the allowlist:
@@ -179,10 +203,12 @@ The validator processes each line of the script:
 
 1. **Skip empty lines** - No validation needed
 2. **Skip comments** (lines starting with `#`) - Safe by default
-3. **Check platform-specific commands** - `@echo off`, `$env:` variables (Windows only)
-4. **Match against patterns** - Each command must match at least one regex pattern
-5. **Collect errors** - All blocked commands are reported before failing
-6. **Fail-safe** - If validation fails, script execution is prevented entirely
+3. **Detect command chaining** - If line contains `&&`, split into individual commands
+4. **Validate each command** - For chained commands, validate each segment independently
+5. **Check platform-specific commands** - `@echo off`, `$env:` variables (Windows only)
+6. **Match against patterns** - Each command must match at least one regex pattern
+7. **Collect errors** - All blocked commands are reported before failing
+8. **Fail-safe** - If validation fails, script execution is prevented entirely
 
 ## Source Code
 

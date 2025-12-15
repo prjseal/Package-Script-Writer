@@ -43,12 +43,38 @@ public class CommandValidator
                 continue;
             }
 
-            // Validate the command
-            if (!IsCommandAllowed(line, isWindows))
+            // Handle command chaining with && (one-liner format)
+            // Example: dotnet new install ... && dotnet new umbraco ... && dotnet run
+            if (line.Contains("&&"))
             {
-                var error = $"Line {lineNumber}: Command not allowed: '{line}'";
-                errors.Add(error);
-                _logger?.LogWarning("Blocked dangerous command at line {LineNumber}: {Command}", lineNumber, line);
+                var chainedCommands = line.Split(new[] { "&&" }, StringSplitOptions.None);
+                _logger?.LogDebug("Line {LineNumber} contains {Count} chained commands", lineNumber, chainedCommands.Length);
+
+                foreach (var chainedCommand in chainedCommands)
+                {
+                    var trimmedCommand = chainedCommand.Trim();
+                    if (string.IsNullOrWhiteSpace(trimmedCommand))
+                    {
+                        continue;
+                    }
+
+                    if (!IsCommandAllowed(trimmedCommand, isWindows))
+                    {
+                        var error = $"Line {lineNumber}: Command not allowed in chain: '{trimmedCommand}'";
+                        errors.Add(error);
+                        _logger?.LogWarning("Blocked dangerous command in chain at line {LineNumber}: {Command}", lineNumber, trimmedCommand);
+                    }
+                }
+            }
+            else
+            {
+                // Single command validation
+                if (!IsCommandAllowed(line, isWindows))
+                {
+                    var error = $"Line {lineNumber}: Command not allowed: '{line}'";
+                    errors.Add(error);
+                    _logger?.LogWarning("Blocked dangerous command at line {LineNumber}: {Command}", lineNumber, line);
+                }
             }
         }
 
@@ -171,7 +197,8 @@ public class CommandValidator
             "dotnet build",
             "dotnet restore",
             "@echo off (Windows only)",
-            "$env:ASPNETCORE_ENVIRONMENT=Development (Windows only)"
+            "$env:ASPNETCORE_ENVIRONMENT=Development (Windows only)",
+            "dotnet new install Umbraco.Templates::14.3.0 --force && dotnet new umbraco -n \"MyProject\" && dotnet run (one-liner with && chaining)"
         };
     }
 }
