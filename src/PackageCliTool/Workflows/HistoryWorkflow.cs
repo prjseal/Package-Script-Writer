@@ -61,7 +61,7 @@ public class HistoryWorkflow
                 break;
 
             case "show":
-                ShowHistoryEntry(options);
+                await ShowHistoryEntry(options);
                 break;
 
             case "rerun":
@@ -145,7 +145,7 @@ public class HistoryWorkflow
     /// <summary>
     /// Shows details of a specific history entry
     /// </summary>
-    private void ShowHistoryEntry(CommandLineOptions options)
+    private async Task ShowHistoryEntry(CommandLineOptions options)
     {
         var id = options.HistoryId;
 
@@ -220,7 +220,230 @@ public class HistoryWorkflow
         AnsiConsole.Write(configTable);
         AnsiConsole.WriteLine();
 
-        AnsiConsole.MarkupLine("[dim]Note: Script content is regenerated on re-run for security[/]");
+        // Generate the script using the configuration from history
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return await Task.Run(() => _scriptGeneratorService.GenerateScript(entry.ScriptModel.ToViewModel()));
+            });
+
+        _logger?.LogInformation("Script regenerated successfully from history entry {Id}", id);
+
+        AnsiConsole.MarkupLine("[green]✓ Script generated[/]");
+
+        // Display script
+        ConsoleDisplay.DisplayGeneratedScript(script);
+
+        // Build packageVersions dictionary from the entry's Packages string
+        var packageVersions = new Dictionary<string, string>();
+        if (!string.IsNullOrWhiteSpace(entry.ScriptModel.Packages))
+        {
+            var packages = entry.ScriptModel.Packages.Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var pkg in packages)
+            {
+                var trimmedPkg = pkg.Trim();
+
+                // Check for prerelease format: "PackageName --prerelease"
+                if (trimmedPkg.Contains(" --prerelease"))
+                {
+                    var packageName = trimmedPkg.Replace(" --prerelease", "").Trim();
+                    packageVersions[packageName] = "--prerelease";
+                }
+                // Check for version format: "PackageName|version"
+                else if (trimmedPkg.Contains('|'))
+                {
+                    var parts = trimmedPkg.Split('|');
+                    if (parts.Length == 2)
+                    {
+                        packageVersions[parts[0].Trim()] = parts[1].Trim();
+                    }
+                }
+                // No version specified (latest)
+                else
+                {
+                    packageVersions[trimmedPkg] = "";
+                }
+            }
+        }
+
+        // Handle script actions with full menu
+        await HandleHistoryScriptActionsAsync(script, entry.ScriptModel, packageVersions, entry.TemplateName, entry.ScriptModel.TemplateVersion);
+    }
+
+    /// <summary>
+    /// Handles script actions for history entries (with full menu support)
+    /// </summary>
+    private async Task HandleHistoryScriptActionsAsync(string script, ScriptModel scriptModel, Dictionary<string, string> packageVersions, string? templateName, string? templateVersion)
+    {
+        var action = InteractivePrompts.PromptForScriptAction();
+
+        if (action == "Run")
+        {
+            var targetDir = InteractivePrompts.PromptForRunDirectory();
+
+            if (!string.IsNullOrWhiteSpace(targetDir) && targetDir != Directory.GetCurrentDirectory())
+            {
+                targetDir = Path.GetFullPath(targetDir);
+
+                if (!Directory.Exists(targetDir))
+                {
+                    if (InteractivePrompts.ConfirmDirectoryCreation(targetDir))
+                    {
+                        _logger?.LogInformation("Creating directory: {Directory}", targetDir);
+                        Directory.CreateDirectory(targetDir);
+                        AnsiConsole.MarkupLine($"[green]✓ Created directory {targetDir}[/]");
+                    }
+                    else
+                    {
+                        _logger?.LogInformation("Script execution cancelled by user");
+                        AnsiConsole.MarkupLine("[yellow]Script execution cancelled.[/]");
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                targetDir = Directory.GetCurrentDirectory();
+            }
+
+            await _scriptExecutor.RunScriptAsync(script, targetDir);
+
+            // Create new history entry for this execution
+            var newEntry = _historyService.AddEntry(
+                scriptModel,
+                templateName,
+                $"From history show: {scriptModel.ProjectName ?? "project"}",
+                new List<string>()
+            );
+
+            _historyService.UpdateExecution(newEntry.Id, targetDir, 0); // Assuming success
+        }
+        else if (action == "Edit")
+        {
+            AnsiConsole.MarkupLine("\n[blue]Editing script configuration...[/]\n");
+
+            // Use the existing ModifyScriptModel method to allow editing
+            var modifiedModel = ModifyScriptModel(scriptModel);
+
+            // Regenerate script with modified configuration
+            var newScript = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Star)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Regenerating installation script...", async ctx =>
+                {
+                    return await Task.Run(() => _scriptGeneratorService.GenerateScript(modifiedModel.ToViewModel()));
+                });
+
+            _logger?.LogInformation("Script regenerated with modified configuration");
+
+            AnsiConsole.MarkupLine("[green]✓ Script regenerated[/]");
+            ConsoleDisplay.DisplayGeneratedScript(newScript);
+
+            // Recursively handle actions for the new script
+            await HandleHistoryScriptActionsAsync(newScript, modifiedModel, packageVersions, templateName, templateVersion);
+        }
+        else if (action == "Copy")
+        {
+            await ClipboardHelper.CopyToClipboardAsync(script, _logger);
+
+            // Ask if they want to do something else with the script
+            var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
+            if (continueAction)
+            {
+                await HandleHistoryScriptActionsAsync(script, scriptModel, packageVersions, templateName, templateVersion);
+            }
+        }
+        else if (action == "Save")
+        {
+            await SaveHistoryAsTemplateAsync(scriptModel, packageVersions);
+
+            // Ask if they want to do something else with the script
+            var continueAction = AnsiConsole.Confirm("\nWould you like to do something else with this script?", false);
+            if (continueAction)
+            {
+                await HandleHistoryScriptActionsAsync(script, scriptModel, packageVersions, templateName, templateVersion);
+            }
+        }
+        // "Start over" action returns to the caller (main menu or command completion)
+    }
+
+    /// <summary>
+    /// Saves history configuration as a template
+    /// </summary>
+    private async Task SaveHistoryAsTemplateAsync(ScriptModel scriptModel, Dictionary<string, string> packageVersions)
+    {
+        _logger?.LogInformation("Saving history configuration as template");
+
+        AnsiConsole.WriteLine();
+        AnsiConsole.MarkupLine("[bold blue]Save as Template[/]\n");
+
+        var templateService = new TemplateService(logger: _logger);
+
+        // Prompt for template name
+        var templateName = AnsiConsole.Ask<string>("Enter [green]template name[/]:");
+
+        // Prompt for description
+        var description = AnsiConsole.Ask<string>(
+            "Enter [green]template description[/] (optional):",
+            string.Empty);
+
+        // Prompt for tags
+        var tagsInput = AnsiConsole.Ask<string>(
+            "Enter [green]tags[/] (comma-separated, optional):",
+            string.Empty);
+
+        List<string> tags = new List<string>();
+        if (!string.IsNullOrWhiteSpace(tagsInput))
+        {
+            tags = tagsInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim())
+                .ToList();
+        }
+
+        // Create template from script model
+        var template = templateService.FromScriptModel(
+            scriptModel,
+            packageVersions,
+            templateName,
+            string.IsNullOrWhiteSpace(description) ? null : description);
+
+        // Add tags if provided
+        if (tags.Count > 0)
+        {
+            template.Metadata.Tags = tags;
+        }
+
+        // Check if template already exists
+        if (templateService.TemplateExists(templateName))
+        {
+            var overwrite = AnsiConsole.Confirm(
+                $"Template [yellow]{templateName}[/] already exists. Overwrite?",
+                false);
+
+            if (!overwrite)
+            {
+                AnsiConsole.MarkupLine("[yellow]Template save cancelled.[/]");
+                return;
+            }
+        }
+
+        // Save template
+        try
+        {
+            await templateService.SaveTemplateAsync(template);
+            AnsiConsole.MarkupLine($"[green]✓ Template saved:[/] {templateName}");
+            _logger?.LogInformation("Template saved successfully: {Name}", templateName);
+
+            // Show helpful message
+            AnsiConsole.MarkupLine($"[dim]You can load this template with: psw template load {templateName}[/]");
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Failed to save template: {Name}", templateName);
+            AnsiConsole.MarkupLine($"[red]✗ Failed to save template:[/] {ex.Message}");
+        }
     }
 
     /// <summary>
