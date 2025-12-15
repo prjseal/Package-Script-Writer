@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Exceptions;
+using PackageCliTool.Validation;
 
 namespace PackageCliTool.Services;
 
@@ -10,14 +11,24 @@ namespace PackageCliTool.Services;
 public class ScriptExecutor
 {
     private readonly ILogger? _logger;
+    private readonly CommandValidator _commandValidator;
+    private readonly bool _skipValidation;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScriptExecutor"/> class
     /// </summary>
     /// <param name="logger">Optional logger instance</param>
-    public ScriptExecutor(ILogger? logger = null)
+    /// <param name="skipValidation">Whether to skip command validation (default: false, not recommended)</param>
+    public ScriptExecutor(ILogger? logger = null, bool skipValidation = false)
     {
         _logger = logger;
+        _commandValidator = new CommandValidator(logger);
+        _skipValidation = skipValidation;
+
+        if (skipValidation)
+        {
+            _logger?.LogWarning("Command validation is DISABLED - scripts will execute without safety checks");
+        }
     }
 
     /// <summary>
@@ -31,20 +42,43 @@ public class ScriptExecutor
         AnsiConsole.MarkupLine($"[bold blue]Running script in:[/] {workingDirectory}");
         AnsiConsole.WriteLine();
 
+        // Validate script commands against allowlist (security check)
+        var isWindows = OperatingSystem.IsWindows();
+        if (!_skipValidation)
+        {
+            _logger?.LogInformation("Validating script commands against allowlist...");
+            var (isValid, errors) = _commandValidator.ValidateScript(scriptContent, isWindows);
+
+            if (!isValid)
+            {
+                AnsiConsole.MarkupLine("[red]✗ Script validation failed - dangerous commands detected:[/]");
+                AnsiConsole.WriteLine();
+
+                foreach (var error in errors)
+                {
+                    AnsiConsole.MarkupLine($"[red]  • {error.EscapeMarkup()}[/]");
+                }
+
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine("[yellow]The script contains commands that are not in the allowlist.[/]");
+                AnsiConsole.MarkupLine("[yellow]This is a security measure to prevent execution of potentially dangerous commands.[/]");
+
+                throw new PswException(
+                    "Script validation failed - script contains disallowed commands",
+                    string.Join(Environment.NewLine, errors)
+                );
+            }
+
+            _logger?.LogInformation("Script validation passed");
+            AnsiConsole.MarkupLine("[green]✓ Script validation passed[/]");
+            AnsiConsole.WriteLine();
+        }
+
         // Filter script content to handle comment lines
         var filteredScript = FilterScriptContent(scriptContent);
 
         // Determine shell for script execution
-        string shell;
-        if (OperatingSystem.IsWindows())
-        {
-            shell = "cmd.exe";
-        }
-        else
-        {
-            shell = "/bin/bash";
-        }
-
+        string shell = isWindows ? "cmd.exe" : "/bin/bash";
         _logger?.LogDebug("Using shell: {Shell}", shell);
 
         var process = new System.Diagnostics.Process
@@ -63,10 +97,11 @@ public class ScriptExecutor
 
         process.OutputDataReceived += (sender, e) =>
         {
-            if (!string.IsNullOrEmpty(e.Data))
+            if (e.Data != null)
             {
                 _logger?.LogDebug("Script output: {Output}", e.Data);
-                AnsiConsole.WriteLine(e.Data);
+                // Use Console.WriteLine to preserve ANSI color codes from the process
+                Console.WriteLine(e.Data);
             }
         };
 
@@ -82,6 +117,11 @@ public class ScriptExecutor
         process.Start();
 
         // Write the filtered script content to stdin
+        // For Windows cmd.exe, prepend @echo off to suppress command echoing
+        if (isWindows)
+        {
+            await process.StandardInput.WriteLineAsync("@echo off");
+        }
         await process.StandardInput.WriteAsync(filteredScript);
         await process.StandardInput.FlushAsync();
         process.StandardInput.Close();
