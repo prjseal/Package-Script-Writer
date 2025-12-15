@@ -61,7 +61,7 @@ public class HistoryWorkflow
                 break;
 
             case "show":
-                ShowHistoryEntry(options);
+                await ShowHistoryEntry(options);
                 break;
 
             case "rerun":
@@ -145,7 +145,7 @@ public class HistoryWorkflow
     /// <summary>
     /// Shows details of a specific history entry
     /// </summary>
-    private void ShowHistoryEntry(CommandLineOptions options)
+    private async Task ShowHistoryEntry(CommandLineOptions options)
     {
         var id = options.HistoryId;
 
@@ -220,7 +220,77 @@ public class HistoryWorkflow
         AnsiConsole.Write(configTable);
         AnsiConsole.WriteLine();
 
-        AnsiConsole.MarkupLine("[dim]Note: Script content is regenerated on re-run for security[/]");
+        // Generate the script using the configuration from history
+        var script = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Star)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync("Generating installation script...", async ctx =>
+            {
+                return await Task.Run(() => _scriptGeneratorService.GenerateScript(entry.ScriptModel.ToViewModel()));
+            });
+
+        _logger?.LogInformation("Script regenerated successfully from history entry {Id}", id);
+
+        AnsiConsole.MarkupLine("[green]✓ Script generated[/]");
+
+        // Display script
+        ConsoleDisplay.DisplayGeneratedScript(script);
+
+        // Ask what to do with the script
+        var action = AnsiConsole.Prompt(
+            new SelectionPrompt<string>()
+                .Title("What would you like to do with this script?")
+                .AddChoices(new[] {
+                    "Run the script",
+                    "Copy to clipboard",
+                    "Done"
+                }));
+
+        if (action == "Run the script")
+        {
+            var runDir = AnsiConsole.Ask<string>(
+                "Enter [green]directory path[/] to run the script (leave blank for current directory):",
+                string.Empty);
+
+            if (string.IsNullOrWhiteSpace(runDir))
+            {
+                runDir = Directory.GetCurrentDirectory();
+            }
+            else
+            {
+                runDir = Path.GetFullPath(runDir);
+
+                if (!Directory.Exists(runDir))
+                {
+                    if (AnsiConsole.Confirm($"Directory [yellow]{runDir}[/] doesn't exist. Create it?"))
+                    {
+                        Directory.CreateDirectory(runDir);
+                        AnsiConsole.MarkupLine($"[green]✓ Created directory {runDir}[/]");
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine("[yellow]Execution cancelled.[/]");
+                        return;
+                    }
+                }
+            }
+
+            await _scriptExecutor.RunScriptAsync(script, runDir);
+
+            // Create new history entry for this execution
+            var newEntry = _historyService.AddEntry(
+                entry.ScriptModel,
+                entry.TemplateName,
+                $"From history show: {entry.GetDisplayName()}",
+                entry.Tags
+            );
+
+            _historyService.UpdateExecution(newEntry.Id, runDir, 0); // Assuming success
+        }
+        else if (action == "Copy to clipboard")
+        {
+            await ClipboardHelper.CopyToClipboardAsync(script, _logger);
+        }
     }
 
     /// <summary>
