@@ -63,10 +63,11 @@ public class ScriptExecutor
 
         process.OutputDataReceived += (sender, e) =>
         {
-            if (!string.IsNullOrEmpty(e.Data))
+            if (e.Data != null)
             {
                 _logger?.LogDebug("Script output: {Output}", e.Data);
-                AnsiConsole.WriteLine(e.Data);
+                // Use Console.WriteLine to preserve ANSI color codes from the process
+                Console.WriteLine(e.Data);
             }
         };
 
@@ -82,6 +83,11 @@ public class ScriptExecutor
         process.Start();
 
         // Write the filtered script content to stdin
+        // For Windows cmd.exe, prepend @echo off to suppress command echoing
+        if (OperatingSystem.IsWindows())
+        {
+            await process.StandardInput.WriteLineAsync("@echo off");
+        }
         await process.StandardInput.WriteAsync(filteredScript);
         await process.StandardInput.FlushAsync();
         process.StandardInput.Close();
