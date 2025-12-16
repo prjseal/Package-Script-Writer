@@ -73,11 +73,8 @@ configuration:
 
 | Flag | Description | Example |
 |------|-------------|---------|
-| `--list-community` | List all available community templates | `psw --list-community` |
-| `--community-template <name>` | Use a specific community template | `psw --community-template blog-with-usync` |
-| `--save-community-template` | Save community template to local templates | `psw --community-template blog-with-usync --save-community-template` |
-| `--show-community <name>` | Display details of a community template | `psw --show-community blog-with-usync` |
-| `--community-repo <url>` | (Optional) Use custom repository URL | `psw --community-repo https://github.com/user/fork` |
+| `--community-template list` | List all available community templates | `psw --community-template list` |
+| `--community-template <name>` | Use a specific community template and apply overrides the same as with local templates| `psw --community-template blog-with-usync -p "ProjectName"` |
 
 ### Usage Examples
 
@@ -85,20 +82,8 @@ configuration:
 # List all community templates
 psw --list-community
 
-# Use a community template directly (one-time)
-psw --community-template blog-with-usync
-
-# Download and save to local templates for repeated use
-psw --community-template blog-with-usync --save-community-template
-
-# Use community template with overrides
-psw --community-template blog-with-usync -n "MyBlog" --auto-run
-
-# View details before using
-psw --show-community blog-with-usync
-
-# Use template from a fork or custom repo
-psw --community-template my-custom --community-repo https://github.com/myuser/Package-Script-Writer
+# Use a community template directly and apoly overrides same as using loval template
+psw --community-template blog-with-usync -n "ProjectName"
 ```
 
 ---
@@ -116,7 +101,7 @@ Update `InteractiveModeWorkflow.cs` main menu:
 │ 1. Create script from scratch                  │
 │ 2. Create script from defaults                 │
 │ 3. Create script from template                 │
-│ 4. Create script from community template  ⭐NEW │
+│ 4. Create script from community template │
 │ 5. Create script from history                  │
 │ 6. See Umbraco versions table                  │
 │ 7. See templates                                │
@@ -149,25 +134,15 @@ Update `InteractiveModeWorkflow.cs` main menu:
    └─────────────────────────────────────────────────────────┘
    ```
 
-3. **Preview Template Details** (Optional)
-   - Show full configuration
-   - Display all packages and versions
-   - Show metadata (author, tags, description)
-
-4. **Options After Selection**
+3. **Generate and display Script and show the menu for what would you like to do? (same as currebt local template one. Save at this point will just create it as a normal local template)**
    ```
    What would you like to do?
-   > Use template now (one-time)
-     Save to my templates and use
-     Just save to my templates
-     Cancel
+   > Run
+     Edit
+     Copy
+     Save
+     Start Over
    ```
-
-5. **Apply Template**
-   - Load configuration from community template
-   - Allow user to override settings (project name, versions, etc.)
-   - Generate and display script
-
 ---
 
 ## 4. Technical Implementation
