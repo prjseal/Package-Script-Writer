@@ -95,7 +95,6 @@ public static class ConsoleDisplay
 
 [bold yellow]HISTORY COMMANDS:[/]
   [green]psw history list[/]              List recent script generation history
-  [green]psw history show[/] <#>          Show details of a history entry
   [green]psw history rerun[/] <#>         Regenerate and re-run a script from history
   [green]psw history delete[/] <#>        Delete a history entry
   [green]psw history clear[/]             Clear all history
@@ -151,9 +150,6 @@ public static class ConsoleDisplay
 [bold yellow]HISTORY EXAMPLES:[/]
   List recent scripts:
     [cyan]psw history list[/]
-
-  Show details of a specific entry:
-    [cyan]psw history show 3[/]
 
   Re-run a previous script:
     [cyan]psw history rerun 1[/]
@@ -243,7 +239,6 @@ public static class ConsoleDisplay
 
 [bold yellow]HISTORY COMMANDS:[/]
   [green]list[/]                  List recent script generation history
-  [green]show[/] <#>              Show details of a history entry
   [green]rerun[/] <#>             Regenerate and re-run a script from history
   [green]delete[/] <#>            Delete a history entry
   [green]clear[/]                 Clear all history
@@ -255,9 +250,6 @@ public static class ConsoleDisplay
 [bold yellow]EXAMPLES:[/]
   List recent scripts:
     [cyan]psw history list[/]
-
-  Show details of a specific entry:
-    [cyan]psw history show 3[/]
 
   Re-run a previous script:
     [cyan]psw history rerun 1[/]
