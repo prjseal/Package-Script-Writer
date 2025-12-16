@@ -591,21 +591,19 @@ public class CliModeWorkflow
                     return await Task.Run(() => _scriptGeneratorService.GenerateScript(model.ToViewModel()));
                 });
 
-            // Display script
-            ConsoleDisplay.DisplayScript(script);
+            _logger?.LogInformation("Script generated successfully from community template");
 
             // Save to history
-            await _historyService.SaveCommandAsync(options, script);
+            _historyService.AddEntry(
+                model,
+                templateName: template.Metadata.Name,
+                description: $"Community template: {template.Metadata.Description}");
+
+            // Display script
+            ConsoleDisplay.DisplayGeneratedScript(script, $"Generated Script from '{template.Metadata.Name}'");
 
             // Handle execution
-            if (options.AutoRun)
-            {
-                await ExecuteScriptAsync(script, options);
-            }
-            else
-            {
-                await HandleInteractiveScriptActionAsync(script);
-            }
+            await HandleScriptExecutionAsync(script, options);
         }
         catch (Exception ex)
         {
@@ -621,6 +619,11 @@ public class CliModeWorkflow
     {
         var config = template.Configuration;
 
+        // Convert packages to comma-separated string
+        var packagesStr = config.Packages.Any()
+            ? string.Join(",", config.Packages.Select(p => $"{p.Name}|{p.Version}"))
+            : null;
+
         // Create base model from template
         var model = new ScriptModel
         {
@@ -633,20 +636,16 @@ public class CliModeWorkflow
             StarterKitPackage = config.StarterKit.Package,
             IncludeDockerfile = config.Docker.Dockerfile,
             IncludeDockerCompose = config.Docker.DockerCompose,
-            UseUnattended = config.Unattended.Enabled,
+            CanIncludeDocker = config.Docker.Dockerfile || config.Docker.DockerCompose,
+            UseUnattendedInstall = config.Unattended.Enabled,
             DatabaseType = config.Unattended.Database.Type,
             ConnectionString = config.Unattended.Database.ConnectionString,
-            AdminName = config.Unattended.Admin.Name,
-            AdminEmail = config.Unattended.Admin.Email,
-            AdminPassword = config.Unattended.Admin.Password,
+            UserFriendlyName = config.Unattended.Admin.Name,
+            UserEmail = config.Unattended.Admin.Email,
+            UserPassword = config.Unattended.Admin.Password,
             OnelinerOutput = config.Output.Oneliner,
             RemoveComments = config.Output.RemoveComments,
-            IncludePrerelease = config.Output.IncludePrerelease,
-            Packages = config.Packages.Select(p => new PackageInfo
-            {
-                Name = p.Name,
-                Version = p.Version
-            }).ToList()
+            Packages = packagesStr
         };
 
         // Apply CLI overrides (same as local templates)
@@ -668,20 +667,14 @@ public class CliModeWorkflow
         // Add additional packages from CLI if specified
         if (!string.IsNullOrWhiteSpace(options.Packages))
         {
-            var additionalPackages = options.Packages
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(p => p.Trim())
-                .Select(p =>
-                {
-                    var parts = p.Split('|');
-                    return new PackageInfo
-                    {
-                        Name = parts[0],
-                        Version = parts.Length > 1 ? parts[1] : "latest"
-                    };
-                });
-
-            model.Packages.AddRange(additionalPackages);
+            if (string.IsNullOrWhiteSpace(model.Packages))
+            {
+                model.Packages = options.Packages;
+            }
+            else
+            {
+                model.Packages += "," + options.Packages;
+            }
         }
 
         if (options.IncludeStarterKit.HasValue)
@@ -696,8 +689,11 @@ public class CliModeWorkflow
         if (options.IncludeDockerCompose.HasValue)
             model.IncludeDockerCompose = options.IncludeDockerCompose.Value;
 
+        // Update CanIncludeDocker based on the flags
+        model.CanIncludeDocker = model.IncludeDockerfile || model.IncludeDockerCompose;
+
         if (options.UseUnattended.HasValue)
-            model.UseUnattended = options.UseUnattended.Value;
+            model.UseUnattendedInstall = options.UseUnattended.Value;
 
         if (!string.IsNullOrWhiteSpace(options.DatabaseType))
             model.DatabaseType = options.DatabaseType;
@@ -706,22 +702,19 @@ public class CliModeWorkflow
             model.ConnectionString = options.ConnectionString;
 
         if (!string.IsNullOrWhiteSpace(options.AdminName))
-            model.AdminName = options.AdminName;
+            model.UserFriendlyName = options.AdminName;
 
         if (!string.IsNullOrWhiteSpace(options.AdminEmail))
-            model.AdminEmail = options.AdminEmail;
+            model.UserEmail = options.AdminEmail;
 
         if (!string.IsNullOrWhiteSpace(options.AdminPassword))
-            model.AdminPassword = options.AdminPassword;
+            model.UserPassword = options.AdminPassword;
 
         if (options.OnelinerOutput.HasValue)
             model.OnelinerOutput = options.OnelinerOutput.Value;
 
         if (options.RemoveComments.HasValue)
             model.RemoveComments = options.RemoveComments.Value;
-
-        if (options.IncludePrerelease.HasValue)
-            model.IncludePrerelease = options.IncludePrerelease.Value;
 
         return model;
     }
