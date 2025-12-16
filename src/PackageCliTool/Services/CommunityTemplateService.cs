@@ -77,7 +77,11 @@ public class CommunityTemplateService
                 _logger?.LogDebug("Using cached community templates index");
                 try
                 {
-                    var index = JsonSerializer.Deserialize<TemplateIndex>(cachedIndex);
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    var index = JsonSerializer.Deserialize<TemplateIndex>(cachedIndex, options);
                     if (index != null)
                     {
                         return index;
@@ -97,7 +101,24 @@ public class CommunityTemplateService
             response.EnsureSuccessStatusCode();
 
             var content = await response.Content.ReadAsStringAsync();
-            var templateIndex = JsonSerializer.Deserialize<TemplateIndex>(content);
+
+            TemplateIndex? templateIndex;
+            try
+            {
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                templateIndex = JsonSerializer.Deserialize<TemplateIndex>(content, options);
+            }
+            catch (JsonException ex)
+            {
+                _logger?.LogError(ex, "Failed to parse community templates index");
+                throw new PswException(
+                    "Failed to parse community templates index",
+                    "The index.json file may be malformed"
+                );
+            }
 
             if (templateIndex == null)
             {
@@ -164,7 +185,19 @@ public class CommunityTemplateService
             var yamlContent = await response.Content.ReadAsStringAsync();
 
             // Deserialize the template
-            var template = _deserializer.Deserialize<Template>(yamlContent);
+            Template? template;
+            try
+            {
+                template = _deserializer.Deserialize<Template>(yamlContent);
+            }
+            catch (Exception ex) when (ex is YamlDotNet.Core.YamlException || ex is ArgumentException)
+            {
+                _logger?.LogError(ex, "Failed to parse community template '{TemplateName}'", templateName);
+                throw new PswException(
+                    $"Failed to parse community template '{templateName}'",
+                    "The template YAML file may be malformed"
+                );
+            }
 
             if (template == null)
             {
@@ -184,6 +217,11 @@ public class CommunityTemplateService
                 $"Unable to fetch community template '{templateName}'",
                 "Check your internet connection or try again later"
             );
+        }
+        catch (PswException)
+        {
+            // Re-throw PswException from template not found or parsing errors
+            throw;
         }
     }
 

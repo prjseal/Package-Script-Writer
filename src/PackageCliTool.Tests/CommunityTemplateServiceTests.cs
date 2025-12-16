@@ -86,7 +86,7 @@ public class CommunityTemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Unable to fetch community templates*");
+            .Where(ex => ex.Message.Contains("Unable to fetch community templates"));
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public class CommunityTemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Failed to parse community templates index*");
+            .Where(ex => ex.Message.Contains("Failed to parse community templates index"));
     }
 
     [Fact]
@@ -180,7 +180,8 @@ public class CommunityTemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Community template 'non-existent-template' not found*");
+            .Where(ex => ex.Message.Contains("Community template 'non-existent-template' not found") &&
+                        ex.Hint!.Contains("Available templates:"));
     }
 
     [Fact]
@@ -262,7 +263,7 @@ public class CommunityTemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Unable to fetch community template*");
+            .Where(ex => ex.Message.Contains("Unable to fetch community template"));
     }
 
     [Fact]
@@ -303,7 +304,7 @@ public class CommunityTemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Failed to parse community template*");
+            .Where(ex => ex.Message.Contains("Failed to parse community template"));
     }
 
     [Fact]
@@ -360,7 +361,8 @@ public class CommunityTemplateServiceTests : IDisposable
 
         // Assert
         await act.Should().ThrowAsync<PswException>()
-            .WithMessage("*Community template 'non-existent' not found*");
+            .Where(ex => ex.Message.Contains("Community template 'non-existent' not found") &&
+                        ex.Hint!.Contains("Use --community-template list"));
     }
 
     [Fact]
@@ -393,7 +395,7 @@ public class CommunityTemplateServiceTests : IDisposable
             httpClient: httpClient,
             cacheService: _cacheService);
 
-        // Corrupt the cache
+        // Corrupt the cache with invalid JSON
         _cacheService.Set("community_templates_index", "{ invalid json", CacheType.Package);
 
         // Act - Should handle corrupted cache and fetch fresh data
