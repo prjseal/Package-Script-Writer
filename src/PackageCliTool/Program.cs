@@ -158,7 +158,8 @@ class Program
             // Determine if we should use CLI mode or interactive mode
             else if (options.HasAnyOptions())
             {
-                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, scriptGeneratorService, historyService, logger);
+                var communityTemplateService = serviceProvider.GetRequiredService<CommunityTemplateService>();
+                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, scriptGeneratorService, historyService, communityTemplateService, logger);
                 await cliWorkflow.RunAsync(options);
             }
             else
