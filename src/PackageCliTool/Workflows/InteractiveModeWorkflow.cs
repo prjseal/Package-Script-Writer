@@ -1553,6 +1553,20 @@ public class InteractiveModeWorkflow
             // Convert template configuration to ScriptModel
             var config = ConvertTemplateConfigurationToScriptModel(template.Configuration);
 
+            // Build packageVersions dictionary from template
+            var packageVersions = new Dictionary<string, string>();
+            foreach (var package in template.Configuration.Packages)
+            {
+                // Map template package version format to packageVersions format
+                var version = package.Version.ToLower() switch
+                {
+                    "latest" => "",
+                    "prerelease" => "--prerelease",
+                    _ => package.Version
+                };
+                packageVersions[package.Name] = version;
+            }
+
             // Generate script
             var script = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
@@ -1564,11 +1578,17 @@ public class InteractiveModeWorkflow
 
             _logger?.LogInformation("Script generated successfully from community template");
 
+            // Save to history
+            _historyService.AddEntry(
+                config,
+                templateName: template.Metadata.Name,
+                description: $"Community template: {template.Metadata.Description}");
+
             // Display script
             ConsoleDisplay.DisplayGeneratedScript(script, $"Generated Script from '{template.Metadata.Name}'");
 
             // Handle script actions (Run, Edit, Copy, Save, Start Over)
-            await HandleGeneratedScriptAsync(script, config, template.Metadata.Name);
+            await HandleScriptActionsAsync(script, config, packageVersions, config.TemplateName, config.TemplateVersion);
         }
         catch (Exception ex)
         {
