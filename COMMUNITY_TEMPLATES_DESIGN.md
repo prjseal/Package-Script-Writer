@@ -10,10 +10,38 @@ Add the ability for users to share and use community-contributed templates store
 ```
 community-templates/
 ├── README.md                           # Submission guidelines
+├── index.json                          # Template catalog with metadata
 ├── blog-with-usync.yaml               # Example: Blog setup with uSync
 ├── multi-site-setup.yaml              # Example: Multi-site configuration
 ├── e-commerce-starter.yaml            # Example: E-commerce setup
 └── corporate-website.yaml             # Example: Corporate site
+```
+
+**Index File Format:** `index.json` contains metadata for all templates
+```json
+{
+  "templates": [
+    {
+      "name": "blog-with-usync",
+      "displayName": "Blog with uSync",
+      "description": "Complete blog setup with uSync, Forms, and SEO packages",
+      "author": "John Doe",
+      "tags": ["blog", "usync", "seo"],
+      "fileName": "blog-with-usync.yaml",
+      "created": "2024-12-15"
+    },
+    {
+      "name": "e-commerce-starter",
+      "displayName": "E-Commerce Starter",
+      "description": "E-commerce site setup with payment packages",
+      "author": "Jane Smith",
+      "tags": ["commerce", "shop"],
+      "fileName": "e-commerce-starter.yaml",
+      "created": "2024-12-16"
+    }
+  ],
+  "lastUpdated": "2024-12-16"
+}
 ```
 
 **Template Format:** Same YAML structure as existing user templates
@@ -167,26 +195,62 @@ public class CommunityTemplateService
 }
 ```
 
-### 4.2 GitHub Integration
+### 4.2 GitHub Raw Content Integration
 
-**GitHub API Endpoints:**
+**No GitHub API Required** - Uses direct raw file access for simplicity and reliability.
 
-1. **List Templates:**
+**URLs Used:**
+
+1. **Fetch Template Index:**
    ```
-   GET https://api.github.com/repos/prjseal/Package-Script-Writer/contents/community-templates
+   GET https://raw.githubusercontent.com/prjseal/Package-Script-Writer/main/community-templates/index.json
    ```
-   Returns: JSON array of files in the folder
+   Returns: JSON catalog of all available templates with metadata
 
 2. **Fetch Template Content:**
    ```
-   GET https://raw.githubusercontent.com/prjseal/Package-Script-Writer/main/community-templates/{template-name}.yaml
+   GET https://raw.githubusercontent.com/prjseal/Package-Script-Writer/main/community-templates/{fileName}
    ```
-   Returns: Raw YAML content
+   Returns: Raw YAML template content
 
-**Fallback Strategy:**
-- If GitHub API rate limit hit, use raw.githubusercontent.com
-- If offline, inform user community templates unavailable
-- Cache responses to minimize API calls
+**Implementation:**
+```csharp
+public class CommunityTemplateService
+{
+    private const string DefaultRepo = "prjseal/Package-Script-Writer";
+    private const string DefaultBranch = "main";
+
+    private string GetIndexUrl(string repo = DefaultRepo, string branch = DefaultBranch)
+        => $"https://raw.githubusercontent.com/{repo}/{branch}/community-templates/index.json";
+
+    private string GetTemplateUrl(string fileName, string repo = DefaultRepo, string branch = DefaultBranch)
+        => $"https://raw.githubusercontent.com/{repo}/{branch}/community-templates/{fileName}";
+
+    public async Task<TemplateIndex> GetIndexAsync()
+    {
+        // Check cache first
+        var cached = _cacheService.Get<TemplateIndex>(CommunityTemplatesCacheKey);
+        if (cached != null) return cached;
+
+        // Fetch from GitHub
+        var url = GetIndexUrl(_options.CommunityRepo);
+        var index = await _httpClient.GetFromJsonAsync<TemplateIndex>(url);
+
+        // Cache for 1 hour
+        _cacheService.Set(CommunityTemplatesCacheKey, index, TimeSpan.FromHours(1));
+
+        return index;
+    }
+}
+```
+
+**Benefits:**
+- ✅ No API rate limits (raw content is CDN-served)
+- ✅ No authentication required
+- ✅ Simple HTTP GET requests
+- ✅ Fast CDN delivery
+- ✅ Works with forks by changing repo URL
+- ✅ Reliable and predictable
 
 ### 4.3 Update CommandLineOptions.cs
 
@@ -287,16 +351,21 @@ private async Task CreateScriptFromCommunityTemplateAsync()
 Leverage existing `CacheService.cs`:
 ```csharp
 // Cache key
-private const string CommunityTemplatesCacheKey = "community_templates_list";
+private const string CommunityTemplatesCacheKey = "community_templates_index";
 
-// Cache template list for 1 hour (like packages)
-var cached = _cacheService.Get<List<CommunityTemplateMetadata>>(CommunityTemplatesCacheKey);
+// Cache template index for 1 hour (like packages)
+var cached = _cacheService.Get<TemplateIndex>(CommunityTemplatesCacheKey);
 if (cached != null) return cached;
 
-// Fetch from GitHub and cache
-var templates = await FetchFromGitHubAsync();
-_cacheService.Set(CommunityTemplatesCacheKey, templates, TimeSpan.FromHours(1));
+// Fetch index from raw.githubusercontent.com and cache
+var index = await FetchIndexFromGitHubAsync();
+_cacheService.Set(CommunityTemplatesCacheKey, index, TimeSpan.FromHours(1));
 ```
+
+**What Gets Cached:**
+- Template index (1 hour TTL)
+- Individual template content can be cached on-demand
+- Clear cache with `psw --clear-cache` (existing functionality)
 
 ---
 
@@ -402,17 +471,34 @@ Share your Umbraco installation templates with the community!
    - Relevant `tags`
    - Current `created` date
 
-4. **Submit Pull Request**
+4. **Update Index File**
+   Add your template to `community-templates/index.json`:
+   ```json
+   {
+     "name": "your-template-name",
+     "displayName": "Your Template Name",
+     "description": "Brief description of what this template does",
+     "author": "Your Name",
+     "tags": ["tag1", "tag2"],
+     "fileName": "your-template-name.yaml",
+     "created": "2024-12-16"
+   }
+   ```
+
+5. **Submit Pull Request**
    - Fork the repository
-   - Add your template to `community-templates/`
-   - Name it descriptively (e.g., `blog-with-usync.yaml`)
+   - Add your template YAML to `community-templates/`
+   - Update `community-templates/index.json` with your template entry
+   - Update `lastUpdated` field in index.json
+   - Name template descriptively (e.g., `blog-with-usync.yaml`)
    - Create PR with description of the template use case
 
-5. **Template Review**
+6. **Template Review**
    - Maintainers will review for quality and security
    - Templates must use publicly available packages
    - No credentials or sensitive data
    - Clear documentation of purpose
+   - Index entry matches template metadata
 
 ## Template Naming Convention
 
@@ -448,13 +534,12 @@ Before using community templates, validate:
 4. **Sanitize Inputs:** Clean all user-provided values
 5. **Show Preview:** Display what will be installed
 
-### GitHub Rate Limiting
+### Offline and Network Handling
 
-- **GitHub API Limit:** 60 requests/hour (unauthenticated)
-- **Mitigation:**
-  - Cache aggressively (1 hour TTL)
-  - Use raw.githubusercontent.com for template content
-  - Optional: Add GitHub token support for authenticated requests (5000/hour)
+- **Network Failures:** Gracefully handle when GitHub is unreachable
+- **Cache Strategy:** Use 1-hour cache to reduce requests and enable offline access
+- **User Feedback:** Clear error messages when templates are unavailable
+- **Fallback:** Suggest using local templates if community templates unavailable
 
 ### PR Review Process
 
@@ -501,8 +586,10 @@ All community templates should be:
 - [ ] Override template values
 - [ ] View template details
 - [ ] Handle offline scenarios
-- [ ] Handle GitHub API rate limit
+- [ ] Handle network failures gracefully
 - [ ] Validate malformed YAML handling
+- [ ] Verify cache expiration (1 hour)
+- [ ] Test with custom repository URL
 
 ---
 
@@ -556,10 +643,11 @@ Have a great Umbraco setup? Share it with the community!
 
 ### Phase 1: Core Infrastructure (MVP)
 - [ ] Create `community-templates/` folder structure
-- [ ] Implement `CommunityTemplateService`
-- [ ] Add GitHub API integration
-- [ ] Add basic caching
+- [ ] Create `index.json` with template catalog structure
+- [ ] Implement `CommunityTemplateService` with raw URL fetching
+- [ ] Add caching support (1 hour TTL)
 - [ ] Create 2-3 example templates
+- [ ] Write community-templates/README.md with submission guidelines
 
 ### Phase 2: CLI Integration
 - [ ] Add command-line flags
@@ -611,14 +699,15 @@ Have a great Umbraco setup? Share it with the community!
    - Group related templates
    - "Starter Packs" for specific industries
 
-5. **GitHub Authentication**
-   - Higher rate limits (5000/hour)
-   - Access private template repositories
-   - `--github-token` flag support
-
-6. **Template Analytics**
-   - Track popular templates
+5. **Template Analytics**
+   - Track downloads in index.json
+   - Popular templates highlighted
    - Usage statistics
+
+6. **Private Template Repositories**
+   - Support for private forks with authentication
+   - `--github-token` flag for private repos
+   - Team/organization template sharing
 
 ---
 
@@ -629,9 +718,11 @@ This design provides:
 ✅ **Non-intrusive:** Builds on existing template system
 ✅ **User-friendly:** Works in both interactive and CLI modes
 ✅ **Flexible:** Use one-time or save locally for customization
-✅ **Community-driven:** Easy submission via PR
-✅ **Cached:** Efficient with GitHub API rate limits
-✅ **Secure:** Validation and review process
+✅ **Community-driven:** Easy submission via PR with index.json updates
+✅ **Simple & Reliable:** No API dependencies, just raw file fetching
+✅ **No Rate Limits:** Uses GitHub's CDN for raw content
+✅ **Fast:** Cached with 1-hour TTL, CDN-delivered
+✅ **Secure:** Validation and manual review process
 ✅ **Extensible:** Foundation for future enhancements
 
-The feature integrates seamlessly with existing workflows while opening up community collaboration and knowledge sharing.
+The feature integrates seamlessly with existing workflows while opening up community collaboration and knowledge sharing. The index-based approach ensures reliability without API complexity.
