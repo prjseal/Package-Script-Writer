@@ -171,6 +171,7 @@ class Program
                     try
                     {
                         var pswConfig = serviceProvider.GetRequiredService<IOptions<PSWConfig>>().Value;
+                        var communityTemplateService = serviceProvider.GetRequiredService<CommunityTemplateService>();
                         var interactiveWorkflow = new InteractiveModeWorkflow(
                             apiClient,
                             packageSelector,
@@ -178,6 +179,7 @@ class Program
                             scriptGeneratorService,
                             versionCheckService,
                             historyService,
+                            communityTemplateService,
                             pswConfig,
                             logger);
                         await interactiveWorkflow.RunAsync();

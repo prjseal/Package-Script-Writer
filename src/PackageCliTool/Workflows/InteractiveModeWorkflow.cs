@@ -3,6 +3,8 @@ using Spectre.Console;
 using PackageCliTool.Services;
 using PackageCliTool.UI;
 using PackageCliTool.Models.Api;
+using PackageCliTool.Models.CommunityTemplates;
+using PackageCliTool.Models.Templates;
 using PackageCliTool.Logging;
 using PackageCliTool.Validation;
 using PackageCliTool.Extensions;
@@ -20,6 +22,7 @@ public class InteractiveModeWorkflow
     private readonly PackageSelector _packageSelector;
     private readonly ScriptExecutor _scriptExecutor;
     private readonly TemplateService _templateService;
+    private readonly CommunityTemplateService _communityTemplateService;
     private readonly VersionCheckService _versionCheckService;
     private readonly HistoryService _historyService;
     private readonly ILogger? _logger;
@@ -35,6 +38,7 @@ public class InteractiveModeWorkflow
     /// <param name="scriptGeneratorService">The service for generating scripts</param>
     /// <param name="versionCheckService">The service for checking version updates</param>
     /// <param name="historyService">The service for managing command history</param>
+    /// <param name="communityTemplateService">The service for fetching community templates</param>
     /// <param name="pswConfig">The PSW configuration</param>
     /// <param name="logger">Optional logger instance</param>
     public InteractiveModeWorkflow(
@@ -44,6 +48,7 @@ public class InteractiveModeWorkflow
         IScriptGeneratorService scriptGeneratorService,
         VersionCheckService versionCheckService,
         HistoryService historyService,
+        CommunityTemplateService communityTemplateService,
         PSWConfig pswConfig,
         ILogger? logger = null)
     {
@@ -51,6 +56,7 @@ public class InteractiveModeWorkflow
         _packageSelector = packageSelector;
         _scriptExecutor = scriptExecutor;
         _templateService = new TemplateService(logger: logger);
+        _communityTemplateService = communityTemplateService;
         _versionCheckService = versionCheckService;
         _historyService = historyService;
         _scriptGeneratorService = scriptGeneratorService;
@@ -85,6 +91,7 @@ public class InteractiveModeWorkflow
                         "Create script from scratch",
                         "Create script from defaults",
                         "Create script from template",
+                        "Create script from community template",
                         "Create script from history",
                         "See Umbraco versions table",
                         "See templates",
@@ -105,6 +112,10 @@ public class InteractiveModeWorkflow
 
                 case "Create script from template":
                     await RunTemplateFlowAsync();
+                    break;
+
+                case "Create script from community template":
+                    await RunCommunityTemplateFlowAsync();
                     break;
 
                 case "Create script from history":
@@ -1483,6 +1494,123 @@ public class InteractiveModeWorkflow
         await _packageSelector.PopulateAllPackagesAsync(forceUpdate: true);
 
         AnsiConsole.WriteLine();
+    }
+
+    /// <summary>
+    /// Runs the community template flow for creating a script from a community template
+    /// </summary>
+    private async Task RunCommunityTemplateFlowAsync()
+    {
+        try
+        {
+            _logger?.LogInformation("Starting community template flow");
+
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[bold blue]Community Templates[/]");
+            AnsiConsole.MarkupLine("[dim]Choose from templates shared by the community[/]\n");
+
+            // Fetch community templates
+            var templates = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .StartAsync("[yellow]Fetching community templates...[/]", async ctx =>
+                {
+                    return await _communityTemplateService.GetAllTemplatesAsync();
+                });
+
+            if (!templates.Any())
+            {
+                AnsiConsole.MarkupLine("[yellow]No community templates available at this time.[/]");
+                AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
+                Console.ReadKey(true);
+                return;
+            }
+
+            // Display and select template
+            var selectedTemplate = AnsiConsole.Prompt(
+                new SelectionPrompt<CommunityTemplateMetadata>()
+                    .Title("[green]Select a community template:[/]")
+                    .PageSize(10)
+                    .MoreChoicesText("[grey](Move up and down to reveal more templates)[/]")
+                    .AddChoices(templates)
+                    .UseConverter(t =>
+                    {
+                        var tags = t.Tags.Any() ? $" [dim]({string.Join(", ", t.Tags)})[/]" : "";
+                        return $"{t.DisplayName}{tags}\n  [dim]{t.Description}[/]";
+                    }));
+
+            // Load the selected template
+            var template = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .StartAsync($"[yellow]Loading template '{selectedTemplate.DisplayName}'...[/]", async ctx =>
+                {
+                    return await _communityTemplateService.GetTemplateAsync(selectedTemplate.Name);
+                });
+
+            AnsiConsole.MarkupLine($"\n[green]✓[/] Loaded: [bold]{template.Metadata.Name}[/]");
+            AnsiConsole.MarkupLine($"[dim]  Author: {template.Metadata.Author}[/]");
+            AnsiConsole.MarkupLine($"[dim]  {template.Metadata.Description}[/]\n");
+
+            // Convert template configuration to ScriptModel
+            var config = ConvertTemplateConfigurationToScriptModel(template.Configuration);
+
+            // Generate script
+            var script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating installation script...", async ctx =>
+                {
+                    return _scriptGeneratorService.GenerateScript(config.ToViewModel());
+                });
+
+            _logger?.LogInformation("Script generated successfully from community template");
+
+            // Display script
+            ConsoleDisplay.DisplayGeneratedScript(script, $"Generated Script from '{template.Metadata.Name}'");
+
+            // Handle script actions (Run, Edit, Copy, Save, Start Over)
+            await HandleGeneratedScriptAsync(script, config, template.Metadata.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Error in community template flow");
+            AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+            AnsiConsole.MarkupLine("[dim]Press any key to continue...[/]");
+            Console.ReadKey(true);
+        }
+    }
+
+    /// <summary>
+    /// Converts Template Configuration to ScriptModel
+    /// </summary>
+    private ScriptModel ConvertTemplateConfigurationToScriptModel(TemplateConfiguration config)
+    {
+        // Convert packages to comma-separated string
+        var packagesStr = config.Packages.Any()
+            ? string.Join(",", config.Packages.Select(p => $"{p.Name}|{p.Version}"))
+            : null;
+
+        return new ScriptModel
+        {
+            TemplateName = config.Template.Name,
+            TemplateVersion = config.Template.Version,
+            ProjectName = config.Project.Name,
+            CreateSolutionFile = config.Project.CreateSolution,
+            SolutionName = config.Project.SolutionName ?? config.Project.Name,
+            IncludeStarterKit = config.StarterKit.Enabled,
+            StarterKitPackage = config.StarterKit.Package,
+            IncludeDockerfile = config.Docker.Dockerfile,
+            IncludeDockerCompose = config.Docker.DockerCompose,
+            CanIncludeDocker = config.Docker.Dockerfile || config.Docker.DockerCompose,
+            UseUnattendedInstall = config.Unattended.Enabled,
+            DatabaseType = config.Unattended.Database.Type,
+            ConnectionString = config.Unattended.Database.ConnectionString,
+            UserFriendlyName = config.Unattended.Admin.Name,
+            UserEmail = config.Unattended.Admin.Email,
+            UserPassword = config.Unattended.Admin.Password,
+            OnelinerOutput = config.Output.Oneliner,
+            RemoveComments = config.Output.RemoveComments,
+            Packages = packagesStr
+        };
     }
 
     /// <summary>
