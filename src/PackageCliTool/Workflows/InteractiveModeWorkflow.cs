@@ -88,7 +88,6 @@ public class InteractiveModeWorkflow
                         "Create script from history",
                         "See Umbraco versions table",
                         "See templates",
-                        "See history",
                         "See help",
                         "See version",
                         "Clear cache"
@@ -118,10 +117,6 @@ public class InteractiveModeWorkflow
 
                 case "See templates":
                     await ShowTemplatesAsync();
-                    break;
-
-                case "See history":
-                    await ShowHistoryAsync();
                     break;
 
                 case "See help":
@@ -1469,47 +1464,6 @@ public class InteractiveModeWorkflow
         AnsiConsole.WriteLine();
     }
 
-    /// <summary>
-    /// Shows the history of generated scripts
-    /// </summary>
-    private async Task ShowHistoryAsync()
-    {
-        _logger?.LogInformation("Displaying history list");
-
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Script Generation History[/]\n");
-
-        var history = await _historyService.GetAllHistoryAsync();
-
-        if (!history.Any())
-        {
-            AnsiConsole.MarkupLine("[dim]No history found.[/]");
-            AnsiConsole.MarkupLine("[dim]History is saved automatically when you generate scripts.[/]");
-        }
-        else
-        {
-            var table = new Table();
-            table.AddColumn("Date");
-            table.AddColumn("Project");
-            table.AddColumn("Template");
-            table.AddColumn("Packages");
-
-            foreach (var entry in history.OrderByDescending(h => h.Timestamp).Take(10))
-            {
-                table.AddRow(
-                    entry.Timestamp.ToString("yyyy-MM-dd HH:mm"),
-                    entry.ScriptModel?.ProjectName ?? "[dim]N/A[/]",
-                    entry.TemplateName ?? "[dim]N/A[/]",
-                    entry.ScriptModel?.Packages?.Count().ToString() ?? "0"
-                );
-            }
-
-            AnsiConsole.Write(table);
-            AnsiConsole.MarkupLine($"\n[dim]Showing last {Math.Min(10, history.Count)} entries[/]");
-        }
-
-        AnsiConsole.WriteLine();
-    }
 
     /// <summary>
     /// Clears the package cache
