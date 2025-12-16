@@ -80,9 +80,9 @@ configuration:
 
 ```bash
 # List all community templates
-psw --list-community
+psw --community-template list
 
-# Use a community template directly and apoly overrides same as using loval template
+# Use a community template directly and apply overrides same as using local template
 psw --community-template blog-with-usync -n "ProjectName"
 ```
 
@@ -229,54 +229,36 @@ public class CommunityTemplateService
 
 ### 4.3 Update CommandLineOptions.cs
 
-Add new options:
+Add new option:
 ```csharp
-[Option("list-community", Required = false, HelpText = "List all available community templates")]
-public bool ListCommunityTemplates { get; set; }
-
-[Option("community-template", Required = false, HelpText = "Use a community template by name")]
+[Option("community-template", Required = false, HelpText = "Use a community template by name or 'list' to show all available templates")]
 public string CommunityTemplate { get; set; }
-
-[Option("save-community-template", Required = false, HelpText = "Save the community template to local templates")]
-public bool SaveCommunityTemplate { get; set; }
-
-[Option("show-community", Required = false, HelpText = "Show details of a community template")]
-public string ShowCommunityTemplate { get; set; }
-
-[Option("community-repo", Required = false, Default = "prjseal/Package-Script-Writer",
-    HelpText = "GitHub repository for community templates")]
-public string CommunityRepo { get; set; }
 ```
+
+**Behavior:**
+- `--community-template list` - Lists all available community templates
+- `--community-template <name>` - Loads the specified community template and allows all standard overrides (same as local templates)
 
 ### 4.4 Update CliModeWorkflow.cs
 
-Add handling for community template flags:
+Add handling for community template flag:
 ```csharp
-if (options.ListCommunityTemplates)
-{
-    await ListCommunityTemplatesAsync();
-    return;
-}
-
-if (!string.IsNullOrEmpty(options.ShowCommunityTemplate))
-{
-    await ShowCommunityTemplateAsync(options.ShowCommunityTemplate);
-    return;
-}
-
 if (!string.IsNullOrEmpty(options.CommunityTemplate))
 {
-    var scriptModel = await _communityTemplateService.GetTemplateAsync(options.CommunityTemplate);
-
-    if (options.SaveCommunityTemplate)
+    // Special case: list all community templates
+    if (options.CommunityTemplate.Equals("list", StringComparison.OrdinalIgnoreCase))
     {
-        await _communityTemplateService.SaveToLocalTemplatesAsync(options.CommunityTemplate);
+        await ListCommunityTemplatesAsync();
+        return;
     }
 
-    // Apply any CLI overrides to the template
+    // Load community template (same flow as local template)
+    var scriptModel = await _communityTemplateService.GetTemplateAsync(options.CommunityTemplate);
+
+    // Apply any CLI overrides to the template (same as local templates)
     ApplyCommandLineOverrides(scriptModel, options);
 
-    // Generate script
+    // Generate and execute script (same as local templates)
     await GenerateAndExecuteScriptAsync(scriptModel, options);
 }
 ```
@@ -303,21 +285,20 @@ private async Task CreateScriptFromCommunityTemplateAsync()
             .PageSize(10)
             .MoreChoicesText("[grey](Move up and down to reveal more templates)[/]")
             .AddChoices(templates)
-            .UseConverter(t => $"{t.Name} - {t.Description}")
+            .UseConverter(t => $"{t.DisplayName} - {t.Description}")
     );
 
-    // 3. Ask what to do
-    var action = AnsiConsole.Prompt(
-        new SelectionPrompt<string>()
-            .Title("What would you like to do?")
-            .AddChoices("Use template now (one-time)",
-                       "Save to my templates and use",
-                       "Just save to my templates",
-                       "Cancel")
-    );
+    // 3. Load the community template
+    var scriptModel = await _communityTemplateService.GetTemplateAsync(selectedTemplate.Name);
 
-    // 4. Execute based on selection
-    // ... implementation
+    // 4. Generate script
+    var script = await _scriptGenerator.GenerateScriptAsync(scriptModel);
+
+    // 5. Display script and show existing menu (Run, Edit, Copy, Save, Start Over)
+    // Uses the SAME workflow as local templates
+    await DisplayScriptAndShowMenuAsync(script, scriptModel);
+
+    // Note: If user selects "Save", it creates a normal local template
 }
 ```
 
@@ -352,63 +333,63 @@ _cacheService.Set(CommunityTemplatesCacheKey, index, TimeSpan.FromHours(1));
 ```
 $ psw
 > Create script from community template
-> Blog with uSync
-> Use template now
-> Override project name: "MyAwesomeBlog"
-> Script generated and displayed
+> Blog with uSync (displays in selection list)
+> (Script generated and displayed)
+> What would you like to do?
+  > Run
+    Edit
+    Copy
+    Save
+    Start Over
 ```
 
 **CLI Mode:**
 ```bash
+# Use with overrides (same as local templates)
 psw --community-template blog-with-usync -n "MyAwesomeBlog" --auto-run
 ```
 
-### Scenario 2: User Wants to Customize Community Template
+### Scenario 2: User Wants to Save and Customize Community Template
 
 **Interactive Mode:**
 ```
 > Create script from community template
 > E-Commerce Starter
-> Save to my templates and use
-> (Template saved as "e-commerce-starter" in ~/.psw/templates/)
-> Continue with configuration...
-> Later: Can edit ~/. psw/templates/e-commerce-starter.yaml
+> (Script generated and displayed)
+> What would you like to do?
+  > Save
+> (Template saved as normal local template in ~/.psw/templates/)
+> Later: Edit ~/.psw/templates/e-commerce-starter.yaml
+> Use with: psw template load e-commerce-starter
 ```
 
 **CLI Mode:**
 ```bash
-# Save to local first
-psw --community-template e-commerce-starter --save-community-template
+# Use community template and generate script
+psw --community-template e-commerce-starter -n "MyShop"
 
-# Edit locally
-nano ~/.psw/templates/e-commerce-starter.yaml
-
-# Use customized version
-psw template load e-commerce-starter -n "MyShop"
+# To save for later customization, use interactive mode or manually save the YAML
 ```
 
 ### Scenario 3: Exploring Available Templates
 
 **CLI Mode:**
 ```bash
-# List all
-psw --list-community
+# List all available community templates
+psw --community-template list
 
 # Output:
 # Available Community Templates:
 #
-# 1. blog-with-usync
+# 1. Blog with uSync
 #    Description: Complete blog setup with uSync, Forms, and SEO packages
 #    Author: John Doe
 #    Tags: blog, usync, seo
 #
-# 2. multi-site-setup
-#    ...
-
-# View details
-psw --show-community blog-with-usync
-
-# Output: (Full YAML content formatted nicely)
+# 2. Multi-Site Setup
+#    Description: Configuration for managing multiple sites
+#    Author: Jane Smith
+#    Tags: multi-site, advanced
 ```
 
 ---
@@ -625,18 +606,17 @@ Have a great Umbraco setup? Share it with the community!
 - [ ] Write community-templates/README.md with submission guidelines
 
 ### Phase 2: CLI Integration
-- [ ] Add command-line flags
-- [ ] Update `CliModeWorkflow`
-- [ ] Add `--list-community` support
-- [ ] Add `--community-template` support
-- [ ] Add `--save-community-template` support
+- [ ] Add `--community-template` command-line flag to `CommandLineOptions`
+- [ ] Update `CliModeWorkflow` to handle community template flag
+- [ ] Implement `--community-template list` to display all templates
+- [ ] Implement `--community-template <name>` with override support (same as local templates)
 
 ### Phase 3: Interactive Mode
-- [ ] Update main menu
-- [ ] Create community template workflow
-- [ ] Add template selection UI
-- [ ] Add preview/details display
-- [ ] Add save options
+- [ ] Update main menu to add "Create script from community template" option
+- [ ] Create community template selection workflow
+- [ ] Display templates with rich formatting (name, description, author, tags)
+- [ ] Reuse existing script display and menu (Run, Edit, Copy, Save, Start Over)
+- [ ] Ensure "Save" creates a normal local template
 
 ### Phase 4: Documentation & Polish
 - [ ] Write community-templates/README.md
