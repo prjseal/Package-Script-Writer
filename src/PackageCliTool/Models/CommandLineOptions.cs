@@ -100,6 +100,9 @@ public class CommandLineOptions
     /// <summary>Gets or sets the template tags</summary>
     public List<string> TemplateTags { get; set; } = new();
 
+    /// <summary>Gets or sets the community template name or 'list' to show all available templates</summary>
+    public string? CommunityTemplate { get; set; }
+
     /// <summary>Gets or sets the history command (list, show, rerun, delete, clear, stats)</summary>
     public string? HistoryCommand { get; set; }
 
@@ -137,6 +140,14 @@ public class CommandLineOptions
     public bool IsVersionsCommand()
     {
         return ShowVersionsTable;
+    }
+
+    /// <summary>
+    /// Checks if this is a community template command
+    /// </summary>
+    public bool IsCommunityTemplateCommand()
+    {
+        return !string.IsNullOrWhiteSpace(CommunityTemplate);
     }
 
     /// <summary>
@@ -404,6 +415,10 @@ public class CommandLineOptions
                             .Select(t => t.Trim())
                             .ToList();
                     }
+                    break;
+
+                case "--community-template":
+                    options.CommunityTemplate = GetNextArgument(args, ref i);
                     break;
 
                 // History commands
