@@ -257,6 +257,18 @@ class Program
             return new TemplateService(logger: templateLogger);
         });
 
+        // Register CommunityTemplateService with dependencies
+        services.AddSingleton<CommunityTemplateService>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var cacheService = sp.GetRequiredService<CacheService>();
+            var communityLogger = LoggerSetup.CreateLogger("CommunityTemplateService");
+            return new CommunityTemplateService(
+                httpClient: httpClientFactory.CreateClient(),
+                cacheService: cacheService,
+                logger: communityLogger);
+        });
+
         // Register HistoryService with logger
         services.AddSingleton<HistoryService>(sp =>
         {
