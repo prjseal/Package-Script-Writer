@@ -565,42 +565,46 @@ public class CliModeWorkflow
             _logger?.LogInformation("Loading community template: {TemplateName}", options.CommunityTemplate);
 
             AnsiConsole.WriteLine();
-            using (var status = AnsiConsole.Status())
-            {
-                status.Spinner(Spinner.Known.Dots);
-                status.Start($"[yellow]Fetching community template '{options.CommunityTemplate}'...[/]", ctx =>
+            AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .Start($"[yellow]Fetching community template '{options.CommunityTemplate}'...[/]", ctx =>
                 {
-                    // This will be executed synchronously but we'll use it for UI feedback
+                    // UI feedback only
                 });
 
-                // Load the template
-                var template = await _communityTemplateService.GetTemplateAsync(options.CommunityTemplate!);
+            // Load the template
+            var template = await _communityTemplateService.GetTemplateAsync(options.CommunityTemplate!);
 
-                AnsiConsole.MarkupLine($"[green]✓[/] Loaded template: [bold]{template.Metadata.Name}[/]");
-                AnsiConsole.MarkupLine($"[dim]  {template.Metadata.Description}[/]");
-                AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[green]✓[/] Loaded template: [bold]{template.Metadata.Name}[/]");
+            AnsiConsole.MarkupLine($"[dim]  {template.Metadata.Description}[/]");
+            AnsiConsole.WriteLine();
 
-                // Convert template to ScriptModel
-                var model = ConvertTemplateToScriptModel(template, options);
+            // Convert template to ScriptModel
+            var model = ConvertTemplateToScriptModel(template, options);
 
-                // Generate script
-                var script = await _scriptGeneratorService.GenerateScriptAsync(model);
-
-                // Display script
-                ConsoleDisplay.DisplayScript(script);
-
-                // Save to history
-                await _historyService.SaveCommandAsync(options, script);
-
-                // Handle execution
-                if (options.AutoRun)
+            // Generate script
+            var script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating installation script...", async ctx =>
                 {
-                    await ExecuteScriptAsync(script, options);
-                }
-                else
-                {
-                    await HandleInteractiveScriptActionAsync(script);
-                }
+                    return await Task.Run(() => _scriptGeneratorService.GenerateScript(model.ToViewModel()));
+                });
+
+            // Display script
+            ConsoleDisplay.DisplayScript(script);
+
+            // Save to history
+            await _historyService.SaveCommandAsync(options, script);
+
+            // Handle execution
+            if (options.AutoRun)
+            {
+                await ExecuteScriptAsync(script, options);
+            }
+            else
+            {
+                await HandleInteractiveScriptActionAsync(script);
             }
         }
         catch (Exception ex)
