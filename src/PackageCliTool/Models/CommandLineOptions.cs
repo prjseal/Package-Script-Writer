@@ -449,7 +449,7 @@ public class CommandLineOptions
                     if (!arg.StartsWith("-") && i == 0)
                     {
                         var templateCommands = new[] { "save", "load", "export", "import", "validate" };
-                        var historyCommands = new[] { "list", "show", "delete", "rerun", "clear", "stats" };
+                        var historyCommands = new[] { "list", "delete", "rerun", "clear", "stats" };
 
                         // Check if it's a template command (some overlap, so check context)
                         if (templateCommands.Contains(arg.ToLower()))
