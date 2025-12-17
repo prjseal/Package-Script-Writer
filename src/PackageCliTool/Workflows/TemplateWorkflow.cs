@@ -75,10 +75,6 @@ public class TemplateWorkflow
                 ListTemplates(options);
                 break;
 
-            case "show":
-                await ShowTemplateAsync(options);
-                break;
-
             case "delete":
                 DeleteTemplate(options);
                 break;
@@ -535,72 +531,7 @@ public class TemplateWorkflow
         AnsiConsole.Write(table);
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine($"[dim]Total: {templates.Count} template(s)[/]");
-        AnsiConsole.MarkupLine("[dim]Use 'psw template show <name>' to view details[/]");
         AnsiConsole.MarkupLine("[dim]Use 'psw template load <name>' to use a template[/]");
-    }
-
-    /// <summary>
-    /// Shows details of a specific template
-    /// </summary>
-    private async Task ShowTemplateAsync(CommandLineOptions options)
-    {
-        var name = options.TemplateName;
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            name = AnsiConsole.Ask<string>("Enter [green]template name[/]:");
-        }
-
-        _logger?.LogInformation("Showing template: {Name}", name);
-
-        var template = await _templateService.LoadTemplateAsync(name);
-
-        // Display metadata
-        var metadataTable = new Table()
-            .Border(TableBorder.Rounded)
-            .BorderColor(Color.Blue)
-            .Title($"[bold blue]Template: {template.Metadata.Name}[/]");
-
-        metadataTable.AddColumn("[bold]Property[/]");
-        metadataTable.AddColumn("[bold]Value[/]");
-
-        metadataTable.AddRow("Description", template.Metadata.Description);
-        metadataTable.AddRow("Author", template.Metadata.Author);
-        metadataTable.AddRow("Version", template.Metadata.Version);
-        metadataTable.AddRow("Created", template.Metadata.Created.ToString("yyyy-MM-dd HH:mm"));
-        metadataTable.AddRow("Modified", template.Metadata.Modified.ToString("yyyy-MM-dd HH:mm"));
-        metadataTable.AddRow("Tags", string.Join(", ", template.Metadata.Tags));
-
-        AnsiConsole.Write(metadataTable);
-        AnsiConsole.WriteLine();
-
-        // Display configuration
-        var configTable = new Table()
-            .Border(TableBorder.Rounded)
-            .BorderColor(Color.Green)
-            .Title("[bold green]Configuration[/]");
-
-        configTable.AddColumn("[bold]Setting[/]");
-        configTable.AddColumn("[bold]Value[/]");
-
-        configTable.AddRow("Template", $"{template.Configuration.Template.Name} @ {template.Configuration.Template.Version}");
-        configTable.AddRow("Project", template.Configuration.Project.Name);
-        configTable.AddRow("Solution", template.Configuration.Project.CreateSolution ? template.Configuration.Project.SolutionName ?? template.Configuration.Project.Name : "No");
-        configTable.AddRow("Packages", template.Configuration.Packages.Count > 0 ? $"{template.Configuration.Packages.Count} package(s)" : "None");
-
-        if (template.Configuration.Packages.Count > 0)
-        {
-            foreach (var pkg in template.Configuration.Packages)
-            {
-                configTable.AddRow($"  └─ {pkg.Name}", pkg.Version);
-            }
-        }
-
-        configTable.AddRow("Starter Kit", template.Configuration.StarterKit.Enabled ? template.Configuration.StarterKit.Package ?? "Yes" : "No");
-        configTable.AddRow("Docker", template.Configuration.Docker.Dockerfile || template.Configuration.Docker.DockerCompose ? "Yes" : "No");
-        configTable.AddRow("Unattended", template.Configuration.Unattended.Enabled ? $"Yes ({template.Configuration.Unattended.Database.Type})" : "No");
-
-        AnsiConsole.Write(configTable);
     }
 
     /// <summary>

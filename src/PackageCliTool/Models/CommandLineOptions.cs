@@ -85,7 +85,7 @@ public class CommandLineOptions
     /// <summary>Gets or sets whether to enable verbose logging</summary>
     public bool VerboseMode { get; set; }
 
-    /// <summary>Gets or sets the template command (save, load, list, show, delete, export, import)</summary>
+    /// <summary>Gets or sets the template command (save, load, list, delete, export, import)</summary>
     public string? TemplateCommand { get; set; }
 
     /// <summary>Gets or sets the template name</summary>

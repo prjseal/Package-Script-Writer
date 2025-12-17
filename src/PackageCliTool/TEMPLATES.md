@@ -115,19 +115,6 @@ psw template list
 # └────────────────────┴─────────────────────────────┴──────────┴────────────────┘
 ```
 
-### `template show <name>`
-
-Displays detailed information about a template.
-
-**Example:**
-```bash
-psw template show my-blog
-
-# Shows:
-# - Metadata (name, description, author, version, tags, dates)
-# - Configuration (template, project, packages, options)
-```
-
 ### `template delete <name>`
 
 Deletes a template.
