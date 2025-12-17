@@ -158,7 +158,8 @@ class Program
             // Determine if we should use CLI mode or interactive mode
             else if (options.HasAnyOptions())
             {
-                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, scriptGeneratorService, historyService, logger);
+                var communityTemplateService = serviceProvider.GetRequiredService<CommunityTemplateService>();
+                var cliWorkflow = new CliModeWorkflow(apiClient, scriptExecutor, scriptGeneratorService, historyService, communityTemplateService, logger);
                 await cliWorkflow.RunAsync(options);
             }
             else
@@ -170,6 +171,7 @@ class Program
                     try
                     {
                         var pswConfig = serviceProvider.GetRequiredService<IOptions<PSWConfig>>().Value;
+                        var communityTemplateService = serviceProvider.GetRequiredService<CommunityTemplateService>();
                         var interactiveWorkflow = new InteractiveModeWorkflow(
                             apiClient,
                             packageSelector,
@@ -177,6 +179,7 @@ class Program
                             scriptGeneratorService,
                             versionCheckService,
                             historyService,
+                            communityTemplateService,
                             pswConfig,
                             logger);
                         await interactiveWorkflow.RunAsync();
@@ -255,6 +258,18 @@ class Program
         {
             var templateLogger = LoggerSetup.CreateLogger("TemplateService");
             return new TemplateService(logger: templateLogger);
+        });
+
+        // Register CommunityTemplateService with dependencies
+        services.AddSingleton<CommunityTemplateService>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var cacheService = sp.GetRequiredService<CacheService>();
+            var communityLogger = LoggerSetup.CreateLogger("CommunityTemplateService");
+            return new CommunityTemplateService(
+                httpClient: httpClientFactory.CreateClient(),
+                cacheService: cacheService,
+                logger: communityLogger);
         });
 
         // Register HistoryService with logger

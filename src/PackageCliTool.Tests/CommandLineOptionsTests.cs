@@ -575,4 +575,115 @@ public class CommandLineOptionsTests
         options.StarterKitVersion.Should().Be(expectedVersion);
         options.IncludeStarterKit.Should().BeTrue();
     }
+
+    [Fact]
+    public void Parse_WithCommunityTemplateFlag_SetsCommunityTemplate()
+    {
+        // Arrange
+        var args = new[] { "--community-template", "blog-with-usync" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.CommunityTemplate.Should().Be("blog-with-usync");
+    }
+
+    [Fact]
+    public void Parse_WithCommunityTemplateList_SetsList()
+    {
+        // Arrange
+        var args = new[] { "--community-template", "list" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.CommunityTemplate.Should().Be("list");
+    }
+
+    [Fact]
+    public void IsCommunityTemplateCommand_WithCommunityTemplate_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--community-template", "blog-with-usync" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.IsCommunityTemplateCommand().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsCommunityTemplateCommand_WithCommunityTemplateList_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--community-template", "list" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.IsCommunityTemplateCommand().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsCommunityTemplateCommand_WithoutCommunityTemplate_ReturnsFalse()
+    {
+        // Arrange
+        var args = new[] { "--project-name", "MyProject" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.IsCommunityTemplateCommand().Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_WithCommunityTemplateAndOtherFlags_ParsesAll()
+    {
+        // Arrange
+        var args = new[]
+        {
+            "--community-template", "blog-with-usync",
+            "--project-name", "MyBlog",
+            "-p", "Umbraco.Forms",
+            "--auto-run"
+        };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.CommunityTemplate.Should().Be("blog-with-usync");
+        options.ProjectName.Should().Be("MyBlog");
+        options.Packages.Should().Be("Umbraco.Forms");
+        options.AutoRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithCommunityTemplateAndUnattendedOverrides_ParsesAll()
+    {
+        // Arrange
+        var args = new[]
+        {
+            "--community-template", "blog-with-usync",
+            "-n", "CustomBlog",
+            "-u",
+            "--database-type", "SqlServer",
+            "--admin-email", "custom@example.com"
+        };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.CommunityTemplate.Should().Be("blog-with-usync");
+        options.ProjectName.Should().Be("CustomBlog");
+        options.UseUnattended.Should().BeTrue();
+        options.DatabaseType.Should().Be("SqlServer");
+        options.AdminEmail.Should().Be("custom@example.com");
+    }
 }

@@ -1,0 +1,14 @@
+{
+  "templates": [
+    {
+      "name": "blog-with-usync",
+      "displayName": "Blog with uSync",
+      "description": "Complete blog setup with uSync for content synchronization and baseline packages",
+      "author": "Package Script Writer",
+      "tags": ["blog", "usync", "content-sync"],
+      "fileName": "blog-with-usync.yaml",
+      "created": "2024-12-16"
+    }
+  ],
+  "lastUpdated": "2024-12-16"
+}

@@ -1,0 +1,54 @@
+metadata:
+  name: "Blog with uSync"
+  description: "Complete blog setup with uSync for content synchronization and baseline packages"
+  author: "Package Script Writer"
+  created: 2024-12-16T00:00:00Z
+  modified: 2024-12-16T00:00:00Z
+  version: "1.0.0"
+  tags:
+    - blog
+    - usync
+    - content-sync
+
+configuration:
+  template:
+    name: "Umbraco.Templates"
+    version: "14.3.0"
+
+  project:
+    name: "MyBlog"
+    createSolution: true
+    solutionName: "MyBlog"
+
+  packages:
+    - name: "uSync"
+      version: "14.2.3"
+    - name: "uSync.Complete"
+      version: "14.2.3"
+
+  starterKit:
+    enabled: false
+    package: null
+
+  docker:
+    dockerfile: false
+    dockerCompose: false
+
+  unattended:
+    enabled: false
+    database:
+      type: "SQLite"
+      connectionString: null
+    admin:
+      name: "Administrator"
+      email: "admin@example.com"
+      password: "<prompt>"
+
+  output:
+    oneliner: false
+    removeComments: false
+    includePrerelease: false
+
+  execution:
+    autoRun: false
+    runDirectory: "."

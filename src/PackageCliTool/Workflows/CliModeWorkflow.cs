@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Models;
 using PackageCliTool.Models.Api;
+using PackageCliTool.Models.CommunityTemplates;
+using PackageCliTool.Models.Templates;
 using PackageCliTool.Services;
 using PackageCliTool.UI;
 using PackageCliTool.Validation;
@@ -21,6 +23,7 @@ public class CliModeWorkflow
     private readonly ILogger? _logger;
     private readonly IScriptGeneratorService _scriptGeneratorService;
     private readonly HistoryService _historyService;
+    private readonly CommunityTemplateService _communityTemplateService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CliModeWorkflow"/> class
@@ -29,18 +32,21 @@ public class CliModeWorkflow
     /// <param name="scriptExecutor">The script executor for running generated scripts</param>
     /// <param name="scriptGeneratorService">The service for generating scripts</param>
     /// <param name="historyService">The service for managing command history</param>
+    /// <param name="communityTemplateService">The service for fetching community templates</param>
     /// <param name="logger">Optional logger instance</param>
     public CliModeWorkflow(
         ApiClient apiClient,
         ScriptExecutor scriptExecutor,
         IScriptGeneratorService scriptGeneratorService,
         HistoryService historyService,
+        CommunityTemplateService communityTemplateService,
         ILogger? logger = null)
     {
         _apiClient = apiClient;
         _scriptExecutor = scriptExecutor;
         _scriptGeneratorService = scriptGeneratorService;
         _historyService = historyService;
+        _communityTemplateService = communityTemplateService;
         _logger = logger;
     }
 
@@ -49,6 +55,13 @@ public class CliModeWorkflow
     /// </summary>
     public async Task RunAsync(CommandLineOptions options)
     {
+        // Check for community template command first
+        if (options.IsCommunityTemplateCommand())
+        {
+            await HandleCommunityTemplateAsync(options);
+            return;
+        }
+
         if (options.UseDefault)
         {
             await GenerateDefaultScriptAsync(options);
@@ -473,5 +486,236 @@ public class CliModeWorkflow
         {
             AnsiConsole.MarkupLine("[yellow]To start over, please re-run the tool with different command-line options.[/]");
         }
+    }
+
+    /// <summary>
+    /// Handles community template commands
+    /// </summary>
+    private async Task HandleCommunityTemplateAsync(CommandLineOptions options)
+    {
+        // Special case: list all community templates
+        if (options.CommunityTemplate!.Equals("list", StringComparison.OrdinalIgnoreCase))
+        {
+            await ListCommunityTemplatesAsync();
+            return;
+        }
+
+        // Load and execute community template
+        await LoadAndExecuteCommunityTemplateAsync(options);
+    }
+
+    /// <summary>
+    /// Lists all available community templates
+    /// </summary>
+    private async Task ListCommunityTemplatesAsync()
+    {
+        try
+        {
+            _logger?.LogInformation("Listing community templates");
+
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[bold blue]Available Community Templates[/]\n");
+
+            var templates = await _communityTemplateService.GetAllTemplatesAsync();
+
+            if (!templates.Any())
+            {
+                AnsiConsole.MarkupLine("[yellow]No community templates available at this time.[/]");
+                return;
+            }
+
+            var table = new Table();
+            table.Border(TableBorder.Rounded);
+            table.AddColumn(new TableColumn("[bold]Template[/]").LeftAligned());
+            table.AddColumn(new TableColumn("[bold]Description[/]").LeftAligned());
+            table.AddColumn(new TableColumn("[bold]Author[/]").LeftAligned());
+            table.AddColumn(new TableColumn("[bold]Tags[/]").LeftAligned());
+
+            foreach (var template in templates)
+            {
+                table.AddRow(
+                    $"[green]{template.DisplayName}[/]\n[dim]{template.Name}[/]",
+                    template.Description,
+                    template.Author,
+                    string.Join(", ", template.Tags.Select(t => $"[dim]{t}[/]"))
+                );
+            }
+
+            AnsiConsole.Write(table);
+
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine($"[dim]Found {templates.Count} template(s)[/]");
+            AnsiConsole.MarkupLine("[dim]Use: psw --community-template <name> to use a template[/]");
+            AnsiConsole.WriteLine();
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to list community templates");
+            AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+        }
+    }
+
+    /// <summary>
+    /// Loads and executes a community template
+    /// </summary>
+    private async Task LoadAndExecuteCommunityTemplateAsync(CommandLineOptions options)
+    {
+        try
+        {
+            _logger?.LogInformation("Loading community template: {TemplateName}", options.CommunityTemplate);
+
+            AnsiConsole.WriteLine();
+            AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .Start($"[yellow]Fetching community template '{options.CommunityTemplate}'...[/]", ctx =>
+                {
+                    // UI feedback only
+                });
+
+            // Load the template
+            var template = await _communityTemplateService.GetTemplateAsync(options.CommunityTemplate!);
+
+            AnsiConsole.MarkupLine($"[green]✓[/] Loaded template: [bold]{template.Metadata.Name}[/]");
+            AnsiConsole.MarkupLine($"[dim]  {template.Metadata.Description}[/]");
+            AnsiConsole.WriteLine();
+
+            // Convert template to ScriptModel
+            var model = ConvertTemplateToScriptModel(template, options);
+
+            // Generate script
+            var script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating installation script...", async ctx =>
+                {
+                    return await Task.Run(() => _scriptGeneratorService.GenerateScript(model.ToViewModel()));
+                });
+
+            _logger?.LogInformation("Script generated successfully from community template");
+
+            // Save to history
+            _historyService.AddEntry(
+                model,
+                templateName: template.Metadata.Name,
+                description: $"Community template: {template.Metadata.Description}");
+
+            // Display script
+            ConsoleDisplay.DisplayGeneratedScript(script, $"Generated Script from '{template.Metadata.Name}'");
+
+            // Handle execution
+            await HandleScriptExecutionAsync(script, options);
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed to load community template: {TemplateName}", options.CommunityTemplate);
+            AnsiConsole.MarkupLine($"[red]Error: {ex.Message}[/]");
+        }
+    }
+
+    /// <summary>
+    /// Converts a Template to ScriptModel, applying CLI overrides
+    /// </summary>
+    private ScriptModel ConvertTemplateToScriptModel(Template template, CommandLineOptions options)
+    {
+        var config = template.Configuration;
+
+        // Convert packages to comma-separated string
+        var packagesStr = config.Packages.Any()
+            ? string.Join(",", config.Packages.Select(p => $"{p.Name}|{p.Version}"))
+            : null;
+
+        // Create base model from template
+        var model = new ScriptModel
+        {
+            TemplateName = config.Template.Name,
+            TemplateVersion = config.Template.Version,
+            ProjectName = config.Project.Name,
+            CreateSolutionFile = config.Project.CreateSolution,
+            SolutionName = config.Project.SolutionName ?? config.Project.Name,
+            IncludeStarterKit = config.StarterKit.Enabled,
+            StarterKitPackage = config.StarterKit.Package,
+            IncludeDockerfile = config.Docker.Dockerfile,
+            IncludeDockerCompose = config.Docker.DockerCompose,
+            CanIncludeDocker = config.Docker.Dockerfile || config.Docker.DockerCompose,
+            UseUnattendedInstall = config.Unattended.Enabled,
+            DatabaseType = config.Unattended.Database.Type,
+            ConnectionString = config.Unattended.Database.ConnectionString,
+            UserFriendlyName = config.Unattended.Admin.Name,
+            UserEmail = config.Unattended.Admin.Email,
+            UserPassword = config.Unattended.Admin.Password,
+            OnelinerOutput = config.Output.Oneliner,
+            RemoveComments = config.Output.RemoveComments,
+            Packages = packagesStr
+        };
+
+        // Apply CLI overrides (same as local templates)
+        if (!string.IsNullOrWhiteSpace(options.ProjectName))
+            model.ProjectName = options.ProjectName;
+
+        if (options.CreateSolution.HasValue)
+            model.CreateSolutionFile = options.CreateSolution.Value;
+
+        if (!string.IsNullOrWhiteSpace(options.SolutionName))
+            model.SolutionName = options.SolutionName;
+
+        if (!string.IsNullOrWhiteSpace(options.TemplatePackageName))
+            model.TemplateName = options.TemplatePackageName;
+
+        if (!string.IsNullOrWhiteSpace(options.TemplateVersion))
+            model.TemplateVersion = options.TemplateVersion;
+
+        // Add additional packages from CLI if specified
+        if (!string.IsNullOrWhiteSpace(options.Packages))
+        {
+            if (string.IsNullOrWhiteSpace(model.Packages))
+            {
+                model.Packages = options.Packages;
+            }
+            else
+            {
+                model.Packages += "," + options.Packages;
+            }
+        }
+
+        if (options.IncludeStarterKit.HasValue)
+            model.IncludeStarterKit = options.IncludeStarterKit.Value;
+
+        if (!string.IsNullOrWhiteSpace(options.StarterKitPackage))
+            model.StarterKitPackage = options.StarterKitPackage;
+
+        if (options.IncludeDockerfile.HasValue)
+            model.IncludeDockerfile = options.IncludeDockerfile.Value;
+
+        if (options.IncludeDockerCompose.HasValue)
+            model.IncludeDockerCompose = options.IncludeDockerCompose.Value;
+
+        // Update CanIncludeDocker based on the flags
+        model.CanIncludeDocker = model.IncludeDockerfile || model.IncludeDockerCompose;
+
+        if (options.UseUnattended.HasValue)
+            model.UseUnattendedInstall = options.UseUnattended.Value;
+
+        if (!string.IsNullOrWhiteSpace(options.DatabaseType))
+            model.DatabaseType = options.DatabaseType;
+
+        if (!string.IsNullOrWhiteSpace(options.ConnectionString))
+            model.ConnectionString = options.ConnectionString;
+
+        if (!string.IsNullOrWhiteSpace(options.AdminName))
+            model.UserFriendlyName = options.AdminName;
+
+        if (!string.IsNullOrWhiteSpace(options.AdminEmail))
+            model.UserEmail = options.AdminEmail;
+
+        if (!string.IsNullOrWhiteSpace(options.AdminPassword))
+            model.UserPassword = options.AdminPassword;
+
+        if (options.OnelinerOutput.HasValue)
+            model.OnelinerOutput = options.OnelinerOutput.Value;
+
+        if (options.RemoveComments.HasValue)
+            model.RemoveComments = options.RemoveComments.Value;
+
+        return model;
     }
 }
