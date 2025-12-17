@@ -208,7 +208,6 @@ public class InteractiveModeWorkflow
             .StartAsync("Generating installation script...", async ctx =>
             {
                 return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-                //return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Script generated successfully");
@@ -1417,26 +1416,6 @@ public class InteractiveModeWorkflow
 
         AnsiConsole.WriteLine();
         ConsoleDisplay.DisplayUmbracoVersions(_pswConfig);
-        AnsiConsole.WriteLine();
-    }
-
-    /// <summary>
-    /// Clears the package cache
-    /// </summary>
-    private async Task ClearCacheAsync()
-    {
-        _logger?.LogInformation("Clearing cache");
-
-        // Clear the cache service
-        var cacheService = new CacheService(ttlHours: 1, enabled: true, logger: _logger);
-        cacheService.Clear();
-
-        AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
-
-        // Repopulate packages
-        AnsiConsole.MarkupLine("[dim]Reloading packages...[/]");
-        await _packageSelector.PopulateAllPackagesAsync(forceUpdate: true);
-
         AnsiConsole.WriteLine();
     }
 
