@@ -147,22 +147,4 @@ public static class ErrorHandler
         logger?.LogWarning(message);
         AnsiConsole.MarkupLine($"[yellow]⚠ {message.EscapeMarkup()}[/]");
     }
-
-    /// <summary>
-    /// Displays an informational message
-    /// </summary>
-    public static void Info(string message, ILogger? logger = null)
-    {
-        logger?.LogInformation(message);
-        AnsiConsole.MarkupLine($"[blue]ℹ {message.EscapeMarkup()}[/]");
-    }
-
-    /// <summary>
-    /// Displays a success message
-    /// </summary>
-    public static void Success(string message, ILogger? logger = null)
-    {
-        logger?.LogInformation(message);
-        AnsiConsole.MarkupLine($"[green]✓ {message.EscapeMarkup()}[/]");
-    }
 }

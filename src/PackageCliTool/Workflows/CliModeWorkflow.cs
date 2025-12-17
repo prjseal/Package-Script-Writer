@@ -148,7 +148,6 @@ public class CliModeWorkflow
             .StartAsync("Generating default installation script...", async ctx =>
             {
                 return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-                //return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Default script generated successfully");
@@ -253,7 +252,6 @@ public class CliModeWorkflow
             .StartAsync("Generating installation script...", async ctx =>
             {
                 return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-                //return await _apiClient.GenerateScriptAsync(model);
             });
 
         _logger?.LogInformation("Script generated successfully");

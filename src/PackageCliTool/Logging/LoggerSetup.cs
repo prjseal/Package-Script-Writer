@@ -52,19 +52,6 @@ public static class LoggerSetup
     }
 
     /// <summary>
-    /// Creates a logger for the specified type
-    /// </summary>
-    public static ILogger<T> CreateLogger<T>()
-    {
-        if (_loggerFactory == null)
-        {
-            Initialize();
-        }
-
-        return _loggerFactory!.CreateLogger<T>();
-    }
-
-    /// <summary>
     /// Creates a logger with the specified category name
     /// </summary>
     public static Microsoft.Extensions.Logging.ILogger CreateLogger(string categoryName)

@@ -178,28 +178,4 @@ public class CommandValidator
 
         return patterns;
     }
-
-    /// <summary>
-    /// Gets a list of example allowed commands for documentation purposes
-    /// </summary>
-    public static List<string> GetAllowedCommandExamples()
-    {
-        return new List<string>
-        {
-            "dotnet new install Umbraco.Templates::14.3.0 --force",
-            "dotnet new -i Umbraco.Templates::10.0.0",
-            "dotnet new sln --name \"MySolution\"",
-            "dotnet new umbraco --force -n \"MyProject\"",
-            "dotnet new umbraco-compose -P \"MyProject\"",
-            "dotnet sln add \"MyProject\"",
-            "dotnet add package PackageName --version 1.0.0",
-            "dotnet add \"MyProject\" package PackageName",
-            "dotnet run --project \"MyProject\"",
-            "dotnet build",
-            "dotnet restore",
-            "@echo off (Windows only)",
-            "$env:ASPNETCORE_ENVIRONMENT=Development (Windows only)",
-            "dotnet new install Umbraco.Templates::14.3.0 --force && dotnet new umbraco -n \"MyProject\" && dotnet run (one-liner with && chaining)"
-        };
-    }
 }
