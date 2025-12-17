@@ -115,6 +115,8 @@ public class CommunityTemplateService
             {
                 _logger?.LogError(ex, "Failed to parse community templates index");
                 throw new PswException(
+                    "PSW-CT-001",
+                    "Failed to parse community templates index",
                     "Failed to parse community templates index",
                     "The index.json file may be malformed"
                 );
@@ -123,6 +125,8 @@ public class CommunityTemplateService
             if (templateIndex == null)
             {
                 throw new PswException(
+                    "PSW-CT-002",
+                    "Failed to parse community templates index",
                     "Failed to parse community templates index",
                     "The index.json file may be malformed"
                 );
@@ -138,6 +142,8 @@ public class CommunityTemplateService
         {
             _logger?.LogError(ex, "Failed to fetch community templates index");
             throw new PswException(
+                "PSW-CT-003",
+                "Unable to fetch community templates",
                 "Unable to fetch community templates",
                 "Check your internet connection or try again later"
             );
@@ -170,6 +176,8 @@ public class CommunityTemplateService
             {
                 var availableTemplates = string.Join(", ", index.Templates.Select(t => t.Name));
                 throw new PswException(
+                    "PSW-CT-004",
+                    $"Community template '{templateName}' not found",
                     $"Community template '{templateName}' not found",
                     $"Available templates: {availableTemplates}"
                 );
@@ -194,6 +202,8 @@ public class CommunityTemplateService
             {
                 _logger?.LogError(ex, "Failed to parse community template '{TemplateName}'", templateName);
                 throw new PswException(
+                    "PSW-CT-005",
+                    $"Failed to parse community template '{templateName}'",
                     $"Failed to parse community template '{templateName}'",
                     "The template YAML file may be malformed"
                 );
@@ -202,6 +212,8 @@ public class CommunityTemplateService
             if (template == null)
             {
                 throw new PswException(
+                    "PSW-CT-006",
+                    $"Failed to parse community template '{templateName}'",
                     $"Failed to parse community template '{templateName}'",
                     "The template YAML file may be malformed"
                 );
@@ -214,6 +226,8 @@ public class CommunityTemplateService
         {
             _logger?.LogError(ex, "Failed to fetch community template '{TemplateName}'", templateName);
             throw new PswException(
+                "PSW-CT-007",
+                $"Unable to fetch community template '{templateName}'",
                 $"Unable to fetch community template '{templateName}'",
                 "Check your internet connection or try again later"
             );
@@ -237,6 +251,8 @@ public class CommunityTemplateService
         if (metadata == null)
         {
             throw new PswException(
+                "PSW-CT-008",
+                $"Community template '{templateName}' not found",
                 $"Community template '{templateName}' not found",
                 "Use --community-template list to see available templates"
             );

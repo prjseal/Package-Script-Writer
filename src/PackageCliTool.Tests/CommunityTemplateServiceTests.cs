@@ -181,7 +181,7 @@ public class CommunityTemplateServiceTests : IDisposable
         // Assert
         await act.Should().ThrowAsync<PswException>()
             .Where(ex => ex.Message.Contains("Community template 'non-existent-template' not found") &&
-                        ex.Hint!.Contains("Available templates:"));
+                        ex.Suggestion!.Contains("Available templates:"));
     }
 
     [Fact]
@@ -362,7 +362,7 @@ public class CommunityTemplateServiceTests : IDisposable
         // Assert
         await act.Should().ThrowAsync<PswException>()
             .Where(ex => ex.Message.Contains("Community template 'non-existent' not found") &&
-                        ex.Hint!.Contains("Use --community-template list"));
+                        ex.Suggestion!.Contains("Use --community-template list"));
     }
 
     [Fact]
