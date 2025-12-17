@@ -82,7 +82,6 @@ public static class ConsoleDisplay
   [green]psw template save[/] <name>      Save current configuration as a template
   [green]psw template load[/] <name>      Load and execute a template
   [green]psw template list[/]             List all available templates
-  [green]psw template show[/] <name>      Show template details
   [green]psw template delete[/] <name>    Delete a template
   [green]psw template export[/] <name>    Export template to file
   [green]psw template import[/] <file>    Import template from file
@@ -191,7 +190,6 @@ public static class ConsoleDisplay
   [green]save[/] <name>          Save current configuration as a template
   [green]load[/] <name>          Load and execute a template
   [green]list[/]                 List all available templates
-  [green]show[/] <name>          Show template details
   [green]delete[/] <name>        Delete a template
   [green]export[/] <name>        Export template to file
   [green]import[/] <file>        Import template from file

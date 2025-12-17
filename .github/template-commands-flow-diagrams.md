@@ -192,49 +192,6 @@ flowchart TD
 
 ---
 
-## Template Show
-
-**Command**: `psw template show <name>`
-
-**Purpose**: Displays detailed metadata and configuration of a specific template.
-
-**File Reference**: `src/PackageCliTool/Workflows/TemplateWorkflow.cs:468-527`
-
-```mermaid
-flowchart TD
-    Start([Start: template show]) --> CheckName{Name<br/>provided?}
-    CheckName -->|No| PromptName[Prompt for template name]
-    CheckName -->|Yes| LoadTemplate[Load template from disk]
-    PromptName --> LoadTemplate
-
-    LoadTemplate --> BuildMetadata[Build metadata table:<br/>Description, Author, Version,<br/>Created, Modified, Tags]
-
-    BuildMetadata --> DisplayMetadata[Display metadata table<br/>Blue rounded border]
-    DisplayMetadata --> BuildConfig[Build configuration table:<br/>Template, Project, Solution,<br/>Packages, Starter Kit,<br/>Docker, Unattended]
-
-    BuildConfig --> ShowPackages{Packages<br/>exist?}
-    ShowPackages -->|Yes| AddPackages[Add package details:<br/>└─ PackageName @ Version]
-    ShowPackages -->|No| DisplayConfig[Display configuration table<br/>Green rounded border]
-    AddPackages --> DisplayConfig
-
-    DisplayConfig --> End([Exit])
-
-    style Start fill:#e1f5e1
-    style End fill:#ffe1e1
-    style LoadTemplate fill:#e3f2fd
-    style DisplayMetadata fill:#bbdefb
-    style DisplayConfig fill:#c8e6c9
-```
-
-**Key States**:
-1. `Initialization` → Check if name provided
-2. `LoadTemplate` → Read template from disk
-3. `DisplayMetadata` → Show template information
-4. `DisplayConfiguration` → Show settings
-5. `Exit`
-
----
-
 ## Template Delete
 
 **Command**: `psw template delete <name>`
