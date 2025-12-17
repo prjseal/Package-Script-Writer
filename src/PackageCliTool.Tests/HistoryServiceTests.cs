@@ -313,53 +313,6 @@ public class HistoryServiceTests : IDisposable
     }
 
     [Fact]
-    public void GetStats_CalculatesCorrectly()
-    {
-        // Arrange
-        var historyService = new HistoryService(historyDirectory: _testHistoryDirectory);
-
-        // Add 3 entries: 2 executed (1 success, 1 failure), 1 from template
-        var entry1 = historyService.AddEntry(CreateTestScriptModel("Project1"), "Template1");
-        historyService.UpdateExecution(entry1.Id, "/tmp", exitCode: 0);
-
-        var entry2 = historyService.AddEntry(CreateTestScriptModel("Project2"));
-        historyService.UpdateExecution(entry2.Id, "/tmp", exitCode: 1);
-
-        var entry3 = historyService.AddEntry(CreateTestScriptModel("Project3"));
-
-        // Act
-        var stats = historyService.GetStats();
-
-        // Assert
-        stats.TotalEntries.Should().Be(3);
-        stats.ExecutedCount.Should().Be(2);
-        stats.SuccessfulCount.Should().Be(1);
-        stats.FailedCount.Should().Be(1);
-        stats.FromTemplateCount.Should().Be(1);
-        stats.MostRecentDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        stats.OldestDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-    }
-
-    [Fact]
-    public void GetStats_WithEmptyHistory_ReturnsZeros()
-    {
-        // Arrange
-        var historyService = new HistoryService(historyDirectory: _testHistoryDirectory);
-
-        // Act
-        var stats = historyService.GetStats();
-
-        // Assert
-        stats.TotalEntries.Should().Be(0);
-        stats.ExecutedCount.Should().Be(0);
-        stats.SuccessfulCount.Should().Be(0);
-        stats.FailedCount.Should().Be(0);
-        stats.FromTemplateCount.Should().Be(0);
-        stats.MostRecentDate.Should().BeNull();
-        stats.OldestDate.Should().BeNull();
-    }
-
-    [Fact]
     public void HistoryService_PersistsToDisk()
     {
         // Arrange

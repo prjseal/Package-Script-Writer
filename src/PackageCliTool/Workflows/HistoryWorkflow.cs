@@ -73,10 +73,6 @@ public class HistoryWorkflow
                 ClearHistory();
                 break;
 
-            case "stats":
-                ShowStats();
-                break;
-
             default:
                 AnsiConsole.MarkupLine($"[red]Error: Unknown history command '{command}'[/]\n");
                 ConsoleDisplay.DisplayHistoryHelp();
@@ -325,48 +321,6 @@ public class HistoryWorkflow
 
         _historyService.ClearAll();
         AnsiConsole.MarkupLine($"[green]✓ Cleared {count} history entries[/]");
-    }
-
-    /// <summary>
-    /// Shows history statistics
-    /// </summary>
-    private void ShowStats()
-    {
-        _logger?.LogInformation("Showing history statistics");
-
-        var stats = _historyService.GetStats();
-
-        if (stats.TotalEntries == 0)
-        {
-            AnsiConsole.MarkupLine("[yellow]No history entries found.[/]");
-            return;
-        }
-
-        var table = new Table()
-            .Border(TableBorder.Rounded)
-            .BorderColor(Color.Aqua)
-            .Title("[bold cyan]History Statistics[/]");
-
-        table.AddColumn("[bold]Metric[/]");
-        table.AddColumn("[bold]Value[/]");
-
-        table.AddRow("Total Entries", stats.TotalEntries.ToString());
-        table.AddRow("Executed Scripts", stats.ExecutedCount.ToString());
-        table.AddRow("Successful Executions", $"[green]{stats.SuccessfulCount}[/]");
-        table.AddRow("Failed Executions", stats.FailedCount > 0 ? $"[red]{stats.FailedCount}[/]" : "0");
-        table.AddRow("From Templates", stats.FromTemplateCount.ToString());
-        table.AddRow("Most Recent", stats.MostRecentDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "N/A");
-        table.AddRow("Oldest", stats.OldestDate?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "N/A");
-        table.AddRow("Max Entries", _historyService.GetMaxEntries().ToString());
-
-        AnsiConsole.Write(table);
-
-        if (stats.ExecutedCount > 0)
-        {
-            var successRate = (stats.SuccessfulCount / (double)stats.ExecutedCount) * 100;
-            AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine($"[dim]Success Rate: {successRate:F1}%[/]");
-        }
     }
 
     /// <summary>

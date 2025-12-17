@@ -131,30 +131,6 @@ psw history clear
 # ✓ Cleared 42 history entries
 ```
 
-### `history stats`
-
-Shows statistics about your script generation history.
-
-**Example:**
-```bash
-psw history stats
-
-# Output:
-# ┌────────────────────────┬────────┐
-# │ Metric                 │ Value  │
-# ├────────────────────────┼────────┤
-# │ Total Entries          │ 42     │
-# │ Executed Scripts       │ 35     │
-# │ Successful Executions  │ 33     │
-# │ Failed Executions      │ 2      │
-# │ From Templates         │ 28     │
-# │ Most Recent            │ 2025...│
-# │ Oldest                 │ 2025...│
-# │ Max Entries            │ 50     │
-# └────────────────────────┴────────┘
-# Success Rate: 94.3%
-```
-
 ## History File Format
 
 ### Complete Example File
@@ -466,9 +442,6 @@ psw history rerun 1
 Find and analyze scripts that failed:
 
 ```bash
-# View stats to see failure count
-psw history stats
-
 # List history to find failed entries (marked in red)
 psw history list
 

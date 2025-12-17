@@ -103,7 +103,7 @@ public class CommandLineOptions
     /// <summary>Gets or sets the community template name or 'list' to show all available templates</summary>
     public string? CommunityTemplate { get; set; }
 
-    /// <summary>Gets or sets the history command (list, show, rerun, delete, clear, stats)</summary>
+    /// <summary>Gets or sets the history command (list, show, rerun, delete, clear)</summary>
     public string? HistoryCommand { get; set; }
 
     /// <summary>Gets or sets the history entry ID or index</summary>
@@ -464,7 +464,7 @@ public class CommandLineOptions
                     if (!arg.StartsWith("-") && i == 0)
                     {
                         var templateCommands = new[] { "save", "load", "export", "import", "validate" };
-                        var historyCommands = new[] { "list", "delete", "rerun", "clear", "stats" };
+                        var historyCommands = new[] { "list", "delete", "rerun", "clear" };
 
                         // Check if it's a template command (some overlap, so check context)
                         if (templateCommands.Contains(arg.ToLower()))
