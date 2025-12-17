@@ -88,61 +88,46 @@ public class InteractiveModeWorkflow
                     .Title("[bold cyan]What would you like to do?[/]")
                     .AddChoices(new[]
                     {
-                        "Create script from scratch",
-                        "Create script from defaults",
-                        "Create script from template",
-                        "Create script from community template",
-                        "Create script from history",
-                        "See Umbraco versions table",
-                        "See templates",
-                        "See help",
-                        "See version",
-                        "Clear cache"
+                        "Use default script",
+                        "Use local template",
+                        "Use community template",
+                        "Load script from history",
+                        "Create new script",
+                        "Load Umbraco versions table",
+                        "Help"
                     }));
 
             switch (choice)
             {
-                case "Create script from scratch":
-                    await RunConfigurationEditorAsync(useDefaults: false);
-                    break;
-
-                case "Create script from defaults":
+                case "Use default script":
                     await RunDefaultScriptFlowAsync();
                     break;
 
-                case "Create script from template":
+                case "Use local template":
                     await RunTemplateFlowAsync();
                     break;
 
-                case "Create script from community template":
+                case "Use community template":
                     await RunCommunityTemplateFlowAsync();
                     break;
 
-                case "Create script from history":
+                case "Load script from history":
                     await RunHistoryFlowAsync();
                     break;
 
-                case "See Umbraco versions table":
+                case "Create new script":
+                    await RunConfigurationEditorAsync(useDefaults: false);
+                    break;
+
+                case "Load Umbraco versions table":
                     ShowUmbracoVersionsTable();
                     break;
 
-                case "See templates":
-                    await ShowTemplatesAsync();
-                    break;
-
-                case "See help":
+                case "Help":
                     ConsoleDisplay.DisplayHelp();
                     keepRunning = false; // Exit after showing help
                     break;
 
-                case "See version":
-                    ConsoleDisplay.DisplayVersion();
-                    keepRunning = false; // Exit after showing version
-                    break;
-
-                case "Clear cache":
-                    await ClearCacheAsync();
-                    break;
             }
         }
     }
@@ -707,7 +692,7 @@ public class InteractiveModeWorkflow
         _logger?.LogInformation("Starting template-based script generation flow");
 
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Create Script from Template[/]\n");
+        AnsiConsole.MarkupLine("[bold blue]Load template[/]\n");
 
         // Get all available templates
         var templates = await _templateService.GetAllTemplatesAsync();
@@ -799,7 +784,7 @@ public class InteractiveModeWorkflow
         _logger?.LogInformation("Starting history-based script generation flow");
 
         AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Create Script from History[/]\n");
+        AnsiConsole.MarkupLine("[bold blue]Load script from history[/]\n");
 
         // Get all history entries
         var history = await _historyService.GetAllHistoryAsync();
@@ -1434,47 +1419,6 @@ public class InteractiveModeWorkflow
         ConsoleDisplay.DisplayUmbracoVersions(_pswConfig);
         AnsiConsole.WriteLine();
     }
-
-    /// <summary>
-    /// Shows the list of saved templates
-    /// </summary>
-    private async Task ShowTemplatesAsync()
-    {
-        _logger?.LogInformation("Displaying templates list");
-
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Saved Templates[/]\n");
-
-        var templates = await _templateService.GetAllTemplatesAsync();
-
-        if (!templates.Any())
-        {
-            AnsiConsole.MarkupLine("[dim]No templates found.[/]");
-            AnsiConsole.MarkupLine("[dim]You can save a template from the script generation flow.[/]");
-        }
-        else
-        {
-            var table = new Table();
-            table.AddColumn("Name");
-            table.AddColumn("Description");
-            table.AddColumn("Packages");
-            table.AddColumn("Created");
-
-            foreach (var template in templates)
-            {
-                table.AddRow(
-                    $"[green]{template.Name}[/]",
-                    template.Description ?? "[dim]No description[/]",
-                    template.Created.ToString("yyyy-MM-dd")
-                );
-            }
-
-            AnsiConsole.Write(table);
-        }
-
-        AnsiConsole.WriteLine();
-    }
-
 
     /// <summary>
     /// Clears the package cache

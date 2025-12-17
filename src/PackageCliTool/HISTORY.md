@@ -348,7 +348,7 @@ History is stored in your home directory:
 - Auditing past work
 - Viewing execution statistics
 
-**Use Templates When:**
+**Use local templates When:**
 - Reusing configurations across projects
 - Creating similar projects repeatedly
 - Sharing configs with your team
@@ -401,7 +401,7 @@ psw history list
 psw history rerun 1
 # → Re-runs exact same script
 
-# 4. Or use template again for new project
+# 4. Or use local template again for new project
 psw template load my-blog -n Project2
 # → Creates another history entry
 ```
@@ -497,9 +497,6 @@ Review past configurations to remember what worked:
 # List history
 psw history list
 
-# Show successful entries
-psw history show 5
-
 # Re-use the same configuration
 psw history rerun 5
 ```
@@ -509,8 +506,7 @@ psw history rerun 5
 ### Entry Identification
 
 Entries can be referenced by:
-- **Number** (position in list): `psw history show 1`
-- **ID** (GUID): `psw history show abc123...`
+- **Number** (position in list): `psw history rerun 1`
 
 ### Automatic Description Generation
 
@@ -557,19 +553,7 @@ psw history delete 47
 psw history clear
 ```
 
-### 2. **Check Before Re-running**
-
-Always review what you're re-running:
-
-```bash
-# Show full details first
-psw history show 3
-
-# Then re-run if it's what you want
-psw history rerun 3
-```
-
-### 3. **Use with Templates**
+### 2. **Use with Templates**
 
 Combine history with templates for maximum efficiency:
 
@@ -581,23 +565,11 @@ psw template load my-blog -n Project1
 psw history rerun 1
 ```
 
-### 4. **Monitor Success Rates**
-
-Check stats regularly to catch configuration issues:
-
-```bash
-psw history stats
-
-# If success rate is low, review failed entries:
-psw history list
-psw history show <failed-entry>
-```
-
 ## Troubleshooting
 
 ### History not showing entries
 
-**Cause**: History is only created when you **generate scripts**, not just when you use template/history commands.
+**Cause**: History is only created when you **generate scripts**, not just when you Use local template/history commands.
 
 **Solution**: Generate a script using any method:
 ```bash
@@ -610,9 +582,6 @@ psw template load my-blog  # Loads and generates from template
 ```bash
 # List all entries to see valid numbers
 psw history list
-
-# Make sure you're using the right entry number
-psw history show 1  # Use the # from the list
 ```
 
 ### Too many entries in list
@@ -624,15 +593,6 @@ psw history list --history-limit 5
 # Or clear old entries
 psw history clear
 ```
-
-### Cannot re-run entry
-
-**Cause**: The script configuration or API might have changed since the entry was created.
-
-**Solution**:
-1. View the entry details: `psw history show <#>`
-2. Check if the packages/versions still exist
-3. If needed, regenerate manually with updated parameters
 
 ### History file corrupted
 
@@ -661,23 +621,15 @@ psw template load my-blog -n ClientBlog
 psw history list
 # Shows: #1 | 2025-01-15 14:30 | ClientBlog | my-blog | ✓ Executed
 
-# 3. View details
-psw history show 1
-# Shows full configuration and script preview
-
-# 4. Re-run for another client
+# 3. Re-run for another client
 psw history rerun 1
 # Regenerates the same script, execute for different directory
 
-# 5. Check stats after several runs
-psw history stats
-# Shows total entries, success rate, etc.
-
-# 6. Clean up old test entries
+# 4. Clean up old test entries
 psw history delete 2
 psw history delete 3
 
-# 7. View final history
+# 5. View final history
 psw history list
 ```
 
@@ -689,42 +641,12 @@ psw history list
 # 1. List history
 psw history list --history-limit 30
 
-# 2. Find the entry (let's say #15)
-psw history show 15
-# Review the configuration
-
 # 3. Re-run it
 psw history rerun 15
 # Regenerates with exact same settings
 
 # 4. Execute in new location
 # ... follows prompts to execute in new directory
-```
-
-### Debugging Scenario
-
-```bash
-# A script failed with exit code 1
-
-# 1. Check stats
-psw history stats
-# Shows: Failed Executions: 1
-
-# 2. List to find the failed entry (shows in red)
-psw history list
-
-# 3. View details of failed entry (#5)
-psw history show 5
-# Shows: Exit Code: 1, Execution Directory: /path/to/project
-
-# 4. Check the configuration
-# Review packages, database settings, etc.
-
-# 5. Try again with the same config
-psw history rerun 5
-
-# 6. Or fix the issue and create a template for future use
-psw template save fixed-version [with corrected params]
 ```
 
 ## Integration with Templates
@@ -735,7 +657,7 @@ History and templates work great together:
 # Create template
 psw template save my-standard [params]
 
-# Use template (creates history entry)
+# Use local template (creates history entry)
 psw template load my-standard -n Project1
 
 # Later, re-run the exact same thing from history
@@ -757,11 +679,11 @@ History stores:
 - Configuration (packages, project names, settings)
 - Templates used
 - Execution status
+- Passwords are stored in plain text
+- Connection strings are stored as configured (be careful!)
 
 ### What's NOT Stored
 
-- Passwords are **not** stored in plain text
-- Connection strings are stored as configured (be careful!)
 - API keys or sensitive environment variables
 
 ### Security Best Practices
@@ -795,12 +717,3 @@ History stores:
 - [TEMPLATES.md](TEMPLATES.md) - Template system documentation
 - [README.md](README.md) - General CLI documentation
 - [API Reference](../../.github/api-reference.md) - API endpoints
-
-## Future Enhancements
-
-Potential future additions to the history system:
-- Tag filtering: `psw history list --tag production`
-- Search: `psw history search "keyword"`
-- Export: `psw history export history.json`
-- Favorites: `psw history favorite 5`
-- Comparison: `psw history compare 1 2`
