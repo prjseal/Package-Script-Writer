@@ -1,0 +1,34 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "Title": "Package Script Writer - CLI Tool for Installing Umbraco",
+  "Description": "A modern, clean, and fully-featured starter kit for Umbraco CMS that provides a ready-to-use blog theme with headless/API capabilities. Built with Bootstrap and designed to get you up and running quickly.\n\nKey Features:\n• Modern Blog Theme - Clean, responsive design built with Bootstrap\n• Pre-configured Content Types - Blog posts, categories, tags, and more\n• Headless/API Support - Full Content Delivery API integration with Next.js revalidation support\n• API Endpoints - Built-in endpoints for dictionary, search, and contact functionality\n• OpenAPI Documentation - Swagger UI for exploring and testing API endpoints\n• Multi-version Support - Compatible with Umbraco 13 (.NET 8) and Umbraco 17 (.NET 10)\n• SQLite by Default - Quick setup with SQLite database for development\n• No External Dependencies - Removed dependency on third-party packages like Contentment\n• dotnet Template - Available as 'dotnet new' template for quick project scaffolding\n\nPackage Structure:\n• Clean - Main package with views, assets, and Umbraco content (switch to Clean.Core after initial setup)\n• Clean.Core - Core library with components, controllers, and helpers\n• Clean.Headless - Headless CMS functionality and API controllers\n• Umbraco.Community.Templates.Clean - dotnet CLI template\n\nPerfect for developers looking to quickly start a blog project with Umbraco, whether for traditional web rendering or headless implementations with modern JavaScript frameworks like Next.js.",
+  "Category": "Developer Tools",
+  "PackageType": "Tool",
+  "LicenseTypes": ["Free"],
+  "Tags": [
+    "Umbraco",
+    "Packages",
+    "Package",
+    "Script",
+    "Write",
+    "PSW",
+    "CLI",
+    "Tool",
+    "dotnet",
+    "global",
+    "Command",
+    "Line",
+    "Interface",
+    ".NET 10"
+  ],
+  "AuthorDetails": {
+    "Name": "Paul Seal",
+    "Description": "Paul is an Umbraco Master and 8 x Umbraco MVP who loves making tutorials and small Umbraco packages. Creator of the Package Script Writer and various Umbraco community resources.",
+    "Url": "https://codeshare.co.uk",
+    "ImageUrl": "https://codeshare.co.uk/media/mkzbdrvf/paul-seal-profile-2019-square.jpg?anchor=center&mode=crop&width=500"
+  },
+  "DocumentationUrl": "https://github.com/prjseal/Package-Script-Writer",
+  "IssueTrackerUrl": "https://github.com/prjseal/Package-Script-Writer/issues",
+  "LookingForContributors": true,
+  "LookingForMaintainer": false
+}

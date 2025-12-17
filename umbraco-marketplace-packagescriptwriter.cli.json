@@ -1,0 +1,34 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "Title": "Package Script Writer - CLI Tool for Installing Umbraco",
+  "Description": "An interactive command-line tool for generating Umbraco installation scripts, built with .NET 10.0 and Spectre.Console.",
+  "Category": "Developer Tools",
+  "PackageType": "Tool",
+  "LicenseTypes": [ "Free" ],
+  "Tags": [
+    "Umbraco",
+    "Packages",
+    "Package",
+    "Script",
+    "Write",
+    "PSW",
+    "CLI",
+    "Tool",
+    "dotnet",
+    "global",
+    "Command",
+    "Line",
+    "Interface",
+    ".NET 10"
+  ],
+  "AuthorDetails": {
+    "Name": "Paul Seal",
+    "Description": "Paul is an Umbraco Master and 8 x Umbraco MVP who loves making tutorials and small Umbraco packages. Creator of the Package Script Writer and various Umbraco community resources.",
+    "Url": "https://codeshare.co.uk",
+    "ImageUrl": "https://codeshare.co.uk/media/mkzbdrvf/paul-seal-profile-2019-square.jpg?anchor=center&mode=crop&width=500"
+  },
+  "DocumentationUrl": "https://github.com/prjseal/Package-Script-Writer",
+  "IssueTrackerUrl": "https://github.com/prjseal/Package-Script-Writer/issues",
+  "LookingForContributors": true,
+  "LookingForMaintainer": false
+}

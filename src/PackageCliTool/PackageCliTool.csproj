@@ -16,7 +16,7 @@
     <Authors>Paul Seal</Authors>
     <Company>CodeShare</Company>
     <Description>Interactive CLI tool for the Package Script Writer. Generate Umbraco installation scripts with ease using a beautiful terminal interface.</Description>
-    <PackageTags>umbraco;cli;dotnet-tool;package-script-writer;script-generator</PackageTags>
+    <PackageTags>umbraco;umbraco-marketplace;cli;dotnet-tool;package-script-writer;script-generator</PackageTags>
     <PackageProjectUrl>https://github.com/prjseal/Package-Script-Writer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/prjseal/Package-Script-Writer</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
