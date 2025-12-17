@@ -220,48 +220,4 @@ public class HistoryService
     {
         return _history.MaxEntries;
     }
-
-    /// <summary>
-    /// Gets statistics about the history
-    /// </summary>
-    public HistoryStats GetStats()
-    {
-        return new HistoryStats
-        {
-            TotalEntries = _history.Entries.Count,
-            ExecutedCount = _history.Entries.Count(e => e.WasExecuted),
-            SuccessfulCount = _history.Entries.Count(e => e.WasExecuted && e.ExitCode == 0),
-            FailedCount = _history.Entries.Count(e => e.WasExecuted && e.ExitCode != 0),
-            FromTemplateCount = _history.Entries.Count(e => !string.IsNullOrWhiteSpace(e.TemplateName)),
-            MostRecentDate = _history.Entries.FirstOrDefault()?.Timestamp,
-            OldestDate = _history.Entries.LastOrDefault()?.Timestamp
-        };
-    }
-}
-
-/// <summary>
-/// Statistics about the history
-/// </summary>
-public class HistoryStats
-{
-    /// <summary>Gets or sets the total number of history entries</summary>
-    public int TotalEntries { get; set; }
-
-    /// <summary>Gets or sets the number of executed scripts</summary>
-    public int ExecutedCount { get; set; }
-
-    /// <summary>Gets or sets the number of successful script executions</summary>
-    public int SuccessfulCount { get; set; }
-
-    /// <summary>Gets or sets the number of failed script executions</summary>
-    public int FailedCount { get; set; }
-
-    /// <summary>Gets or sets the number of entries created from templates</summary>
-    public int FromTemplateCount { get; set; }
-
-    /// <summary>Gets or sets the timestamp of the most recent entry</summary>
-    public DateTime? MostRecentDate { get; set; }
-
-    /// <summary>Gets or sets the timestamp of the oldest entry</summary>
-    public DateTime? OldestDate { get; set; }
 }

@@ -97,7 +97,6 @@ public static class ConsoleDisplay
   [green]psw history rerun[/] <#>         Regenerate and re-run a script from history
   [green]psw history delete[/] <#>        Delete a history entry
   [green]psw history clear[/]             Clear all history
-  [green]psw history stats[/]             Show history statistics
 
 [bold yellow]HISTORY OPTIONS:[/]
   [green]    --history-limit[/] <count>  Number of entries to show (default: 10)
@@ -152,9 +151,6 @@ public static class ConsoleDisplay
 
   Re-run a previous script:
     [cyan]psw history rerun 1[/]
-
-  View statistics:
-    [cyan]psw history stats[/]
 
   Clear all history:
     [cyan]psw history clear[/]
@@ -240,7 +236,6 @@ public static class ConsoleDisplay
   [green]rerun[/] <#>             Regenerate and re-run a script from history
   [green]delete[/] <#>            Delete a history entry
   [green]clear[/]                 Clear all history
-  [green]stats[/]                 Show history statistics
 
 [bold yellow]HISTORY OPTIONS:[/]
   [green]    --history-limit[/] <count>  Number of entries to show (default: 10)
@@ -251,9 +246,6 @@ public static class ConsoleDisplay
 
   Re-run a previous script:
     [cyan]psw history rerun 1[/]
-
-  View statistics:
-    [cyan]psw history stats[/]
 
   Clear all history:
     [cyan]psw history clear[/]")
