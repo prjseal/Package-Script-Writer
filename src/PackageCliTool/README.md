@@ -5,6 +5,20 @@ An interactive command-line tool for generating Umbraco installation scripts, bu
 [![NuGet](https://img.shields.io/nuget/v/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
 [![Downloads](https://img.shields.io/nuget/dt/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
 
+## Quick Start
+
+```bash
+# Install globally from NuGet
+dotnet tool install --global PackageScriptWriter.Cli
+
+# Launch interactive mode
+psw
+
+# Or use CLI mode for automation
+psw --default
+psw -p "uSync,Diplo.GodMode" -n MyProject
+```
+
 ## Features
 
 - 🎨 **Beautiful CLI Interface** - Built with Spectre.Console for a rich terminal experience
@@ -40,7 +54,7 @@ An interactive command-line tool for generating Umbraco installation scripts, bu
 
 ### Option 1: Install as .NET Global Tool (Recommended)
 
-Once published to NuGet, install globally:
+Install the tool globally from NuGet:
 
 **Install:**
 ```bash
@@ -55,7 +69,7 @@ psw
 
 **Update the tool:**
 ```bash
-# Update to latest beta
+# Update to latest version
 dotnet tool update --global PackageScriptWriter.Cli
 ```
 
@@ -792,7 +806,7 @@ To publish this tool to NuGet.org:
 
 3. **Push to NuGet**:
    ```bash
-   dotnet nuget push PackageCliTool/bin/Release/PackageScriptWriter.Cli.1.0.0-beta.nupkg \
+   dotnet nuget push PackageCliTool/bin/Release/PackageScriptWriter.Cli.1.0.0.nupkg \
      --api-key YOUR_API_KEY \
      --source https://api.nuget.org/v3/index.json
    ```
@@ -801,25 +815,22 @@ To publish this tool to NuGet.org:
 
 #### Version Management
 
-**Beta/Pre-release versions:**
-- Format: `1.0.0-beta`, `1.0.0-beta.1`, `1.0.0-rc1`, `1.0.0-alpha`
-- Edit `<Version>` in `PackageCliTool.csproj`
-- Users must use `--prerelease` flag to install
+The tool follows [Semantic Versioning](https://semver.org/) (SemVer):
 
 **Stable versions:**
-- Format: `1.0.0`, `1.1.0`, `2.0.0`
-- Remove the suffix (e.g., change `1.0.0-beta` to `1.0.0`)
-- Users can install without `--prerelease` flag
+- Format: `MAJOR.MINOR.PATCH` (e.g., `1.0.0`, `1.1.0`, `2.0.0`)
+- Edit `<Version>` in `PackageCliTool.csproj`
+- Users can install directly without any special flags
 
-**Version progression example:**
-1. `1.0.0-alpha` - Early testing
-2. `1.0.0-beta` - Feature complete, testing
-3. `1.0.0-beta.2` - Beta updates
-4. `1.0.0-rc1` - Release candidate
-5. `1.0.0` - Stable release
-6. `1.0.1` - Patch release
-7. `1.1.0` - Minor version with new features
-8. `2.0.0` - Major version with breaking changes
+**Pre-release versions (for testing):**
+- Format: `1.0.0-beta`, `1.0.0-beta.1`, `1.0.0-rc1`, `1.0.0-alpha`
+- Users must use `--prerelease` flag to install pre-release versions
+
+**Version progression:**
+- `1.0.0` - **Stable release (current)**
+- `1.0.1` - Patch release (bug fixes, no new features)
+- `1.1.0` - Minor version (new features, backward compatible)
+- `2.0.0` - Major version (breaking changes)
 
 ## Dependencies
 

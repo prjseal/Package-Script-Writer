@@ -222,4 +222,4 @@ If you discover a security vulnerability or a way to bypass the command allowlis
 
 ---
 
-**Last Updated:** 2025-12-15
+**Last Updated:** 2025-12-18
