@@ -316,11 +316,11 @@ Include a starter kit? (y/n): y
 Select starter kit:
 > clean
   Articulate
-  Umbraco.SampleSite
-  The Starter Kit
-  uBlogsy
-  ... (9 different starter kits)
-  Custom starter kit...
+  Portfolio
+  LittleNorth.Igloo
+  Umbraco.BlockGrid.Example.Website
+  Umbraco.TheStarterKit
+  uSkinnedSiteBuilder
 
 Select starter kit version:
 > Latest stable
@@ -347,11 +347,11 @@ Use unattended install? (y/n): y
 Select database type:
 > SQLite
   LocalDb
-  SQL Server
-  SQL Azure
+  SQLServer
+  SQLAzure
   SQLCE
 
-[If SQL Server/Azure selected]
+[If SQLServer/SQLAzure selected]
 Enter connection string:
 
 Enter admin user friendly name [Administrator]: Site Admin
@@ -530,27 +530,17 @@ After generating any script, you'll see this menu:
 
 ```
 What would you like to do with this script?
-> Display in terminal
-  Save to file
-  Run immediately
-  Edit configuration
-  Save as template
-  Cancel
+(Press Ctrl+C at any time to start over)
+> Run
+  Edit
+  Copy
+  Save
+  Start over
 ```
 
-### Display in Terminal
-Shows the generated script in a formatted panel in your terminal.
+### Run
+Executes the script immediately with command validation:
 
-### Save to File
-```
-Enter file name [install-script.sh]: my-umbraco-setup.sh
-
-✓ Script saved to my-umbraco-setup.sh
-```
-
-Saves the script to a file in your current directory.
-
-### Run Immediately
 ```
 Enter directory to run script in [current directory]: ./projects/new-site
 
@@ -572,33 +562,27 @@ Running script in: /home/user/projects/new-site
 ✓ Script completed successfully!
 ```
 
-Executes the script immediately with command validation and progress indicators.
-
-### Edit Configuration
+### Edit
 Returns you to the configuration editor to modify settings and regenerate the script.
 
-### Save as Template
+### Copy
+Copies the generated script to your clipboard for easy pasting.
+
 ```
-Save Configuration as Template
-
-Enter template name: my-umbraco-blog
-
-Enter description [optional]: Standard blog setup with uSync and Forms
-
-Enter tags (comma-separated) [optional]: blog,umbraco14,standard
-
-✓ Template saved: my-umbraco-blog
-
-Template saved to: ~/.psw/templates/my-umbraco-blog.yaml
-
-You can now load this template anytime with:
-  psw template load my-umbraco-blog
+✓ Script copied to clipboard
 ```
 
-Saves the current configuration as a reusable template.
+### Save
+Saves the script to a file:
 
-### Cancel
-Returns to the main menu without taking any action.
+```
+Enter file name [install-script.sh]: my-umbraco-setup.sh
+
+✓ Script saved to my-umbraco-setup.sh
+```
+
+### Start over
+Returns to the main menu without saving or running the script.
 
 ---
 

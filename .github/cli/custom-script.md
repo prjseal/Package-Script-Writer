@@ -100,12 +100,14 @@ Select version for uSync:
 
 Add a starter kit for initial content and structure:
 
-**Popular Starter Kits**:
+**Available Starter Kits**:
 - **clean** - Minimal starter with basic content types
 - **Articulate** - Blog platform
-- **Umbraco.SampleSite** - Full demo site
-- **The Starter Kit** - Complete example site
-- **uBlogsy** - Blog starter
+- **Portfolio** - Portfolio starter template
+- **LittleNorth.Igloo** - Igloo starter kit
+- **Umbraco.BlockGrid.Example.Website** - Block Grid examples
+- **Umbraco.TheStarterKit** - Complete example site
+- **uSkinnedSiteBuilder** - uSkinned site builder
 
 **Example:**
 ```
@@ -145,8 +147,8 @@ Configure automatic installation without manual setup wizard:
 **Database Configuration**:
 - **SQLite** - File-based, good for development
 - **LocalDb** - SQL Server LocalDB
-- **SQL Server** - Full SQL Server (requires connection string)
-- **SQL Azure** - Azure SQL Database (requires connection string)
+- **SQLServer** - Full SQL Server (requires connection string)
+- **SQLAzure** - Azure SQL Database (requires connection string)
 - **SQLCE** - SQL Server Compact Edition
 
 **Admin User**:
