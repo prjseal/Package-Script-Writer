@@ -1,14 +1,14 @@
 {
   "templates": [
     {
-      "name": "blog-with-usync",
-      "displayName": "Blog with uSync",
-      "description": "Complete blog setup with uSync for content synchronization and baseline packages",
-      "author": "Package Script Writer",
-      "tags": ["blog", "usync", "content-sync"],
-      "fileName": "blog-with-usync.yaml",
-      "created": "2024-12-16"
+      "name": "uskinned-shop",
+      "displayName": "uSkinned Shop Umbraco 13",
+      "description": "A shop website using the uSkinned Site Builder and Shop Starter Kit",
+      "author": "Paul Seal",
+      "tags": ["shop", "uskinned"],
+      "fileName": "uskinned-shop.yaml",
+      "created": "2024-12-18"
     }
   ],
-  "lastUpdated": "2024-12-16"
+  "lastUpdated": "2024-12-18"
 }
