@@ -42,12 +42,7 @@ An interactive command-line tool for generating Umbraco installation scripts, bu
 
 Once published to NuGet, install globally:
 
-**Install Beta Version:**
-```bash
-dotnet tool install --global PackageScriptWriter.Cli --prerelease
-```
-
-**Install Stable Version (when available):**
+**Install:**
 ```bash
 dotnet tool install --global PackageScriptWriter.Cli
 ```
@@ -61,9 +56,6 @@ psw
 **Update the tool:**
 ```bash
 # Update to latest beta
-dotnet tool update --global PackageScriptWriter.Cli --prerelease
-
-# Update to latest stable
 dotnet tool update --global PackageScriptWriter.Cli
 ```
 
