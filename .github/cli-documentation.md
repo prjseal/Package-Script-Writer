@@ -219,21 +219,22 @@ The CLI tool supports two modes of operation: **Interactive Mode** and **CLI Mod
 
 ### Interactive Mode
 
-Launch the interactive terminal UI with step-by-step prompts:
+Launch the interactive terminal UI with a menu-driven interface:
 
 ```bash
 psw
 ```
 
-**Workflow:**
-1. **Template Selection** - Choose Umbraco template and version
-2. **Package Selection** - Browse and select packages (multi-select with Space)
-3. **Version Selection** - Choose specific versions for each package
-4. **Configuration** - Set project name, solution, starter kit, Docker, etc.
-5. **Unattended Install** - Configure database and admin credentials
-6. **Review** - See configuration summary
-7. **Generate** - Create the installation script
-8. **Save/Execute** - Optionally save to file or execute immediately
+**Main Menu Options:**
+1. **Use default script** - Quick setup with sensible defaults
+2. **Use local template** - Load a saved template
+3. **Use community template** - Browse community-shared templates
+4. **Load script from history** - Re-run previous scripts
+5. **Create new script** - Full custom configuration
+6. **Load Umbraco versions table** - View version information
+7. **Help** - Display help information
+
+**[📖 Complete Interactive Mode Guide](cli/interactive-mode.md)**
 
 ### CLI Mode
 
@@ -347,10 +348,15 @@ Comprehensive documentation is available for all aspects of the CLI tool:
 | Document | Description |
 |----------|-------------|
 | **[README](../src/PackageCliTool/README.md)** | Complete CLI tool documentation with all features and options |
+| **[Interactive Mode Guide](cli/interactive-mode.md)** | Complete interactive mode walkthrough with all menu options |
 | **[Release Notes](cli/release-notes.md)** | Version history and changelog |
-| **[History System](cli/history.md)** | History feature documentation (`psw history` commands) |
 | **[Templates Guide](cli/templates.md)** | Template system documentation with examples |
+| **[History System](cli/history.md)** | History feature documentation (`psw history` commands) |
 | **[Security Guide](cli/security.md)** | Security features and command allowlist documentation |
+| **[Community Templates](cli/community-templates.md)** | Using and creating community-shared templates |
+| **[Default Script Guide](cli/default-script.md)** | Quick default script generation |
+| **[Custom Script Guide](cli/custom-script.md)** | Building fully customized scripts |
+| **[Umbraco Versions](cli/umbraco-versions.md)** | Umbraco version reference and support timelines |
 
 ### Related Documentation
 
