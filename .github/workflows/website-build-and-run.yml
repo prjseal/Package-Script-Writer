@@ -1,0 +1,31 @@
+name: PR - Website - Build and Test
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  website-build-and-test:
+    runs-on: ubuntu-latest
+    if: github.repository == 'prjseal/Package-Script-Writer'
+
+    permissions:
+      contents: read
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./src/PSW.sln
+
+      - name: Build solution
+        run: dotnet build ./src/PSW.sln --configuration Release --no-restore /p:RunPreBuildEvent=false 2>&1 | tee build-output.log

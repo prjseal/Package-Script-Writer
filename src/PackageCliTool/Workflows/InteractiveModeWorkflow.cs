@@ -125,7 +125,6 @@ public class InteractiveModeWorkflow
 
                 case "Help":
                     ConsoleDisplay.DisplayHelp();
-                    keepRunning = false; // Exit after showing help
                     break;
 
             }
