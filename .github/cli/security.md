@@ -214,7 +214,7 @@ The validator processes each line of the script:
 
 - **Validator:** `/src/PackageCliTool/Validation/CommandValidator.cs`
 - **Integration:** `/src/PackageCliTool/Services/ScriptExecutor.cs`
-- **Security Docs:** `/src/PackageCliTool/SECURITY.md` (this file)
+- **Security Docs:** `/.github/cli/security.md` (this file)
 
 ## Reporting Security Issues
 

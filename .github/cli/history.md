@@ -64,10 +64,10 @@ This is the first stable release of the Package Script Writer CLI tool!
 ### 📝 Documentation
 
 Complete documentation available:
-- [README.md](README.md) - Main documentation
-- [TEMPLATES.md](TEMPLATES.md) - Template system guide
-- [SECURITY.md](SECURITY.md) - Security features
-- [HISTORY.md](HISTORY.md) - This file
+- [README.md](../../src/PackageCliTool/README.md) - Main documentation
+- [Templates Guide](templates.md) - Template system guide
+- [Security Documentation](security.md) - Security features
+- [Release History](history.md) - This file
 
 ### 🙏 Acknowledgments
 
@@ -764,6 +764,7 @@ History stores:
 
 ## See Also
 
-- [TEMPLATES.md](TEMPLATES.md) - Template system documentation
-- [README.md](README.md) - General CLI documentation
-- [API Reference](../../.github/api-reference.md) - API endpoints
+- [Templates Guide](templates.md) - Template system documentation
+- [CLI Documentation](../cli-documentation.md) - Complete CLI documentation
+- [README.md](../../src/PackageCliTool/README.md) - General CLI documentation
+- [API Reference](../api-reference.md) - API endpoints

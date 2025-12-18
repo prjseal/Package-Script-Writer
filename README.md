@@ -142,15 +142,16 @@ psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
 
 ### Documentation
 
-📚 **Full CLI Documentation**: [src/PackageCliTool/README.md](src/PackageCliTool/README.md)
+📚 **Full CLI Documentation**: [.github/cli-documentation.md](.github/cli-documentation.md)
 
 Includes:
-- Complete installation guide
-- All command-line flags and options
-- Interactive workflow walkthrough
-- Code architecture and structure
-- Troubleshooting and logging
-- Development guide
+- Complete feature overview
+- Installation and setup guide
+- Interactive and CLI mode usage
+- Template and history systems
+- Contributing guidelines
+- Troubleshooting and support
+- Security documentation
 
 ---
 
