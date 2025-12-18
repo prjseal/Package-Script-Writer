@@ -347,7 +347,8 @@ Comprehensive documentation is available for all aspects of the CLI tool:
 | Document | Description |
 |----------|-------------|
 | **[README](../src/PackageCliTool/README.md)** | Complete CLI tool documentation with all features and options |
-| **[Release History](cli/history.md)** | Version history, changelog, and history system documentation |
+| **[Release Notes](cli/release-notes.md)** | Version history and changelog |
+| **[History System](cli/history.md)** | History feature documentation (`psw history` commands) |
 | **[Templates Guide](cli/templates.md)** | Template system documentation with examples |
 | **[Security Guide](cli/security.md)** | Security features and command allowlist documentation |
 
