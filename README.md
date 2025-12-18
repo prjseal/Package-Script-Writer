@@ -135,7 +135,7 @@ psw --default
 psw -p "uSync,Diplo.GodMode" -n MyProject
 
 # Full automation with unattended install
-psw -p "uSync|17.0.0" -n MyProject -s --solution-name MySolution \
+psw -p "uSync|17.0.0" -n MyProject -s MySolution \
     -u --database-type SQLite --admin-email admin@test.com \
     --admin-password "SecurePass123!" --auto-run
 ```
