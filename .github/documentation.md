@@ -22,6 +22,14 @@ Welcome to the complete technical documentation for the Package Script Writer pr
 
 **Production**: [https://psw.codeshare.co.uk](https://psw.codeshare.co.uk/)
 
+### CLI Tool
+
+The project also includes a powerful command-line interface available as a .NET Global Tool:
+
+**📦 NuGet Package**: [PackageScriptWriter.Cli](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
+
+**📖 Complete CLI Documentation**: [CLI Documentation](cli-documentation.md)
+
 ---
 
 ## 📚 Documentation Structure

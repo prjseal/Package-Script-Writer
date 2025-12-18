@@ -687,6 +687,7 @@ History stores:
 
 ## See Also
 
-- [TEMPLATES.md](TEMPLATES.md) - Template system documentation
-- [README.md](README.md) - General CLI documentation
-- [API Reference](../../.github/api-reference.md) - API endpoints
+- [Templates Guide](templates.md) - Template system documentation
+- [CLI Documentation](../cli-documentation.md) - Complete CLI documentation
+- [README.md](../../src/PackageCliTool/README.md) - General CLI documentation
+- [API Reference](../api-reference.md) - API endpoints

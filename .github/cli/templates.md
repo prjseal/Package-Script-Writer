@@ -620,5 +620,8 @@ psw template load standard-setup -n Project3
 
 ## See Also
 
-- [Main README](README.md) - General CLI documentation
-- [API Reference](../../.github/api-reference.md) - API endpoints documentation
+- [CLI Documentation](../cli-documentation.md) - Complete CLI documentation
+- [README.md](../../src/PackageCliTool/README.md) - General CLI documentation
+- [Release History](history.md) - Version history and history system
+- [Security Documentation](security.md) - Security features
+- [API Reference](../api-reference.md) - API endpoints documentation

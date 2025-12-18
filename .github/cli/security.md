@@ -214,7 +214,7 @@ The validator processes each line of the script:
 
 - **Validator:** `/src/PackageCliTool/Validation/CommandValidator.cs`
 - **Integration:** `/src/PackageCliTool/Services/ScriptExecutor.cs`
-- **Security Docs:** `/src/PackageCliTool/SECURITY.md` (this file)
+- **Security Docs:** `/.github/cli/security.md` (this file)
 
 ## Reporting Security Issues
 
@@ -222,4 +222,4 @@ If you discover a security vulnerability or a way to bypass the command allowlis
 
 ---
 
-**Last Updated:** 2025-12-15
+**Last Updated:** 2025-12-18
