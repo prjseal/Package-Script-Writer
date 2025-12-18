@@ -36,7 +36,7 @@ Simply select your template, choose packages, configure your settings, and get a
 ## ✨ Features
 
 - **Template Selection** - Choose from Umbraco official templates and community packages
-- **Package Browser** - Browse 150+ packages from the Umbraco Marketplace
+- **Package Browser** - Browse 500+ packages from the Umbraco Marketplace
 - **Version Control** - Select specific package versions or use latest
 - **Unattended Install** - Pre-configure database and admin credentials
 - **Docker Support** - Optional Dockerfile and Docker Compose generation
@@ -104,7 +104,7 @@ That's it! No database setup required - the application is completely stateless.
 - 🎨 **Beautiful Terminal UI** - Built with Spectre.Console for rich interactive experience
 - 🚀 **Dual Mode** - Interactive prompts OR command-line flags for automation
 - 🎯 **Template Selection** - Choose from Umbraco official & community templates
-- 📦 **Browse 150+ Packages** - Search and select from the Umbraco Marketplace
+- 📦 **Browse 500+ Packages** - Search and select from the Umbraco Marketplace
 - 🔄 **Resilient** - Automatic retry logic with exponential backoff
 - 📝 **Verbose Logging** - Detailed diagnostics with Serilog
 - 🤖 **CI/CD Ready** - Perfect for automation and scripts
@@ -113,8 +113,7 @@ That's it! No database setup required - the application is completely stateless.
 
 ```bash
 # Install as a global .NET tool
-dotnet tool install --global PackageScriptWriter.Cli --prerelease
-
+dotnet tool install --global PackageScriptWriter.Cli
 # Run from anywhere
 psw
 ```
