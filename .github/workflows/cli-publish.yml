@@ -42,7 +42,7 @@ jobs:
           echo "version=$version" >> $env:GITHUB_OUTPUT
 
           # Determine if it's a prerelease
-          $isPrerelease = if (${{ github.event.release.prerelease }} -eq 'true' -or $version -match '-') { 'true' } else { 'false' }
+          $isPrerelease = if ('${{ github.event.release.prerelease }}' -eq 'true' -or $version -match '-') { 'true' } else { 'false' }
           echo "is_prerelease=$isPrerelease" >> $env:GITHUB_OUTPUT
           Write-Host "Is prerelease: $isPrerelease"
 
