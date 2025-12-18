@@ -17,12 +17,11 @@ psw
 When you start interactive mode, you'll see the welcome banner:
 
 ```
- ____            _                           ____ _     ___   _____           _
-|  _ \ __ _  ___| | ____ _  __ _  ___       / ___| |   |_ _| |_   _|__   ___ | |
-| |_) / _` |/ __| |/ / _` |/ _` |/ _ \     | |   | |    | |    | |/ _ \ / _ \| |
-|  __/ (_| | (__|   < (_| | (_| |  __/     | |___| |___ | |    | | (_) | (_) | |
-|_|   \__,_|\___|_|\_\__,_|\__, |\___|      \____|_____|___|   |_|\___/ \___/|_|
-                           |___/
+ ____  ______        __  ____ _     ___
+|  _ \/ ___\ \      / / / ___| |   |_ _|
+| |_) \___ \\ \ /\ / / | |   | |    | |
+|  __/ ___) |\ V  V /  | |___| |___ | |
+|_|   |____/  \_/\_/    \____|_____|___|
 
 Package Script Writer - Interactive CLI
 By Paul Seal
@@ -58,14 +57,14 @@ Use the **arrow keys** (↑/↓) to navigate and **Enter** to select an option.
 
 **What you see:**
 ```
-Generating Default Script
+Create Script with Default Configuration
 
 Using default configuration (latest stable Umbraco with clean starter kit)
 
-⭐ Generating installation script...
+⠋ Generating default installation script...
 
 ╔═══════════════════════════════════════════╗
-║ Generated Installation Script            ║
+║ Generated Default Installation Script    ║
 ╠═══════════════════════════════════════════╣
 ║                                           ║
 ║ # Install Umbraco templates               ║
@@ -76,12 +75,12 @@ Using default configuration (latest stable Umbraco with clean starter kit)
 ╚═══════════════════════════════════════════╝
 
 What would you like to do with this script?
-> Display in terminal
-  Save to file
-  Run immediately
-  Edit configuration
-  Save as template
-  Cancel
+(Press Ctrl+C at any time to start over)
+> Run
+  Edit
+  Copy
+  Save
+  Start over
 ```
 
 **Default configuration includes:**
@@ -102,38 +101,48 @@ What would you like to do with this script?
 
 **What you see:**
 ```
-Select a template to load:
-> my-blog-template
-  company-standard
-  client-premium
-  e-commerce-setup
+Load template
+
+Select a template:
+> my-blog-template - My blog setup
+  company-standard - Company standard configuration
+  client-premium - Premium client setup
+  e-commerce-setup - E-commerce configuration
 ```
 
 After selecting a template:
 ```
-Loading template: my-blog-template
+⠋ Loading template my-blog-template...
 
-Template Configuration:
-┌─────────────────────┬──────────────────────────┐
-│ Setting             │ Value                    │
-├─────────────────────┼──────────────────────────┤
-│ Template            │ Umbraco.Templates        │
-│ Project Name        │ MyBlog                   │
-│ Packages            │ uSync, Umbraco.Forms     │
-│ Starter Kit         │ clean                    │
-│ Database            │ SQLite                   │
-└─────────────────────┴──────────────────────────┘
+✓ Template loaded: my-blog-template
 
-Would you like to:
-> Generate script with these settings
-  Edit configuration first
-  Cancel
+⠋ Generating installation script...
+
+╔═══════════════════════════════════════════╗
+║ Generated Installation Script            ║
+╠═══════════════════════════════════════════╣
+║                                           ║
+║ # Install Umbraco templates               ║
+║ dotnet new install Umbraco.Templates...   ║
+║ dotnet new umbraco --force...             ║
+║ dotnet add package uSync|17.0.0...        ║
+║ dotnet add package Umbraco.Forms...       ║
+║                                           ║
+╚═══════════════════════════════════════════╝
+
+What would you like to do with this script?
+(Press Ctrl+C at any time to start over)
+> Run
+  Edit
+  Copy
+  Save
+  Start over
 ```
 
 **Features:**
 - Quick access to your saved configurations
-- Option to override settings (project name, etc.)
-- Edit before generating
+- Automatically generates script from template
+- Edit and regenerate from action menu if needed
 - Save new templates from any configuration
 
 **📖 Learn more**: [Templates Guide](templates.md)
@@ -146,42 +155,58 @@ Would you like to:
 
 **What you see:**
 ```
-⠋ Loading community templates from GitHub...
+Community Templates
+Choose from templates shared by the community
+
+⠋ Fetching community templates...
 
 Select a community template:
-> Umbraco 14 Blog (with uSync & Forms)
-  Umbraco 14 E-Commerce Starter
-  Umbraco 14 Minimal Setup
-  Umbraco 13 LTS Standard
-  Custom Community Template URL...
+> Umbraco 14 Blog (blog, umbraco14)
+  Complete blog setup with uSync and Umbraco Forms
+
+  Umbraco 14 E-Commerce Starter (e-commerce, umbraco14)
+  E-commerce setup with payment integration
+
+  Umbraco 13 LTS Standard (lts, umbraco13)
+  Standard Umbraco 13 LTS configuration
 ```
 
 After selecting a template:
 ```
-Community Template: Umbraco 14 Blog
-Author: Community Contributors
-Description: Complete blog setup with uSync and Umbraco Forms
+⠋ Loading template 'Umbraco 14 Blog'...
 
-Template includes:
-  • Umbraco.Templates (latest)
-  • uSync (17.0.0)
-  • Umbraco.Forms (14.2.0)
-  • Clean starter kit
-  • SQLite database
+✓ Loaded: Umbraco 14 Blog
+  Author: Community Contributors
+  Complete blog setup with uSync and Umbraco Forms
 
-Would you like to:
-> Use this template
-  Edit configuration first
-  View template source
-  Cancel
+⠋ Generating installation script...
+
+╔═══════════════════════════════════════════════════╗
+║ Generated Script from 'Umbraco 14 Blog'          ║
+╠═══════════════════════════════════════════════════╣
+║                                                   ║
+║ # Install Umbraco templates                       ║
+║ dotnet new install Umbraco.Templates...           ║
+║ dotnet new umbraco --force...                     ║
+║ dotnet add package uSync|17.0.0...                ║
+║ dotnet add package Umbraco.Forms|14.2.0...        ║
+║                                                   ║
+╚═══════════════════════════════════════════════════╝
+
+What would you like to do with this script?
+(Press Ctrl+C at any time to start over)
+> Run
+  Edit
+  Copy
+  Save
+  Start over
 ```
 
 **Features:**
 - Community-maintained templates hosted on GitHub
 - Pre-configured for common scenarios
-- Can be customized before use
-- View raw YAML template source
-- Import custom templates via URL
+- Automatically generates script from template
+- Edit and regenerate from action menu if needed
 
 **📖 Learn more**: [Community Templates Guide](community-templates.md)
 
@@ -193,44 +218,47 @@ Would you like to:
 
 **What you see:**
 ```
-Select a script from history:
-> #1 - MyBlog (2025-12-18 14:30) ✓ Executed
-  #2 - ClientSite (2025-12-18 10:15)
-  #3 - TestProject (2025-12-17 16:45) ✗ Failed(1)
-  #4 - DevSetup (2025-12-17 09:00) ✓ Executed
+Load script from history
+
+Select a history entry:
+> 2025-12-18 14:30 - MyBlog
+  2025-12-18 10:15 - ClientSite
+  2025-12-17 16:45 - TestProject
+  2025-12-17 09:00 - DevSetup
 ```
 
 After selecting an entry:
 ```
-History Entry #1: MyBlog
+✓ History entry loaded: MyBlog
 
-Generated: 2025-12-18 14:30:42
-Status: ✓ Executed successfully
-Directory: /home/user/projects/myblog
+⠋ Generating installation script...
 
-Configuration:
-┌─────────────────────┬──────────────────────────┐
-│ Setting             │ Value                    │
-├─────────────────────┼──────────────────────────┤
-│ Template            │ Umbraco.Templates @ LTS  │
-│ Project Name        │ MyBlog                   │
-│ Packages            │ uSync, Diplo.GodMode     │
-│ Database Type       │ SQLite                   │
-└─────────────────────┴──────────────────────────┘
+╔═══════════════════════════════════════════╗
+║ Generated Installation Script            ║
+╠═══════════════════════════════════════════╣
+║                                           ║
+║ # Install Umbraco templates               ║
+║ dotnet new install Umbraco.Templates...   ║
+║ dotnet new umbraco --force...             ║
+║ dotnet add package uSync|17.0.0...        ║
+║ dotnet add package Diplo.GodMode...       ║
+║                                           ║
+╚═══════════════════════════════════════════╝
 
-What would you like to do?
-> Re-run this script
-  View full details
-  Delete this entry
-  Cancel
+What would you like to do with this script?
+(Press Ctrl+C at any time to start over)
+> Run
+  Edit
+  Copy
+  Save
+  Start over
 ```
 
 **Features:**
 - Automatically tracks all generated scripts
-- Shows execution status (success/failure)
-- Re-run previous scripts with same config
-- View complete configuration details
-- Delete unwanted history entries
+- Shows timestamp and project name
+- Regenerates scripts with same configuration
+- Edit and regenerate from action menu if needed
 
 **📖 Learn more**: [History System Guide](history.md)
 
