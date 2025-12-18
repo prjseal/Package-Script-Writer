@@ -1,177 +1,148 @@
-# Package Script Writer CLI (`psw`)
-
-An interactive command-line tool for generating Umbraco installation scripts, built with .NET 10.0 and Spectre.Console.
+# Package Script Writer CLI
 
 [![NuGet](https://img.shields.io/nuget/v/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
 [![Downloads](https://img.shields.io/nuget/dt/PackageScriptWriter.Cli.svg)](https://www.nuget.org/packages/PackageScriptWriter.Cli/)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
 
-## Features
+An interactive command-line tool for generating Umbraco CMS installation scripts. Features a beautiful terminal UI built with Spectre.Console, supports 500+ Marketplace packages, and offers both interactive and automation modes.
 
-- 🎨 **Beautiful CLI Interface** - Built with Spectre.Console for a rich terminal experience
-- 🚀 **Dual Mode Operation** - Interactive mode OR command-line flags for automation
-- 🎯 **Template Selection** - Choose from Umbraco official templates and community templates with version selection
-- 📦 **Package Selection** - Browse and search from 150+ Umbraco Marketplace packages or add custom ones
-- 🔢 **Version Selection** - Choose specific versions for each selected package
-- ⚡ **Progress Indicators** - Spinners and progress displays during data fetching
-- 📄 **Script Generation** - Generate complete installation scripts locally with all options
-- 💾 **Export Scripts** - Save generated scripts to files
-- ⚙️ **Complete Configuration** - All options from the website's Options tab:
-  - Template and project settings
-  - Solution file creation
-  - Starter kit selection (9 different starter kits)
-  - Docker integration (Dockerfile & Docker Compose)
-  - Unattended install with database configuration
-  - Admin user credentials (with secure password input)
-  - Output formatting (one-liner, comment removal)
-- 📊 **Configuration Summary** - Review all settings before generating script
-- 🔒 **Secure Input** - Password fields are hidden during input
-- ✅ **Confirmation Prompts** - Prevent accidental operations
-- 🤖 **Automation Ready** - Use CLI flags for CI/CD pipelines and scripts
-- 🔄 **Resilient HTTP Client** - Automatic retry logic with exponential backoff using Polly
-- 📝 **Advanced Logging** - Comprehensive logging with Serilog (file and console output)
-- 🐛 **Verbose Mode** - Enable detailed logging with `--verbose` flag or `PSW_VERBOSE=1` environment variable
+## Quick Start
 
-## Requirements
+```bash
+# Install globally from NuGet
+dotnet tool install --global PackageScriptWriter.Cli
 
-- .NET 10.0 SDK or later
-- Internet connection (to fetch package information from the Umbraco Marketplace API)
+# Launch interactive mode
+psw
+
+# Or use CLI mode for automation
+psw --default
+psw -p "uSync,Diplo.GodMode" -n MyProject
+```
+
+## Key Features
+
+- 🎨 **Beautiful Terminal UI** - Built with Spectre.Console
+- 🚀 **Dual Mode** - Interactive prompts OR command-line automation
+- 📦 **500+ Packages** - Browse Umbraco Marketplace packages
+- 💾 **Templates** - Save and reuse configurations
+- 📊 **History** - Track all generated scripts
+- 🔒 **Secure** - Command validation and password protection
+- 🐳 **Docker Ready** - Optional Dockerfile generation
 
 ## Installation
 
-### Option 1: Install as .NET Global Tool (Recommended)
-
-Once published to NuGet, install globally:
-
-**Install Beta Version:**
-
-```bash
-dotnet tool install --global PackageScriptWriter.Cli --prerelease
-```
-
-**Install Stable Version (when available):**
+### From NuGet (Recommended)
 
 ```bash
 dotnet tool install --global PackageScriptWriter.Cli
 ```
 
-Then run from anywhere:
+### From Source
+
+```bash
+git clone https://github.com/prjseal/Package-Script-Writer.git
+cd Package-Script-Writer/src
+dotnet pack PackageCliTool -c Release
+dotnet tool install --global --add-source ./PackageCliTool/bin/Release PackageScriptWriter.Cli
+```
+
+## Usage
+
+### Interactive Mode
 
 ```bash
 psw
 ```
 
-**Update the tool:**
+Navigate through the menu-driven interface:
+1. Use default script
+2. Use local template
+3. Use community template
+4. Load script from history
+5. Create new script
+6. Load Umbraco versions table
+7. Help
+
+### CLI Mode Examples
 
 ```bash
-# Update to latest beta
-dotnet tool update --global PackageScriptWriter.Cli --prerelease
-
-# Update to latest stable
-dotnet tool update --global PackageScriptWriter.Cli
-```
-
-**Uninstall the tool:**
-
-```bash
-dotnet tool uninstall --global PackageScriptWriter.Cli
-```
-
-## Usage
-
-The CLI tool supports two modes of operation:
-
-1. **Interactive Mode** - Step-by-step prompts (no flags)
-2. **CLI Mode** - Command-line flags for automation
-
-### Command-Line Flags
-
-#### Quick Reference
-
-```bash
-# Show help
-psw --help
-psw -h
-
-# Show version
-psw --version
-psw -v
-
-# Display Umbraco versions table
-psw versions
-
-# Generate default script
+# Default script
 psw --default
-psw -d
 
-# Generate custom script with packages (latest versions)
-psw -p "uSync,Umbraco.Forms" -n MyProject
+# Custom packages with specific versions
+psw -p "uSync|17.0.0,Diplo.GodMode" -n MyBlog
 
-# Generate script with specific package versions
-psw -p "uSync|17.0.0,clean|7.0.1" -n MyProject
-
-# Use custom template package
-psw --template-package Umbraco.Community.Templates.Clean -t 14.3.0 -n MyProject
-
-# Full automation example
-psw -p "uSync|17.0.0" -n MyProject -s MySolution \
-    -u --database-type SQLite --admin-email admin@test.com \
-    --admin-password "MySecurePass123!" --auto-run
+# Full automation with unattended install
+psw -p "uSync" -n MyProject -s MySolution \
+    -u --database-type SQLite \
+    --admin-email admin@example.com \
+    --admin-password "SecurePass123!" \
+    --auto-run
 ```
 
-#### Available Flags
+### Template Commands
 
-**General Options:**
+```bash
+psw template save <name>        # Save current config as template
+psw template load <name>        # Load saved template
+psw template list               # List all templates
+psw template delete <name>      # Delete template
+```
 
-- `-h, --help` - Display help information with all available flags
-- `-v, --version` - Display the tool version
-- `-d, --default` - Generate a default script with minimal configuration
+### History Commands
 
-**Script Configuration:**
+```bash
+psw history list                # View recent scripts
+psw history show <#>            # Show script details
+psw history rerun <#>           # Re-run previous script
+```
 
-- `-p, --packages <packages>` - Comma-separated list of packages with optional versions
-  - Format: `"Package1|Version1,Package2|Version2"` (e.g., `"uSync|17.0.0,clean|7.0.1"`)
-  - Or just package names: `"uSync,Umbraco.Forms"` (automatically uses latest version)
-  - Mix both formats: `"uSync|17.0.0,Umbraco.Forms"` (first uses specific version, second uses latest)
-- `--template-package <name>` - Template package name (optional, skips template install if not specified)
-  - Examples: "Umbraco.Templates", "Umbraco.Community.Templates.Clean"
-  - If omitted, no template installation command will be generated
-- `-t, --template-package <templatePackage>` - Template package name with optional version
-  - Format: `"PackageName|Version1"` (e.g., `"Umbraco.Templates|17.0.2"`)
-  - Or just package names: `"uSync,Umbraco.Forms"` (automatically uses latest version)
-- `-n, --project-name <name>` - Project name (default: MyProject)
-- `-s, --solution` <name>` - Solution name
+## Requirements
 
-**Starter Kit:**
+- .NET 10.0 SDK or later
+- Internet connection (for package information)
 
-- `-k, --starter-kit <package>` - Starter kit package name (e.g., "clean", "Articulate") with optional version
-  - Format: `"Package|Version"` (e.g., `"clean|7.0.3"`)
-  - Or just package name: `"clean"` (automatically uses latest version)
+## Documentation
 
-**Docker:**
+📚 **Complete Documentation**: [CLI Tool Documentation](.github/cli-tool-documentation.md)
 
-- `--dockerfile` - Include Dockerfile
-- `--docker-compose` - Include Docker Compose file
+### Quick Links
 
-**Unattended Install:**
+- **[Interactive Mode Guide](.github/cli/interactive-mode.md)** - Complete walkthrough
+- **[Templates Guide](.github/cli/templates.md)** - Template system
+- **[History Guide](.github/cli/history.md)** - History feature
+- **[Security Guide](.github/cli/security.md)** - Security features
+- **[CLI Reference](.github/cli-documentation.md)** - Full CLI documentation
 
-- `-u, --unattended-defaults` - Use unattended install default values
-- `--database-type <type>` - Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
-- `--connection-string <string>` - Connection string (for SQLServer/SQLAzure)
-- `--admin-name <name>` - Admin user friendly name
-- `--admin-email <email>` - Admin email address
-- `--admin-password <password>` - Admin password (min 10 characters)
+## Support
 
-**Output Options:**
+- **Issues**: [GitHub Issues](https://github.com/prjseal/Package-Script-Writer/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/prjseal/Package-Script-Writer/discussions)
+- **Website**: [psw.codeshare.co.uk](https://psw.codeshare.co.uk)
 
-- `-o, --oneliner` - Output as one-liner
-- `-r, --remove-comments` - Remove comments from script
-- `--include-prerelease` - Include prerelease package versions
+## Version
 
-**Execution:**
+**Current Version**: 1.0.0 (Stable)
 
-- `--auto-run` - Automatically run the generated script
-- `--run-dir <directory>` - Directory to run script in
+**Release Notes**: [Release History](.github/cli/release-notes.md)
 
-**Debugging:**
+## License
 
-- `--verbose` - Enable verbose logging mode (detailed diagnostic output)
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Author
+
+**Paul Seal**
+- Website: [codeshare.co.uk](https://codeshare.co.uk)
+- GitHub: [@prjseal](https://github.com/prjseal)
+
+---
+
+<div align="center">
+
+**⭐ If this tool helps you, consider giving it a star! ⭐**
+
+[Documentation](.github/cli-tool-documentation.md) · [Issues](https://github.com/prjseal/Package-Script-Writer/issues) · [Discussions](https://github.com/prjseal/Package-Script-Writer/discussions)
+
+</div>
