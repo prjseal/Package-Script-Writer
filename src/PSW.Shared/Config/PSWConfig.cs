@@ -4,6 +4,7 @@ public class PSWConfig
 {
     public static string SectionName => "PSW";
     public int CachingTimeInMins { get; set; }
+    public string CommunityTemplatesApiUrl { get; set; } = "https://packagescriptwriter.com";
     public List<UmbracoVersion> UmbracoVersions { get; set; } = new();
 }
 

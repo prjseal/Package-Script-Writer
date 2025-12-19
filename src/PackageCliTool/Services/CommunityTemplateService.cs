@@ -9,39 +9,34 @@ using PackageCliTool.Exceptions;
 namespace PackageCliTool.Services;
 
 /// <summary>
-/// Service for fetching and managing community templates from GitHub
+/// Service for fetching and managing community templates from the PSW API
 /// </summary>
 public class CommunityTemplateService
 {
-    private const string DefaultRepo = "prjseal/Package-Script-Writer";
-    private const string DefaultBranch = "main";
+    private const string DefaultApiUrl = "https://packagescriptwriter.com";
     private const string CommunityTemplatesCacheKey = "community_templates_index";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger? _logger;
     private readonly CacheService? _cacheService;
     private readonly IDeserializer _deserializer;
-    private readonly string _repository;
-    private readonly string _branch;
+    private readonly string _apiBaseUrl;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CommunityTemplateService"/> class
     /// </summary>
     /// <param name="httpClient">HTTP client for making requests</param>
-    /// <param name="repository">GitHub repository (owner/repo format)</param>
-    /// <param name="branch">Git branch to fetch from</param>
+    /// <param name="apiBaseUrl">Base URL for the PSW API (e.g., https://packagescriptwriter.com)</param>
     /// <param name="cacheService">Optional cache service</param>
     /// <param name="logger">Optional logger instance</param>
     public CommunityTemplateService(
         HttpClient? httpClient = null,
-        string? repository = null,
-        string? branch = null,
+        string? apiBaseUrl = null,
         CacheService? cacheService = null,
         ILogger? logger = null)
     {
         _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        _repository = repository ?? DefaultRepo;
-        _branch = branch ?? DefaultBranch;
+        _apiBaseUrl = apiBaseUrl ?? DefaultApiUrl;
         _cacheService = cacheService;
         _logger = logger;
 
@@ -55,16 +50,16 @@ public class CommunityTemplateService
     /// Gets the URL for the template index
     /// </summary>
     private string GetIndexUrl()
-        => $"https://raw.githubusercontent.com/{_repository}/{_branch}/community-templates/index.json";
+        => $"{_apiBaseUrl}/api/communitytemplates/index";
 
     /// <summary>
     /// Gets the URL for a specific template file
     /// </summary>
     private string GetTemplateUrl(string fileName)
-        => $"https://raw.githubusercontent.com/{_repository}/{_branch}/community-templates/{fileName}";
+        => $"{_apiBaseUrl}/api/communitytemplates/template/{fileName}";
 
     /// <summary>
-    /// Fetches the template index from GitHub
+    /// Fetches the template index from the PSW API
     /// </summary>
     public async Task<TemplateIndex> GetIndexAsync()
     {
@@ -93,7 +88,7 @@ public class CommunityTemplateService
                 }
             }
 
-            // Fetch from GitHub
+            // Fetch from PSW API
             var url = GetIndexUrl();
             _logger?.LogInformation("Fetching community templates index from {Url}", url);
 

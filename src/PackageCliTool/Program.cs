@@ -265,9 +265,11 @@ class Program
         {
             var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
             var cacheService = sp.GetRequiredService<CacheService>();
+            var pswConfig = sp.GetRequiredService<IOptions<PSWConfig>>().Value;
             var communityLogger = LoggerSetup.CreateLogger("CommunityTemplateService");
             return new CommunityTemplateService(
                 httpClient: httpClientFactory.CreateClient(),
+                apiBaseUrl: pswConfig.CommunityTemplatesApiUrl,
                 cacheService: cacheService,
                 logger: communityLogger);
         });
