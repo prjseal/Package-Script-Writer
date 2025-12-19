@@ -3,7 +3,7 @@
   "Title": "Package Script Writer - CLI Tool for Installing Umbraco",
   "Description": "An interactive command-line tool for generating Umbraco installation scripts, built with .NET 10.0 and Spectre.Console.",
   "Category": "Developer Tools",
-  "PackageType": "Tool",
+  "PackageType": "Package",
   "LicenseTypes": [ "Free" ],
   "Tags": [
     "Umbraco",
