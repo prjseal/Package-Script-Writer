@@ -417,12 +417,11 @@ public class CommunityTemplateServiceTests : IDisposable
     }
 
     [Fact]
-    public void CommunityTemplateService_UsesCustomRepository_WhenSpecified()
+    public void CommunityTemplateService_CanBeCreatedWithHttpClient()
     {
         // Arrange & Act
-        var service = new CommunityTemplateService(
-            repository: "custom-owner/custom-repo",
-            branch: "develop");
+        var httpClient = new HttpClient();
+        var service = new CommunityTemplateService(httpClient: httpClient);
 
         // Assert - Service should be created without errors
         service.Should().NotBeNull();

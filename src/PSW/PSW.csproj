@@ -17,6 +17,12 @@
     <ProjectReference Include="..\PSW.Shared\PSW.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="community-templates\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(RunPreBuildEvent)' != 'false'">
     <Exec Command="dotnet format --severity warn --verbosity diagnostic" />
   </Target>
