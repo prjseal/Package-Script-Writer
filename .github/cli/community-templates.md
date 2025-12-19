@@ -6,7 +6,7 @@ Community templates are pre-made configuration templates created and shared by t
 
 ## What are Community Templates?
 
-Community templates are YAML configuration files hosted on GitHub that define:
+Community templates are YAML configuration files served via the PSW API at https://psw.codeshare.co.uk that define:
 - Umbraco template package and version
 - Pre-selected packages with specific versions
 - Starter kit configuration
@@ -31,9 +31,9 @@ They're perfect for:
 
 2. Select **"Use community template"** from the main menu
 
-3. Wait while templates are loaded from GitHub:
+3. Wait while templates are loaded from the API:
    ```
-   ⠋ Loading community templates from GitHub...
+   ⠋ Loading community templates from PSW API...
    ```
 
 4. Browse available templates:
@@ -88,11 +88,15 @@ If you have a direct link to a community template:
 
 ## Template Repository
 
-Community templates are hosted in the main Package Script Writer repository:
+Community templates are served via the PSW API and stored in the website deployment:
 
-📦 **Repository**: [prjseal/Package-Script-Writer](https://github.com/prjseal/Package-Script-Writer)
+🌐 **API Endpoint**: https://psw.codeshare.co.uk/api/communitytemplates
 
-📁 **Location**: `/community-templates/` directory
+📦 **Source Repository**: [prjseal/Package-Script-Writer](https://github.com/prjseal/Package-Script-Writer)
+
+📁 **GitHub Location**: `/src/PSW/community-templates/` directory
+
+Templates are fetched from the API (not directly from GitHub), ensuring reliability and caching support.
 
 ## Available Templates
 
@@ -230,24 +234,27 @@ psw template load my-awesome-template
 
 1. Fork the [Package Script Writer repository](https://github.com/prjseal/Package-Script-Writer)
 
-2. Add your template file to `/community-templates/`
+2. Add your template file to `/src/PSW/community-templates/`
 
-3. Update `/community-templates/index.yaml` with your template info:
-   ```yaml
-   templates:
-     - name: my-awesome-template
-       file: my-awesome-template.yaml
-       description: Brief description
-       author: YourGitHubUsername
-       category: blog  # or ecommerce, minimal, advanced, etc.
-       umbracoVersion: 14
-       featured: false
+3. Update `/src/PSW/community-templates/index.json` with your template info:
+   ```json
+   {
+     "name": "my-awesome-template",
+     "displayName": "My Awesome Template",
+     "description": "Brief description of what this template does",
+     "author": "Your Name",
+     "tags": ["blog", "umbraco14"],
+     "fileName": "my-awesome-template.yaml",
+     "created": "2024-12-19"
+   }
    ```
 
 4. Create a pull request with:
    - Your template file
-   - Updated index.yaml
+   - Updated index.json
    - Brief description of what it provides
+
+**Note:** Templates are stored in `/src/PSW/community-templates/` so they can be deployed with the website and served via the API.
 
 ### Template Guidelines
 
@@ -346,14 +353,14 @@ psw --clear-cache
 
 **Problem:**
 ```
-⚠ Warning: Could not load community templates from GitHub
+⚠ Warning: Could not load community templates from PSW API
 
 Using cached templates from: ~/.psw/cache/community-templates/
 ```
 
 **Solutions:**
 1. Check internet connection
-2. Verify GitHub is accessible
+2. Verify https://psw.codeshare.co.uk is accessible
 3. Try clearing cache: `psw --clear-cache`
 4. Use custom URL to load template directly
 
@@ -407,10 +414,10 @@ Umbraco 14. Latest compatible version is 17.0.0.
 
 | Feature | Community Templates | Local Templates |
 |---------|---------------------|-----------------|
-| **Source** | GitHub repository | Your local machine |
+| **Source** | PSW API (https://psw.codeshare.co.uk) | Your local machine |
 | **Sharing** | Public, discoverable | Manual export/import |
-| **Updates** | Auto-updated from GitHub | Manual updates |
-| **Caching** | 24-hour cache | Permanent until deleted |
+| **Updates** | Auto-updated from API | Manual updates |
+| **Caching** | 1-hour cache | Permanent until deleted |
 | **Creation** | Pull request required | Create anytime |
 | **Modification** | Fork and PR | Edit directly |
 
@@ -470,10 +477,11 @@ We welcome community template contributions!
 
 1. Create and test your template
 2. Fork the repository
-3. Add your template to `/community-templates/`
-4. Update `/community-templates/index.yaml`
+3. Add your template to `/src/PSW/community-templates/`
+4. Update `/src/PSW/community-templates/index.json`
 5. Submit a pull request
 6. Respond to review feedback
+7. Once merged, templates are automatically available via the API after deployment
 
 **Review criteria:**
 - Template works as described
@@ -481,6 +489,8 @@ We welcome community template contributions!
 - Packages are current and compatible
 - Good documentation in metadata
 - Follows YAML format standards
+
+**Note:** Templates are deployed with the website at https://psw.codeshare.co.uk and served via API endpoints for reliability and performance.
 
 ## Related Documentation
 
