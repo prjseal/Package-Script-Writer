@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using PackageCliTool.Configuration;
 using PackageCliTool.Models.CommunityTemplates;
 using PackageCliTool.Models.Templates;
 using PackageCliTool.Exceptions;
@@ -13,30 +14,25 @@ namespace PackageCliTool.Services;
 /// </summary>
 public class CommunityTemplateService
 {
-    private const string DefaultApiUrl = "https://packagescriptwriter.com";
     private const string CommunityTemplatesCacheKey = "community_templates_index";
 
     private readonly HttpClient _httpClient;
     private readonly ILogger? _logger;
     private readonly CacheService? _cacheService;
     private readonly IDeserializer _deserializer;
-    private readonly string _apiBaseUrl;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CommunityTemplateService"/> class
     /// </summary>
     /// <param name="httpClient">HTTP client for making requests</param>
-    /// <param name="apiBaseUrl">Base URL for the PSW API (e.g., https://packagescriptwriter.com)</param>
     /// <param name="cacheService">Optional cache service</param>
     /// <param name="logger">Optional logger instance</param>
     public CommunityTemplateService(
         HttpClient? httpClient = null,
-        string? apiBaseUrl = null,
         CacheService? cacheService = null,
         ILogger? logger = null)
     {
         _httpClient = httpClient ?? new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
-        _apiBaseUrl = apiBaseUrl ?? DefaultApiUrl;
         _cacheService = cacheService;
         _logger = logger;
 
@@ -50,13 +46,13 @@ public class CommunityTemplateService
     /// Gets the URL for the template index
     /// </summary>
     private string GetIndexUrl()
-        => $"{_apiBaseUrl}/api/communitytemplates/index";
+        => $"{ApiConfiguration.ApiBaseUrl}/api/communitytemplates/index";
 
     /// <summary>
     /// Gets the URL for a specific template file
     /// </summary>
     private string GetTemplateUrl(string fileName)
-        => $"{_apiBaseUrl}/api/communitytemplates/template/{fileName}";
+        => $"{ApiConfiguration.ApiBaseUrl}/api/communitytemplates/template/{fileName}";
 
     /// <summary>
     /// Fetches the template index from the PSW API
