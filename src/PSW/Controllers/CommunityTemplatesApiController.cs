@@ -102,7 +102,12 @@ public class CommunityTemplatesApiController : ControllerBase
             // Security: Ensure the filename doesn't contain path traversal attempts
             if (fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
             {
-                _logger.LogWarning("Invalid filename attempted: {FileName}", fileName);
+                var sanitizedFileName = fileName
+                    .Replace(Environment.NewLine, string.Empty)
+                    .Replace("\n", string.Empty)
+                    .Replace("\r", string.Empty);
+
+                _logger.LogWarning("Invalid filename attempted: {FileName}", sanitizedFileName);
                 return BadRequest(new { error = "Invalid filename" });
             }
 
