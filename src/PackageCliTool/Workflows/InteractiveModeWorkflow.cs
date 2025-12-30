@@ -415,6 +415,7 @@ public class InteractiveModeWorkflow
             config.StarterKitPackage = "clean";
             config.IncludeDockerfile = false;
             config.IncludeDockerCompose = false;
+            config.EnableContentDeliveryApi = false;
             config.CanIncludeDocker = false;
             config.UseUnattendedInstall = true;
             config.DatabaseType = "SQLite";
@@ -438,6 +439,7 @@ public class InteractiveModeWorkflow
             config.StarterKitPackage = "";
             config.IncludeDockerfile = false;
             config.IncludeDockerCompose = false;
+            config.EnableContentDeliveryApi = false;
             config.CanIncludeDocker = false;
             config.UseUnattendedInstall = false;
             config.DatabaseType = "SQLite";
@@ -645,6 +647,7 @@ public class InteractiveModeWorkflow
             StarterKitPackage = "clean",
             IncludeDockerfile = false,
             IncludeDockerCompose = false,
+            EnableContentDeliveryApi = false,
             CanIncludeDocker = false,
             UseUnattendedInstall = true,
             DatabaseType = "SQLite",
@@ -900,6 +903,7 @@ public class InteractiveModeWorkflow
             $"Starter kit package - {config.StarterKitPackage ?? "N/A"}",
             $"Include Dockerfile - {config.IncludeDockerfile}",
             $"Include Docker Compose - {config.IncludeDockerCompose}",
+            $"Enable Content Delivery API - {config.EnableContentDeliveryApi}",
             $"Use unattended install defaults - {config.UseUnattendedInstall}",
             $"Database type - {config.DatabaseType ?? "N/A"}",
             $"Connection string - {(string.IsNullOrEmpty(config.ConnectionString) ? "N/A" : "***")}",
@@ -1055,6 +1059,10 @@ public class InteractiveModeWorkflow
                 config.CanIncludeDocker = config.IncludeDockerfile || config.IncludeDockerCompose;
                 break;
 
+            case "Enable Content Delivery API":
+                config.EnableContentDeliveryApi = AnsiConsole.Confirm("Enable [green]Content Delivery API[/]?", config.EnableContentDeliveryApi);
+                break;
+
             case "Use unattended install defaults":
                 config.UseUnattendedInstall = AnsiConsole.Confirm("Use [green]unattended install defaults[/]?", config.UseUnattendedInstall);
                 if (config.UseUnattendedInstall)
@@ -1175,6 +1183,7 @@ public class InteractiveModeWorkflow
 
         table.AddRow("Include Dockerfile", config.IncludeDockerfile.ToString());
         table.AddRow("Include Docker Compose", config.IncludeDockerCompose.ToString());
+        table.AddRow("Enable Content Delivery API", config.EnableContentDeliveryApi.ToString());
         table.AddRow("Use unattended install defualts", config.UseUnattendedInstall.ToString());
 
         table.AddRow("Database type", config.DatabaseType ?? "N/A");
@@ -1542,6 +1551,7 @@ public class InteractiveModeWorkflow
             StarterKitPackage = config.StarterKit.Package,
             IncludeDockerfile = config.Docker.Dockerfile,
             IncludeDockerCompose = config.Docker.DockerCompose,
+            EnableContentDeliveryApi = config.Docker.EnableContentDeliveryApi,
             CanIncludeDocker = config.Docker.Dockerfile || config.Docker.DockerCompose,
             UseUnattendedInstall = config.Unattended.Enabled,
             DatabaseType = config.Unattended.Database.Type,

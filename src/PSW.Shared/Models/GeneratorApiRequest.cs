@@ -12,7 +12,7 @@ public class GeneratorApiRequest
         get
         {
             return string.IsNullOrWhiteSpace(TemplateName) && !CreateSolutionFile
-                && !IncludeStarterKit && !IncludeDockerfile && !IncludeDockerCompose && !UseUnattendedInstall
+                && !IncludeStarterKit && !IncludeDockerfile && !IncludeDockerCompose && !EnableContentDeliveryApi && !UseUnattendedInstall
                 && TemplateName?.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO) == true && string.IsNullOrWhiteSpace(TemplateVersion + Packages
                 + SolutionName + ProjectName + UserFriendlyName + UserEmail
                 + UserPassword + StarterKitPackage + DatabaseType)
@@ -61,6 +61,9 @@ public class GeneratorApiRequest
 
     /// <summary>Whether to include Docker Compose configuration</summary>
     public bool IncludeDockerCompose { get; set; }
+
+    /// <summary>Whether to enable the Content Delivery API</summary>
+    public bool EnableContentDeliveryApi { get; set; }
 
     /// <summary>The starter kit package to use</summary>
     public string? StarterKitPackage { get; set; }

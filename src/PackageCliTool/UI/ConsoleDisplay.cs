@@ -57,6 +57,7 @@ public static class ConsoleDisplay
   [green]-d, --default[/]                 Generate a default script with minimal configuration
   [green]    --dockerfile[/]              Include Dockerfile in generated script
   [green]    --docker-compose[/]          Include Docker Compose file in generated script
+  [green]-da, --delivery-api[/]           Enable Content Delivery API
   [green]-h, --help[/]                    Show this help information
   [green]    --include-prerelease[/]      Include prerelease package versions
   [green]-k, --starter-kit[/] <package>   Starter kit package name

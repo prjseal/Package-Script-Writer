@@ -75,6 +75,10 @@ public class ScriptModel
     [JsonPropertyName("includeDockerCompose")]
     public bool IncludeDockerCompose { get; set; }
 
+    /// <summary>Gets or sets whether to enable the Content Delivery API</summary>
+    [JsonPropertyName("enableContentDeliveryApi")]
+    public bool EnableContentDeliveryApi { get; set; }
+
     /// <summary>Gets or sets whether to output the script as a single line command</summary>
     [JsonPropertyName("onelinerOutput")]
     public bool OnelinerOutput { get; set; }

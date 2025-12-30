@@ -23,6 +23,7 @@ public class PackagesViewModel
         IncludeStarterKit = apiRequest.IncludeStarterKit;
         IncludeDockerfile = apiRequest.IncludeDockerfile;
         IncludeDockerCompose = apiRequest.IncludeDockerCompose;
+        EnableContentDeliveryApi = apiRequest.EnableContentDeliveryApi;
         StarterKitPackage = apiRequest.StarterKitPackage;
         UseUnattendedInstall = apiRequest.UseUnattendedInstall;
         DatabaseType = apiRequest.DatabaseType;
@@ -71,6 +72,9 @@ public class PackagesViewModel
 
     [Display(Name = "Include Docker Compose")]
     public bool IncludeDockerCompose { get; set; }
+
+    [Display(Name = "Enable Content Delivery API")]
+    public bool EnableContentDeliveryApi { get; set; }
 
     // Computed property for enabling/disabling Docker support checkbox on the view. 
     // The bulk of the logic is done here to keep the view clean, and is communicatd to the 

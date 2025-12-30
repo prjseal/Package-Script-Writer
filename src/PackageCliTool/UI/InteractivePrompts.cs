@@ -151,6 +151,7 @@ public static class InteractivePrompts
 
         model.IncludeDockerfile = AnsiConsole.Confirm("Include [green]Dockerfile[/]?", existingModel?.IncludeDockerfile ?? false);
         model.IncludeDockerCompose = AnsiConsole.Confirm("Include [green]Docker Compose[/]?", existingModel?.IncludeDockerCompose ?? false);
+        model.EnableContentDeliveryApi = AnsiConsole.Confirm("Enable [green]Content Delivery API[/]?", existingModel?.EnableContentDeliveryApi ?? false);
         model.CanIncludeDocker = model.IncludeDockerfile || model.IncludeDockerCompose;
 
         // Unattended Install Configuration

@@ -7,6 +7,7 @@
         canIncludeDocker: document.getElementById('CanIncludeDocker'),
         includeDockerfile: document.getElementById('IncludeDockerfile'),
         includeDockerCompose: document.getElementById('IncludeDockerCompose'),
+        enableContentDeliveryApi: document.getElementById('EnableContentDeliveryApi'),
         starterKitPackage: document.getElementById('StarterKitPackage'),
         createSolutionFile: document.getElementById('CreateSolutionFile'),
         solutionName: document.getElementById('SolutionName'),
@@ -111,6 +112,11 @@
         });
         
         psw.controls.includeDockerCompose.addEventListener('change', function () {
+            psw.updateOutput();
+            psw.updateUrl();
+        });
+
+        psw.controls.enableContentDeliveryApi.addEventListener('change', function () {
             psw.updateOutput();
             psw.updateUrl();
         });
@@ -476,6 +482,7 @@
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.includeDockerfile.checked = searchParams.get("IncludeDockerfile") === "true";
         psw.controls.includeDockerCompose.checked = searchParams.get("IncludeDockerCompose") === "true";
+        psw.controls.enableContentDeliveryApi.checked = searchParams.get("EnableContentDeliveryApi") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
         psw.controls.solutionName.value = searchParams.get("SolutionName");
@@ -519,6 +526,7 @@
         psw.controls.includeStarterKit.checked = searchParams.get("IncludeStarterKit") === "true";
         psw.controls.includeDockerfile.checked = searchParams.get("IncludeDockerfile") === "true";
         psw.controls.includeDockerCompose.checked = searchParams.get("IncludeDockerCompose") === "true";
+        psw.controls.enableContentDeliveryApi.checked = searchParams.get("EnableContentDeliveryApi") === "true";
         psw.controls.starterKitPackage.value = searchParams.get("StarterKitPackage");
         psw.controls.createSolutionFile.checked = searchParams.get("CreateSolutionFile") === "true";
         psw.controls.solutionName.value = searchParams.get("SolutionName");
@@ -587,10 +595,12 @@
         if (psw.controls.canIncludeDocker.value === 'true') {
             psw.controls.includeDockerfile.removeAttribute('disabled');
             psw.controls.includeDockerCompose.removeAttribute('disabled');
-        } 
+            psw.controls.enableContentDeliveryApi.removeAttribute('disabled');
+        }
         else {
             psw.controls.includeDockerfile.setAttribute('disabled', 'disabled');
             psw.controls.includeDockerCompose.setAttribute('disabled', 'disabled');
+            psw.controls.enableContentDeliveryApi.setAttribute('disabled', 'disabled');
         }
     },
     toggleIncludeStarterKitControls: function () {
@@ -691,6 +701,7 @@
             searchParams.set("IncludeStarterKit", psw.controls.includeStarterKit.checked);
             searchParams.set("IncludeDockerfile", psw.controls.includeDockerfile.checked);
             searchParams.set("IncludeDockerCompose", psw.controls.includeDockerCompose.checked);
+            searchParams.set("EnableContentDeliveryApi", psw.controls.enableContentDeliveryApi.checked);
             searchParams.set("StarterKitPackage", psw.controls.starterKitPackage.value);
             searchParams.set("OnelinerOutput", psw.controls.onelinerOutput.checked);
             searchParams.set("RemoveComments", psw.controls.removeComments.checked);

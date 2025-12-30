@@ -12,6 +12,7 @@ public class QueryStringService : IQueryStringService
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.IncludeStarterKit)], out var includeStarterKit);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.IncludeDockerfile)], out var includeDockerfile);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.IncludeDockerCompose)], out var includeDockerCompose);
+        _ = bool.TryParse(request.Query[nameof(PackagesViewModel.EnableContentDeliveryApi)], out var enableContentDeliveryApi);
         _ = bool.TryParse(request.Query["InstallUmbracoTemplate"], out var installUmbracoTemplate); // Fallback from older property
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.CreateSolutionFile)], out var createSolutionFile);
         _ = bool.TryParse(request.Query[nameof(PackagesViewModel.UseUnattendedInstall)], out var useUnattendedInstall);
@@ -22,6 +23,7 @@ public class QueryStringService : IQueryStringService
             includeStarterKit = true;
             includeDockerfile = false;
             includeDockerCompose = false;
+            enableContentDeliveryApi = false;
             createSolutionFile = true;
             useUnattendedInstall = true;
             onelinerOutput = false;
@@ -48,6 +50,7 @@ public class QueryStringService : IQueryStringService
             IncludeStarterKit = includeStarterKit,
             IncludeDockerfile = includeDockerfile,
             IncludeDockerCompose = includeDockerCompose,
+            EnableContentDeliveryApi = enableContentDeliveryApi,
             StarterKitPackage = starterKitPackage,
             UseUnattendedInstall = useUnattendedInstall,
             DatabaseType = databaseType,
@@ -72,6 +75,7 @@ public class QueryStringService : IQueryStringService
         queryString = queryString.Add(nameof(model.IncludeStarterKit), model.IncludeStarterKit.ToString());
         queryString = queryString.Add(nameof(model.IncludeDockerfile), model.IncludeDockerfile.ToString());
         queryString = queryString.Add(nameof(model.IncludeDockerCompose), model.IncludeDockerCompose.ToString());
+        queryString = queryString.Add(nameof(model.EnableContentDeliveryApi), model.EnableContentDeliveryApi.ToString());
         queryString = queryString.AddValueIfNotEmpty(nameof(model.StarterKitPackage), model.StarterKitPackage ?? "");
         queryString = queryString.Add(nameof(model.UseUnattendedInstall), model.UseUnattendedInstall.ToString());
         queryString = queryString.AddValueIfNotEmpty(nameof(model.DatabaseType), model.DatabaseType ?? "");
