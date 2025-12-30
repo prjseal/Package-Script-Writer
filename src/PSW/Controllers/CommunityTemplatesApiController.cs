@@ -26,24 +26,6 @@ public class CommunityTemplatesApiController : ControllerBase
     }
 
     /// <summary>
-    /// Sanitizes user input to prevent log injection and other security issues
-    /// </summary>
-    private static string SanitizeUserInput(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-        {
-            return input;
-        }
-
-        return input
-            .Replace(Environment.NewLine, string.Empty)
-            .Replace("\n", string.Empty)
-            .Replace("\r", string.Empty)
-            .Replace("\t", string.Empty)
-            .Replace("\0", string.Empty);
-    }
-
-    /// <summary>
     /// Gets the community templates index containing metadata for all available templates
     /// </summary>
     /// <returns>The templates index as JSON</returns>
@@ -117,10 +99,18 @@ public class CommunityTemplatesApiController : ControllerBase
                 return BadRequest(new { error = "Filename is required" });
             }
 
+            // Sanitize user input immediately for logging to prevent log injection
+            var sanitizedFileName = fileName
+                .Replace(Environment.NewLine, string.Empty)
+                .Replace("\n", string.Empty)
+                .Replace("\r", string.Empty)
+                .Replace("\t", string.Empty)
+                .Replace("\0", string.Empty);
+
             // Security: Ensure the filename doesn't contain path traversal attempts
             if (fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
             {
-                _logger.LogWarning("Invalid filename attempted: {FileName}", SanitizeUserInput(fileName));
+                _logger.LogWarning("Invalid filename attempted: {FileName}", sanitizedFileName);
                 return BadRequest(new { error = "Invalid filename" });
             }
 
@@ -152,14 +142,14 @@ public class CommunityTemplatesApiController : ControllerBase
 
             if (templateContent == null)
             {
-                return NotFound(new { error = $"Template '{SanitizeUserInput(fileName)}' not found" });
+                return NotFound(new { error = $"Template '{sanitizedFileName}' not found" });
             }
 
             return Content(templateContent, "text/plain");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error reading community template {FileName}", SanitizeUserInput(fileName));
+            _logger.LogError(ex, "Error reading community template {FileName}", sanitizedFileName);
             return StatusCode(500, new { error = "Error reading community template", message = ex.Message });
         }
     }
