@@ -93,15 +93,15 @@ public class CommunityTemplatesApiController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTemplate(string fileName)
     {
+        // Sanitize user input immediately for logging - only allow letters and spaces
+        var templateName = Regex.Replace(fileName ?? string.Empty, @"[^a-zA-Z ]", string.Empty);
+
         try
         {
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 return BadRequest(new { error = "Filename is required" });
             }
-
-            // Sanitize user input immediately for logging - only allow letters and spaces
-            var templateName = Regex.Replace(fileName, @"[^a-zA-Z ]", string.Empty);
 
             // Security: Ensure the filename doesn't contain path traversal attempts
             if (fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
