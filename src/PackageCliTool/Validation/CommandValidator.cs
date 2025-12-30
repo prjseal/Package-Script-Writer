@@ -132,12 +132,12 @@ public class CommandValidator
         var patterns = new List<Regex>();
 
         // dotnet new install (template installation)
-        // Examples: dotnet new install Umbraco.Templates::14.3.0 --force
-        patterns.Add(new Regex(@"^dotnet\s+new\s+install\s+[\w\.\-:]+(\s+(--force|--interactive))*\s*$", RegexOptions.IgnoreCase));
+        // Examples: dotnet new install Umbraco.Templates::14.3.0 --force, dotnet new install Umbraco.Templates@15.0.0 --force
+        patterns.Add(new Regex(@"^dotnet\s+new\s+install\s+[\w\.\-:@]+(\s+(--force|--interactive))*\s*$", RegexOptions.IgnoreCase));
 
         // dotnet new -i (legacy template installation)
-        // Examples: dotnet new -i Umbraco.Templates::10.0.0
-        patterns.Add(new Regex(@"^dotnet\s+new\s+-i\s+[\w\.\-:]+\s*$", RegexOptions.IgnoreCase));
+        // Examples: dotnet new -i Umbraco.Templates::10.0.0, dotnet new -i Umbraco.Templates@15.0.0
+        patterns.Add(new Regex(@"^dotnet\s+new\s+-i\s+[\w\.\-:@]+\s*$", RegexOptions.IgnoreCase));
 
         // dotnet new sln (solution creation)
         // Examples: dotnet new sln --name "MySolution"
@@ -148,8 +148,9 @@ public class CommandValidator
         //   dotnet new umbraco --force -n "MyProject"
         //   dotnet new umbraco --force -n "MyProject" --add-docker --friendly-name "Admin" --email "admin@example.com" --password "Pass123!" --development-database-type SQLite
         //   dotnet new umbraco-compose -P "MyProject"
+        //   dotnet new umbraco --force -n "MyProject" -da
         // Pattern allows any combination of flags (with or without values)
-        patterns.Add(new Regex(@"^dotnet\s+new\s+[\w\-]+(\s+(--[\w\-]+|-[a-zA-Z])(\s+(""[^""]+""|\S+))?)*\s*$", RegexOptions.IgnoreCase));
+        patterns.Add(new Regex(@"^dotnet\s+new\s+[\w\-]+(\s+(--[\w\-]+|-[a-zA-Z]+)(\s+(""[^""]+""|\S+))?)*\s*$", RegexOptions.IgnoreCase));
 
         // dotnet sln add (add project to solution)
         // Examples: dotnet sln add "MyProject"

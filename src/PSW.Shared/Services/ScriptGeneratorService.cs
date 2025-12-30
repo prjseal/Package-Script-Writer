@@ -87,7 +87,10 @@ public class ScriptGeneratorService : IScriptGeneratorService
                     outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) ? "# Ensure we have the version specific Umbraco templates" : "# Ensure we have the version specific Community templates");
                 }
 
-                outputList.Add($"dotnet new {installCommand} {templateName}::{model.TemplateVersion} --force");
+                // Determine separator: use @ for Umbraco.Templates v15+, otherwise ::
+                var separator = GetVersionSeparator(templateName, model.TemplateVersion);
+
+                outputList.Add($"dotnet new {installCommand} {templateName}{separator}{model.TemplateVersion} --force");
             }
             else
             {
@@ -103,6 +106,22 @@ public class ScriptGeneratorService : IScriptGeneratorService
         outputList.Add("");
 
         return outputList;
+    }
+
+    private string GetVersionSeparator(string templateName, string? templateVersion)
+    {
+        if (!templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return "::";
+        }
+
+        var majorVersionString = templateVersion?.Split('.').FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(majorVersionString) && int.TryParse(majorVersionString, out var majorVersion))
+        {
+            return majorVersion >= 15 ? "@" : "::";
+        }
+
+        return "::";
     }
 
     public List<string> GenerateCreateSolutionFileScript(PackagesViewModel model)
