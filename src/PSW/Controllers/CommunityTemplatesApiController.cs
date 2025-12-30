@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using System.Text.RegularExpressions;
 
 namespace PSW.Controllers;
 
@@ -99,18 +100,13 @@ public class CommunityTemplatesApiController : ControllerBase
                 return BadRequest(new { error = "Filename is required" });
             }
 
-            // Sanitize user input immediately for logging to prevent log injection
-            var sanitizedFileName = fileName
-                .Replace(Environment.NewLine, string.Empty)
-                .Replace("\n", string.Empty)
-                .Replace("\r", string.Empty)
-                .Replace("\t", string.Empty)
-                .Replace("\0", string.Empty);
+            // Sanitize user input immediately for logging - only allow letters and spaces
+            var templateName = Regex.Replace(fileName, @"[^a-zA-Z ]", string.Empty);
 
             // Security: Ensure the filename doesn't contain path traversal attempts
             if (fileName.Contains("..") || fileName.Contains("/") || fileName.Contains("\\"))
             {
-                _logger.LogWarning("Invalid filename attempted: {FileName}", sanitizedFileName);
+                _logger.LogWarning("Invalid filename attempted: {TemplateName}", templateName);
                 return BadRequest(new { error = "Invalid filename" });
             }
 
@@ -142,14 +138,14 @@ public class CommunityTemplatesApiController : ControllerBase
 
             if (templateContent == null)
             {
-                return NotFound(new { error = $"Template '{sanitizedFileName}' not found" });
+                return NotFound(new { error = $"Template '{templateName}' not found" });
             }
 
             return Content(templateContent, "text/plain");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error reading community template {FileName}", sanitizedFileName);
+            _logger.LogError(ex, "Error reading community template {TemplateName}", templateName);
             return StatusCode(500, new { error = "Error reading community template", message = ex.Message });
         }
     }
