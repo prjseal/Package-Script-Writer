@@ -128,30 +128,34 @@ public class CommunityTemplateServiceTests : IDisposable
         // Arrange
         var mockHandler = new Mock<HttpMessageHandler>();
 
-        // Setup index response
         mockHandler
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("index.json")),
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(GetSampleIndexJson())
-            });
-
-        // Setup template YAML response
-        mockHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml")),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(GetSampleTemplateYaml())
+                if (request.RequestUri!.AbsolutePath.Contains("index.json"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(GetSampleIndexJson())
+                    };
+                }
+                else if (request.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(GetSampleTemplateYaml())
+                    };
+                }
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.NotFound
+                };
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
@@ -194,24 +198,30 @@ public class CommunityTemplateServiceTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("index.json")),
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(GetSampleIndexJson())
-            });
-
-        mockHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml")),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(GetSampleTemplateYaml())
+                if (request.RequestUri!.AbsolutePath.Contains("index.json"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(GetSampleIndexJson())
+                    };
+                }
+                else if (request.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(GetSampleTemplateYaml())
+                    };
+                }
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.NotFound
+                };
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
@@ -235,24 +245,30 @@ public class CommunityTemplateServiceTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("index.json")),
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(GetSampleIndexJson())
-            });
-
-        mockHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml")),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.NotFound,
-                Content = new StringContent("")
+                if (request.RequestUri!.AbsolutePath.Contains("index.json"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(GetSampleIndexJson())
+                    };
+                }
+                else if (request.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.NotFound,
+                        Content = new StringContent("")
+                    };
+                }
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.NotFound
+                };
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
@@ -276,24 +292,30 @@ public class CommunityTemplateServiceTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("index.json")),
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(GetSampleIndexJson())
-            });
-
-        mockHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml")),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("invalid: yaml: {{{")
+                if (request.RequestUri!.AbsolutePath.Contains("index.json"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(GetSampleIndexJson())
+                    };
+                }
+                else if (request.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent("invalid: yaml: {{{")
+                    };
+                }
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.NotFound
+                };
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
@@ -318,24 +340,30 @@ public class CommunityTemplateServiceTests : IDisposable
             .Protected()
             .Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("index.json")),
+                ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(GetSampleIndexJson())
-            });
-
-        mockHandler
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml")),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(yamlContent)
+                if (request.RequestUri!.AbsolutePath.Contains("index.json"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(GetSampleIndexJson())
+                    };
+                }
+                else if (request.RequestUri!.AbsolutePath.Contains("blog-with-usync.yaml"))
+                {
+                    return new HttpResponseMessage
+                    {
+                        StatusCode = HttpStatusCode.OK,
+                        Content = new StringContent(yamlContent)
+                    };
+                }
+                return new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.NotFound
+                };
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
