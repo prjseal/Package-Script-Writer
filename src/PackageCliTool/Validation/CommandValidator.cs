@@ -148,8 +148,9 @@ public class CommandValidator
         //   dotnet new umbraco --force -n "MyProject"
         //   dotnet new umbraco --force -n "MyProject" --add-docker --friendly-name "Admin" --email "admin@example.com" --password "Pass123!" --development-database-type SQLite
         //   dotnet new umbraco-compose -P "MyProject"
+        //   dotnet new umbraco --force -n "MyProject" -da
         // Pattern allows any combination of flags (with or without values)
-        patterns.Add(new Regex(@"^dotnet\s+new\s+[\w\-]+(\s+(--[\w\-]+|-[a-zA-Z])(\s+(""[^""]+""|\S+))?)*\s*$", RegexOptions.IgnoreCase));
+        patterns.Add(new Regex(@"^dotnet\s+new\s+[\w\-]+(\s+(--[\w\-]+|-[a-zA-Z]+)(\s+(""[^""]+""|\S+))?)*\s*$", RegexOptions.IgnoreCase));
 
         // dotnet sln add (add project to solution)
         // Examples: dotnet sln add "MyProject"
