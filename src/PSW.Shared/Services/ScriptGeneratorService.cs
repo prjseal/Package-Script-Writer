@@ -127,6 +127,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
     {
         var outputList = new List<string>();
         var dockerfileString = "";
+        var contentDeliveryApiString = "";
 
         var installUmbracoTemplate = model.TemplateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO);
         var majorVersionNumberAsString = model.TemplateVersion?.Split('.').FirstOrDefault();
@@ -145,6 +146,12 @@ public class ScriptGeneratorService : IScriptGeneratorService
             model.CanIncludeDocker)
         {
             dockerfileString = "--add-docker";
+        }
+
+        // Add Content Delivery API flag
+        if (model.EnableContentDeliveryApi)
+        {
+            contentDeliveryApiString = "-da";
         }
 
         if (installUmbracoTemplate)
@@ -189,7 +196,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
                         break;
                 }
 
-                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" {dockerfileString} --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
+                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" {dockerfileString} {contentDeliveryApiString} --friendly-name \"{model.UserFriendlyName}\" --email \"{model.UserEmail}\" --password \"{model.UserPassword}\"{connectionString}{databasTypeSwitch}");
 
                 if (model.DatabaseType == "SQLite" && isOldv10RCVersion)
                 {
@@ -199,7 +206,7 @@ public class ScriptGeneratorService : IScriptGeneratorService
             }
             else
             {
-                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" {dockerfileString}");
+                outputList.Add($"dotnet new umbraco --force -n \"{model.ProjectName}\" {dockerfileString} {contentDeliveryApiString}");
             }
         }
         else

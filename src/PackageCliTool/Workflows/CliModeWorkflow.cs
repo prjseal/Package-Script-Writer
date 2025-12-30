@@ -114,6 +114,9 @@ public class CliModeWorkflow
             IncludeDockerCompose = options.IncludeDockerCompose.HasValue
                 ? options.IncludeDockerCompose.Value
                 : false,
+            EnableContentDeliveryApi = options.EnableContentDeliveryApi.HasValue
+                ? options.EnableContentDeliveryApi.Value
+                : false,
             CanIncludeDocker = false,
             UseUnattendedInstall = options.UseUnattended.HasValue
                 ? options.UseUnattended.Value
@@ -211,6 +214,9 @@ public class CliModeWorkflow
                 : false,
             IncludeDockerCompose = options.IncludeDockerCompose.HasValue
                 ? options.IncludeDockerCompose.Value
+                : false,
+            EnableContentDeliveryApi = options.EnableContentDeliveryApi.HasValue
+                ? options.EnableContentDeliveryApi.Value
                 : false,
             CanIncludeDocker = (options.IncludeDockerfile.HasValue && options.IncludeDockerfile.Value) || (options.IncludeDockerCompose.HasValue && options.IncludeDockerCompose.Value),
             UseUnattendedInstall = options.UseUnattended.HasValue
@@ -634,6 +640,7 @@ public class CliModeWorkflow
             StarterKitPackage = config.StarterKit.Package,
             IncludeDockerfile = config.Docker.Dockerfile,
             IncludeDockerCompose = config.Docker.DockerCompose,
+            EnableContentDeliveryApi = config.Docker.EnableContentDeliveryApi,
             CanIncludeDocker = config.Docker.Dockerfile || config.Docker.DockerCompose,
             UseUnattendedInstall = config.Unattended.Enabled,
             DatabaseType = config.Unattended.Database.Type,
@@ -686,6 +693,9 @@ public class CliModeWorkflow
 
         if (options.IncludeDockerCompose.HasValue)
             model.IncludeDockerCompose = options.IncludeDockerCompose.Value;
+
+        if (options.EnableContentDeliveryApi.HasValue)
+            model.EnableContentDeliveryApi = options.EnableContentDeliveryApi.Value;
 
         // Update CanIncludeDocker based on the flags
         model.CanIncludeDocker = model.IncludeDockerfile || model.IncludeDockerCompose;

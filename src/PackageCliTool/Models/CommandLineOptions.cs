@@ -49,6 +49,9 @@ public class CommandLineOptions
     /// <summary>Gets or sets whether to include Docker Compose configuration</summary>
     public bool? IncludeDockerCompose { get; set; }
 
+    /// <summary>Gets or sets whether to enable the Content Delivery API</summary>
+    public bool? EnableContentDeliveryApi { get; set; }
+
     /// <summary>Gets or sets whether to use unattended installation</summary>
     public bool? UseUnattended { get; set; }
 
@@ -312,6 +315,11 @@ public class CommandLineOptions
 
                 case "--docker-compose":
                     options.IncludeDockerCompose = true;
+                    break;
+
+                case "-da":
+                case "--delivery-api":
+                    options.EnableContentDeliveryApi = true;
                     break;
 
                 case "-u":

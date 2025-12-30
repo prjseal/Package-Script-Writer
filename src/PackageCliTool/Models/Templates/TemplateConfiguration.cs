@@ -129,6 +129,11 @@ public class DockerConfig
     /// Include Docker Compose file
     /// </summary>
     public bool DockerCompose { get; set; }
+
+    /// <summary>
+    /// Enable Content Delivery API
+    /// </summary>
+    public bool EnableContentDeliveryApi { get; set; }
 }
 
 /// <summary>
