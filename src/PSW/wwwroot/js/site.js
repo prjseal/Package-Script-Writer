@@ -651,6 +651,7 @@
             "IncludeStarterKit": psw.controls.includeStarterKit.checked,
             "IncludeDockerfile": psw.controls.includeDockerfile.checked,
             "IncludeDockerCompose": psw.controls.includeDockerCompose.checked,
+            "EnableContentDeliveryApi": psw.controls.enableContentDeliveryApi.checked,
             "StarterKitPackage": psw.controls.starterKitPackage.value,
             "OnelinerOutput": psw.controls.onelinerOutput.checked,
             "RemoveComments": psw.controls.removeComments.checked
