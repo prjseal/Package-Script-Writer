@@ -128,11 +128,11 @@ public class CommunityTemplatesApiController : ControllerBase
 
                     if (!System.IO.File.Exists(templatePath))
                     {
-                        _logger.LogWarning("Community template not found at {TemplatePath}", templatePath);
+                        _logger.LogWarning("Community template not found: {TemplateName}", templateName);
                         return null;
                     }
 
-                    _logger.LogInformation("Reading community template from {TemplatePath}", templatePath);
+                    _logger.LogInformation("Reading community template: {TemplateName}", templateName);
                     return await System.IO.File.ReadAllTextAsync(templatePath);
                 });
 
