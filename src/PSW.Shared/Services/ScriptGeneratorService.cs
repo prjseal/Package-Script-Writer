@@ -87,7 +87,21 @@ public class ScriptGeneratorService : IScriptGeneratorService
                     outputList.Add(templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase) ? "# Ensure we have the version specific Umbraco templates" : "# Ensure we have the version specific Community templates");
                 }
 
-                outputList.Add($"dotnet new {installCommand} {templateName}::{model.TemplateVersion} --force");
+                // Determine separator: use @ for Umbraco.Templates v15+, otherwise ::
+                var separator = "::";
+                if (templateName.Equals(GlobalConstants.TEMPLATE_NAME_UMBRACO, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    var majorVersionString = model.TemplateVersion?.Split('.').FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(majorVersionString) && int.TryParse(majorVersionString, out var majorVersion))
+                    {
+                        if (majorVersion >= 15)
+                        {
+                            separator = "@";
+                        }
+                    }
+                }
+
+                outputList.Add($"dotnet new {installCommand} {templateName}{separator}{model.TemplateVersion} --force");
             }
             else
             {
