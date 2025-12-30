@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="community-templates\**\*">
+    <Content Update="community-templates\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
