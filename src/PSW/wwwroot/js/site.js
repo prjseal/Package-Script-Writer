@@ -595,12 +595,10 @@
         if (psw.controls.canIncludeDocker.value === 'true') {
             psw.controls.includeDockerfile.removeAttribute('disabled');
             psw.controls.includeDockerCompose.removeAttribute('disabled');
-            psw.controls.enableContentDeliveryApi.removeAttribute('disabled');
         }
         else {
             psw.controls.includeDockerfile.setAttribute('disabled', 'disabled');
             psw.controls.includeDockerCompose.setAttribute('disabled', 'disabled');
-            psw.controls.enableContentDeliveryApi.setAttribute('disabled', 'disabled');
         }
     },
     toggleIncludeStarterKitControls: function () {
