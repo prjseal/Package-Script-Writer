@@ -87,11 +87,6 @@ public class CommunityTemplatesApiController : ControllerBase
     /// <response code="404">If the template file is not found</response>
     /// <response code="500">If there's an error reading the template file</response>
     [HttpGet("template/{fileName}")]
-    [Produces("text/plain")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTemplate(string fileName)
     {
         // Sanitize user input immediately for logging - only allow letters and spaces
