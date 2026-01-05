@@ -6,7 +6,7 @@ Welcome to the Package Script Writer community templates! This folder contains t
 
 Community templates are served through the PSW website API:
 
-1. **Contributors** submit templates via pull requests to `src/PSW/community-templates/`
+1. **Contributors** submit templates via pull requests to `src/PSW/wwwroot/community-templates/`
 2. **Website** deploys templates and serves them via API at https://psw.codeshare.co.uk
 3. **CLI** fetches templates from the API (not directly from GitHub)
 4. **Users** can list, view, and use templates with simple commands
@@ -86,7 +86,7 @@ metadata:
 
 ### 4. Update index.json
 
-Add your template to `src/PSW/community-templates/index.json`:
+Add your template to `src/PSW/wwwroot/community-templates/index.json`:
 
 ```json
 {
@@ -106,8 +106,8 @@ Add your template to `src/PSW/community-templates/index.json`:
 
 1. Fork the Package-Script-Writer repository
 2. Create a new branch: `git checkout -b add-template-my-awesome-setup`
-3. Add your template YAML file to `src/PSW/community-templates/`
-4. Update `src/PSW/community-templates/index.json`
+3. Add your template YAML file to `src/PSW/wwwroot/community-templates/`
+4. Update `src/PSW/wwwroot/community-templates/index.json`
 5. Commit your changes with a clear message
 6. Push to your fork and create a Pull Request
 7. In the PR description, explain:
@@ -115,7 +115,7 @@ Add your template to `src/PSW/community-templates/index.json`:
    - What packages are included and why
    - Any special configuration choices
 
-**Note:** Templates are submitted to `src/PSW/community-templates/` so they can be deployed with the website. The CLI fetches templates from the PSW API at https://psw.codeshare.co.uk instead of directly from GitHub.
+**Note:** Templates are submitted to `src/PSW/wwwroot/community-templates/` so they can be deployed with the website. The CLI fetches templates from the PSW API at https://psw.codeshare.co.uk instead of directly from GitHub.
 
 ### 6. Template Review
 

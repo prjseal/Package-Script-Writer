@@ -94,7 +94,7 @@ Community templates are served via the PSW API and stored in the website deploym
 
 📦 **Source Repository**: [prjseal/Package-Script-Writer](https://github.com/prjseal/Package-Script-Writer)
 
-📁 **GitHub Location**: `/src/PSW/community-templates/` directory
+📁 **GitHub Location**: `/src/PSW/wwwroot/community-templates/` directory
 
 Templates are fetched from the API (not directly from GitHub), ensuring reliability and caching support.
 
@@ -234,9 +234,9 @@ psw template load my-awesome-template
 
 1. Fork the [Package Script Writer repository](https://github.com/prjseal/Package-Script-Writer)
 
-2. Add your template file to `/src/PSW/community-templates/`
+2. Add your template file to `/src/PSW/wwwroot/community-templates/`
 
-3. Update `/src/PSW/community-templates/index.json` with your template info:
+3. Update `/src/PSW/wwwroot/community-templates/index.json` with your template info:
    ```json
    {
      "name": "my-awesome-template",
@@ -254,7 +254,7 @@ psw template load my-awesome-template
    - Updated index.json
    - Brief description of what it provides
 
-**Note:** Templates are stored in `/src/PSW/community-templates/` so they can be deployed with the website and served via the API.
+**Note:** Templates are stored in `/src/PSW/wwwroot/community-templates/` so they can be deployed with the website and served via the API.
 
 ### Template Guidelines
 
@@ -477,8 +477,8 @@ We welcome community template contributions!
 
 1. Create and test your template
 2. Fork the repository
-3. Add your template to `/src/PSW/community-templates/`
-4. Update `/src/PSW/community-templates/index.json`
+3. Add your template to `/src/PSW/wwwroot/community-templates/`
+4. Update `/src/PSW/wwwroot/community-templates/index.json`
 5. Submit a pull request
 6. Respond to review feedback
 7. Once merged, templates are automatically available via the API after deployment
