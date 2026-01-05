@@ -46,13 +46,13 @@ public class CommunityTemplateService
     /// Gets the URL for the template index
     /// </summary>
     private string GetIndexUrl()
-        => $"{ApiConfiguration.ApiBaseUrl}/api/communitytemplates/index";
+        => $"{ApiConfiguration.ApiBaseUrl}/api/CommunityTemplatesApi/index";
 
     /// <summary>
     /// Gets the URL for a specific template file
     /// </summary>
     private string GetTemplateUrl(string fileName)
-        => $"{ApiConfiguration.ApiBaseUrl}/api/communitytemplates/template/{fileName}";
+        => $"{ApiConfiguration.ApiBaseUrl}/api/CommunityTemplatesApi/template/{fileName}";
 
     /// <summary>
     /// Fetches the template index from the PSW API

@@ -1,6 +1,7 @@
+using System.Text.RegularExpressions;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using System.Text.RegularExpressions;
 
 namespace PSW.Controllers;
 
