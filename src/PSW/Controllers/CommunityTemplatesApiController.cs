@@ -51,7 +51,9 @@ public class CommunityTemplatesApiController : ControllerBase
                 {
                     cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CacheTimeInMinutes);
 
-                    var indexPath = Path.Combine(_webHostEnvironment.ContentRootPath, "community-templates", "index.json");
+                    var indexPath = Path.Combine(_webHostEnvironment.WebRootPath, 
+                        "community-templates", 
+                        "index.json");
 
                     if (!System.IO.File.Exists(indexPath))
                     {
@@ -120,7 +122,11 @@ public class CommunityTemplatesApiController : ControllerBase
                 {
                     cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CacheTimeInMinutes);
 
-                    var templatePath = Path.Combine(_webHostEnvironment.ContentRootPath, "community-templates", fileName);
+                    // CHANGED: Use wwwroot/community-templates instead of content root
+                    var templatePath = Path.Combine(
+                        _webHostEnvironment.WebRootPath, // Use WebRootPath for wwwroot
+                        "community-templates",
+                        fileName);
 
                     if (!System.IO.File.Exists(templatePath))
                     {
