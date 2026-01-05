@@ -91,6 +91,48 @@ class Program
                 PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
             });
 
+            // Configure HttpClient specifically for CommunityTemplateService with Accept headers
+            services.AddHttpClient("CommunityTemplateClient", client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+                // Set Accept headers to match the API's [Produces] attributes
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("text/plain"));
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/x-yaml"));
+                client.DefaultRequestHeaders.Accept.Add(
+                    new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("*/*", 0.8));
+            })
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+            {
+                ConnectCallback = async (context, cancellationToken) =>
+                {
+                    // Force IPv4 to avoid ~42 second IPv6 timeout
+                    var socket = new Socket(System.Net.Sockets.AddressFamily.InterNetwork,
+                        System.Net.Sockets.SocketType.Stream,
+                        System.Net.Sockets.ProtocolType.Tcp)
+                    {
+                        NoDelay = true
+                    };
+
+                    try
+                    {
+                        await socket.ConnectAsync(context.DnsEndPoint, cancellationToken);
+                        return new System.Net.Sockets.NetworkStream(socket, ownsSocket: true);
+                    }
+                    catch
+                    {
+                        socket.Dispose();
+                        throw;
+                    }
+                },
+                PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                PooledConnectionIdleTimeout = TimeSpan.FromMinutes(2)
+            });
+
             services.Configure<PSWConfig>(
                 configuration.GetSection(PSWConfig.SectionName));
 
@@ -267,7 +309,7 @@ class Program
             var cacheService = sp.GetRequiredService<CacheService>();
             var communityLogger = LoggerSetup.CreateLogger("CommunityTemplateService");
             return new CommunityTemplateService(
-                httpClient: httpClientFactory.CreateClient(),
+                httpClient: httpClientFactory.CreateClient("CommunityTemplateClient"),
                 cacheService: cacheService,
                 logger: communityLogger);
         });
