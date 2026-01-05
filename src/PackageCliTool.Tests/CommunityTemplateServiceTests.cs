@@ -136,7 +136,7 @@ public class CommunityTemplateServiceTests : IDisposable
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/index"))
+                if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/index"))
                 {
                     return new HttpResponseMessage
                     {
@@ -144,7 +144,7 @@ public class CommunityTemplateServiceTests : IDisposable
                         Content = new StringContent(GetSampleIndexJson())
                     };
                 }
-                else if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/template/"))
+                else if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/template/"))
                 {
                     return new HttpResponseMessage
                     {
@@ -202,7 +202,7 @@ public class CommunityTemplateServiceTests : IDisposable
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/index"))
+                if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/index"))
                 {
                     return new HttpResponseMessage
                     {
@@ -210,7 +210,7 @@ public class CommunityTemplateServiceTests : IDisposable
                         Content = new StringContent(GetSampleIndexJson())
                     };
                 }
-                else if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/template/"))
+                else if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/template/"))
                 {
                     return new HttpResponseMessage
                     {
@@ -249,7 +249,7 @@ public class CommunityTemplateServiceTests : IDisposable
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/index"))
+                if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/index"))
                 {
                     return new HttpResponseMessage
                     {
@@ -257,7 +257,7 @@ public class CommunityTemplateServiceTests : IDisposable
                         Content = new StringContent(GetSampleIndexJson())
                     };
                 }
-                else if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/template/"))
+                else if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/template/"))
                 {
                     return new HttpResponseMessage
                     {
@@ -296,7 +296,7 @@ public class CommunityTemplateServiceTests : IDisposable
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/index"))
+                if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/index"))
                 {
                     return new HttpResponseMessage
                     {
@@ -304,7 +304,7 @@ public class CommunityTemplateServiceTests : IDisposable
                         Content = new StringContent(GetSampleIndexJson())
                     };
                 }
-                else if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/template/"))
+                else if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/template/"))
                 {
                     return new HttpResponseMessage
                     {
@@ -344,7 +344,7 @@ public class CommunityTemplateServiceTests : IDisposable
                 ItExpr.IsAny<CancellationToken>())
             .ReturnsAsync((HttpRequestMessage request, CancellationToken token) =>
             {
-                if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/index"))
+                if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/index"))
                 {
                     return new HttpResponseMessage
                     {
@@ -352,7 +352,7 @@ public class CommunityTemplateServiceTests : IDisposable
                         Content = new StringContent(GetSampleIndexJson())
                     };
                 }
-                else if (request.RequestUri!.AbsolutePath.Contains("/communitytemplates/template/"))
+                else if (request.RequestUri!.AbsolutePath.Contains("/CommunityTemplatesApi/template/"))
                 {
                     return new HttpResponseMessage
                     {
