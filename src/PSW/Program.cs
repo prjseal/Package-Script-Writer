@@ -4,7 +4,13 @@ using PSW.Shared.Configuration;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews()
+builder.Services.AddControllersWithViews(options =>
+{
+    // Configure content negotiation to be more lenient with Accept headers
+    // This prevents 406 errors when clients don't send perfect Accept headers
+    options.RespectBrowserAcceptHeader = true;
+    options.ReturnHttpNotAcceptable = false;
+})
     .AddRazorOptions(options => options.ViewLocationFormats.Add("/{0}.cshtml"));
 builder.Services.AddHttpClient();
 
