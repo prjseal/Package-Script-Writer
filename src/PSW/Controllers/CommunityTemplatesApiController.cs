@@ -81,13 +81,13 @@ public class CommunityTemplatesApiController : ControllerBase
     /// Gets a specific community template by filename
     /// </summary>
     /// <param name="fileName">The template filename (e.g., 'uskinned-shop.yaml')</param>
-    /// <returns>The template content as YAML</returns>
+    /// <returns>The template content as plain text (YAML format)</returns>
     /// <response code="200">Returns the template content</response>
     /// <response code="400">If the filename is invalid</response>
     /// <response code="404">If the template file is not found</response>
     /// <response code="500">If there's an error reading the template file</response>
     [HttpGet("template/{fileName}")]
-    [Produces("text/plain", "application/x-yaml")]
+    [Produces("text/plain")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
