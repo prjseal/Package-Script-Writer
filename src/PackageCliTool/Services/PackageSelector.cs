@@ -213,7 +213,7 @@ public class PackageSelector
                 var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
 
                 // Add cancel option
-                const string cancelOption = "⬅ Go back (don't add any of these packages)";
+                const string cancelOption = "Cancel - don't add any of these packages";
                 displayChoices.Add(cancelOption);
 
                 var selectedDisplay = AnsiConsole.Prompt(
