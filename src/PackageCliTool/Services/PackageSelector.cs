@@ -117,7 +117,7 @@ public class PackageSelector
                     .Title("How would you like to add packages?")
                     .AddChoices(new[] {
                         "Select from popular packages",
-                        "Search for package",
+                        "Search for package on Umbraco Marketplace",
                         "Search for package on nuget.org",
                         "Done - finish package selection"
                     }));
@@ -131,7 +131,7 @@ public class PackageSelector
                 var packages = await SelectPackagesFromListAsync();
                 selectedPackages.AddRange(packages);
             }
-            else if (selectionMode == "Search for package")
+            else if (selectionMode == "Search for package on Umbraco Marketplace")
             {
                 var packages = await SearchForPackagesAsync();
                 selectedPackages.AddRange(packages);
