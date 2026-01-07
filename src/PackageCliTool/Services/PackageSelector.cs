@@ -212,18 +212,31 @@ public class PackageSelector
                 // Show matching packages in a select prompt (paged to 10)
                 var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
 
+                // Add cancel option
+                const string cancelOption = "⬅ Go back (don't add any of these packages)";
+                displayChoices.Add(cancelOption);
+
                 var selectedDisplay = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title($"Found [green]{matchingPackages.Count}[/] matching package(s). Select one:")
+                        .Title($"Found [green]{matchingPackages.Count}[/] matching package(s). Select one or go back:")
                         .PageSize(10)
                         .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
                         .AddChoices(displayChoices));
 
-                // Extract the PackageId from the selected display text
-                var selectedPackage = matchingPackages.First(p => p.DisplayText == selectedDisplay);
-                selectedPackages.Add(selectedPackage.PackageId);
-                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {selectedPackage.PackageId}");
-                _logger?.LogInformation("User selected package: {PackageId}", selectedPackage.PackageId);
+                // Check if user selected cancel option
+                if (selectedDisplay == cancelOption)
+                {
+                    AnsiConsole.MarkupLine("[dim]Cancelled package selection.[/]");
+                    _logger?.LogInformation("User cancelled package selection from search results");
+                }
+                else
+                {
+                    // Extract the PackageId from the selected display text
+                    var selectedPackage = matchingPackages.First(p => p.DisplayText == selectedDisplay);
+                    selectedPackages.Add(selectedPackage.PackageId);
+                    AnsiConsole.MarkupLine($"[green]✓[/] Added package: {selectedPackage.PackageId}");
+                    _logger?.LogInformation("User selected package: {PackageId}", selectedPackage.PackageId);
+                }
             }
             else
             {
