@@ -208,7 +208,13 @@ public class PackageSelector
 
                     // Format results similar to Umbraco packages
                     var nugetDisplayChoices = nugetResults
-                        .Select(p => $"{p.Id} - {p.Description} (by {string.Join(", ", p.Authors)})")
+                        .Select(p =>
+                        {
+                            var truncatedDesc = p.Description.Length > 100
+                                ? p.Description.Substring(0, 100) + "..."
+                                : p.Description;
+                            return $"{p.Id} - {truncatedDesc} (by {string.Join(", ", p.Authors)})";
+                        })
                         .ToList();
 
                     // Add cancel option at top
@@ -338,7 +344,13 @@ public class PackageSelector
 
                             // Format results similar to Umbraco packages
                             var nugetDisplayChoices = nugetResults
-                                .Select(p => $"{p.Id} - {p.Description} (by {string.Join(", ", p.Authors)})")
+                                .Select(p =>
+                                {
+                                    var truncatedDesc = p.Description.Length > 100
+                                        ? p.Description.Substring(0, 100) + "..."
+                                        : p.Description;
+                                    return $"{p.Id} - {truncatedDesc} (by {string.Join(", ", p.Authors)})";
+                                })
                                 .ToList();
 
                             // Add cancel option at top
