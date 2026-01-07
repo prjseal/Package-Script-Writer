@@ -146,10 +146,10 @@ public class InteractiveModeWorkflow
         // Step 2: Select template version
         var templateVersion = await _packageSelector.SelectTemplateVersionAsync(templateName);
 
-        // Step 3: Select packages
-        var selectedPackages = await _packageSelector.SelectPackagesAsync();
+        // Step 3: Select packages (versions are selected inline)
+        var packageVersions = await _packageSelector.SelectPackagesAsync();
 
-        if (selectedPackages.Count == 0)
+        if (packageVersions.Count == 0)
         {
             ErrorHandler.Warning("No packages selected. Continuing without packages...", _logger);
             AnsiConsole.WriteLine();
@@ -163,13 +163,11 @@ public class InteractiveModeWorkflow
             return;
         }
 
-        // Step 4: For each package, select version
-        var packageVersions = await _packageSelector.SelectVersionsForPackagesAsync(selectedPackages);
-
-        // Step 5: Display final selection
+        // Step 4: Display final selection
+        AnsiConsole.WriteLine();
         ConfigurationDisplay.DisplayFinalSelection(packageVersions);
 
-        // Step 6: Optional - Generate script
+        // Step 5: Optional - Generate script
         var shouldGenerate2 = AnsiConsole.Confirm("Would you like to generate a complete installation script?");
 
         if (shouldGenerate2)
@@ -957,10 +955,9 @@ public class InteractiveModeWorkflow
 
             case "Packages":
                 AnsiConsole.MarkupLine("[bold blue]Select Packages[/]\n");
-                var selectedPackages = await _packageSelector.SelectPackagesAsync();
-                if (selectedPackages.Count > 0)
+                var newPackageVersions = await _packageSelector.SelectPackagesAsync();
+                if (newPackageVersions.Count > 0)
                 {
-                    var newPackageVersions = await _packageSelector.SelectVersionsForPackagesAsync(selectedPackages);
                     // Merge with existing
                     foreach (var kvp in newPackageVersions)
                     {

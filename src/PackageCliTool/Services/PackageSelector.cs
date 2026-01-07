@@ -100,13 +100,13 @@ public class PackageSelector
     }
 
     /// <summary>
-    /// Allows user to select multiple packages using MultiSelectionPrompt
+    /// Allows user to select multiple packages with versions
     /// </summary>
-    public async Task<List<string>> SelectPackagesAsync()
+    public async Task<Dictionary<string, string>> SelectPackagesAsync()
     {
-        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Packages\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Packages and Versions\n");
 
-        var selectedPackages = new List<string>();
+        var packageVersions = new Dictionary<string, string>();
         var continueSelecting = true;
 
         while (continueSelecting)
@@ -129,33 +129,42 @@ public class PackageSelector
             else if (selectionMode == "Select from popular Umbraco packages")
             {
                 var packages = await SelectPackagesFromListAsync();
-                selectedPackages.AddRange(packages);
+                foreach (var kvp in packages)
+                {
+                    packageVersions[kvp.Key] = kvp.Value;
+                }
             }
             else if (selectionMode == "Search for package on Umbraco Marketplace")
             {
                 var packages = await SearchForPackagesAsync();
-                selectedPackages.AddRange(packages);
+                foreach (var kvp in packages)
+                {
+                    packageVersions[kvp.Key] = kvp.Value;
+                }
             }
             else if (selectionMode == "Search for package on nuget.org")
             {
                 var packages = await SearchNuGetPackagesAsync();
-                selectedPackages.AddRange(packages);
+                foreach (var kvp in packages)
+                {
+                    packageVersions[kvp.Key] = kvp.Value;
+                }
             }
 
             // Show current package count if any packages selected
-            if (selectedPackages.Count > 0 && continueSelecting)
+            if (packageVersions.Count > 0 && continueSelecting)
             {
-                AnsiConsole.MarkupLine($"\n[dim]Current selection: {selectedPackages.Count} package(s)[/]\n");
+                AnsiConsole.MarkupLine($"\n[dim]Current selection: {packageVersions.Count} package(s)[/]\n");
             }
         }
 
-        return selectedPackages;
+        return packageVersions;
     }
 
     /// <summary>
     /// Select packages from the full list with pagination
     /// </summary>
-    private Task<List<string>> SelectPackagesFromListAsync()
+    private async Task<Dictionary<string, string>> SelectPackagesFromListAsync()
     {
         var packageChoices = new List<string>();
 
@@ -184,25 +193,32 @@ public class PackageSelector
                 .AddChoices(packageChoices));
 
         var selectedList = selections.ToList();
+        var packageVersions = new Dictionary<string, string>();
 
         if (selectedList.Count > 0)
         {
-            foreach (var pkg in selectedList)
-            {
-                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {pkg}");
-            }
             _logger?.LogInformation("User selected {Count} packages from popular list", selectedList.Count);
+
+            // For each selected package, prompt for version selection
+            foreach (var packageId in selectedList)
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {packageId}");
+
+                // Immediately select version for this package
+                var version = await SelectVersionForPackageAsync(packageId);
+                packageVersions[packageId] = version;
+            }
         }
 
-        return Task.FromResult(selectedList);
+        return packageVersions;
     }
 
     /// <summary>
     /// Search for packages using a search term
     /// </summary>
-    private Task<List<string>> SearchForPackagesAsync()
+    private async Task<Dictionary<string, string>> SearchForPackagesAsync()
     {
-        var selectedPackages = new List<string>();
+        var packageVersions = new Dictionary<string, string>();
 
         // Ask user to enter a search term
         var searchTerm = AnsiConsole.Ask<string>("Enter [green]search term[/] to find packages:");
@@ -210,7 +226,7 @@ public class PackageSelector
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
-            return Task.FromResult(selectedPackages);
+            return packageVersions;
         }
 
         searchTerm = searchTerm.Trim();
@@ -261,9 +277,13 @@ public class PackageSelector
             {
                 // Extract the PackageId from the selected display text
                 var selectedPackage = matchingPackages.First(p => p.DisplayText == selectedDisplay);
-                selectedPackages.Add(selectedPackage.PackageId);
-                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {selectedPackage.PackageId}");
-                _logger?.LogInformation("User selected package: {PackageId}", selectedPackage.PackageId);
+                var packageId = selectedPackage.PackageId;
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {packageId}");
+                _logger?.LogInformation("User selected package: {PackageId}", packageId);
+
+                // Immediately select version for this package
+                var version = await SelectVersionForPackageAsync(packageId);
+                packageVersions[packageId] = version;
             }
         }
         else
@@ -280,9 +300,12 @@ public class PackageSelector
 
                 if (addAnyway)
                 {
-                    selectedPackages.Add(searchTerm);
                     AnsiConsole.MarkupLine($"[green]✓[/] Added package: {searchTerm}");
                     _logger?.LogInformation("User added package not in marketplace: {PackageId}", searchTerm);
+
+                    // Immediately select version for this package
+                    var version = await SelectVersionForPackageAsync(searchTerm);
+                    packageVersions[searchTerm] = version;
                 }
             }
             else
@@ -291,15 +314,88 @@ public class PackageSelector
             }
         }
 
-        return Task.FromResult(selectedPackages);
+        return packageVersions;
+    }
+
+    /// <summary>
+    /// Select version for a single package
+    /// </summary>
+    private async Task<string> SelectVersionForPackageAsync(string packageId)
+    {
+        try
+        {
+            _logger?.LogDebug("Fetching versions for package: {Package}", packageId);
+
+            // Fetch versions with spinner (async)
+            var versions = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync($"Fetching versions for [yellow]{packageId}[/]...", async ctx =>
+                {
+                    return await GetPackageVersionsAsync(packageId);
+                });
+
+            _logger?.LogDebug("Found {Count} versions for package {Package}", versions.Count, packageId);
+
+            // Build version choices with special options first
+            var versionChoices = new List<string>
+            {
+                "Latest Stable",
+                "Pre-release"
+            };
+
+            // Add actual versions if available
+            if (versions.Count > 0)
+            {
+                versionChoices.AddRange(versions);
+            }
+            else
+            {
+                ErrorHandler.Warning($"No specific versions found for {packageId}. Showing default options only.", _logger);
+            }
+
+            // Let user select a version
+            var selectedVersion = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Select version for [green]{packageId}[/]:")
+                    .PageSize(12)
+                    .MoreChoicesText("[grey](Move up and down to see more versions)[/]")
+                    .AddChoices(versionChoices));
+
+            // Map the selection to the appropriate value
+            if (selectedVersion == "Latest Stable")
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageId} - Latest Stable");
+                _logger?.LogInformation("Selected {Package} with latest stable version", packageId);
+                return "";
+            }
+            else if (selectedVersion == "Pre-release")
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageId} - Pre-release");
+                _logger?.LogInformation("Selected {Package} with pre-release version", packageId);
+                return "--prerelease";
+            }
+            else
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageId} version {selectedVersion}");
+                _logger?.LogInformation("Selected {Package} version {Version}", packageId, selectedVersion);
+                return selectedVersion;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Error fetching versions for package {Package}", packageId);
+            ErrorHandler.Warning($"Error fetching versions for {packageId}: {ex.Message}. Using latest stable.", _logger);
+            return "";
+        }
     }
 
     /// <summary>
     /// Search for packages on NuGet.org using search term
     /// </summary>
-    private async Task<List<string>> SearchNuGetPackagesAsync()
+    private async Task<Dictionary<string, string>> SearchNuGetPackagesAsync()
     {
-        var selectedPackages = new List<string>();
+        var packageVersions = new Dictionary<string, string>();
 
         // Ask user to enter a search term
         var searchTerm = AnsiConsole.Ask<string>("Enter [green]NuGet search term[/] (e.g., json, logging, serilog):");
@@ -307,7 +403,7 @@ public class PackageSelector
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
-            return selectedPackages;
+            return packageVersions;
         }
 
         searchTerm = searchTerm.Trim();
@@ -354,9 +450,13 @@ public class PackageSelector
                 var selectedNuGetPackage = nugetResults.First(p =>
                     selectedNuGet.StartsWith($"{p.Id} -"));
 
-                selectedPackages.Add(selectedNuGetPackage.Id);
-                AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {selectedNuGetPackage.Id}");
-                _logger?.LogInformation("User added NuGet package: {PackageId}", selectedNuGetPackage.Id);
+                var packageId = selectedNuGetPackage.Id;
+                AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {packageId}");
+                _logger?.LogInformation("User added NuGet package: {PackageId}", packageId);
+
+                // Immediately select version for this package
+                var version = await SelectVersionForPackageAsync(packageId);
+                packageVersions[packageId] = version;
             }
             else
             {
@@ -370,7 +470,7 @@ public class PackageSelector
             _logger?.LogInformation("No NuGet packages found matching: {SearchTerm}", searchTerm);
         }
 
-        return selectedPackages;
+        return packageVersions;
     }
 
     /// <summary>
