@@ -212,9 +212,9 @@ public class PackageSelector
                 // Show matching packages in a select prompt (paged to 10)
                 var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
 
-                // Add cancel option
+                // Add cancel option at the top for easy access
                 const string cancelOption = "Cancel - don't add any of these packages";
-                displayChoices.Add(cancelOption);
+                displayChoices.Insert(0, cancelOption);
 
                 var selectedDisplay = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
