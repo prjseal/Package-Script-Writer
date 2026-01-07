@@ -106,27 +106,47 @@ public class PackageSelector
     {
         AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Packages\n");
 
-        // Ask user how they want to select packages
-        var selectionMode = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("How would you like to add packages?")
-                .AddChoices(new[] { "Select from popular packages", "Search for package", "None - skip packages" }));
-
         var selectedPackages = new List<string>();
+        var continueSelecting = true;
 
-        if (selectionMode == "None - skip packages")
+        while (continueSelecting)
         {
-            AnsiConsole.MarkupLine("[dim]Skipping package selection...[/]");
-            return selectedPackages;
-        }
+            // Ask user how they want to select packages
+            var selectionMode = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("How would you like to add packages?")
+                    .AddChoices(new[] {
+                        "Select from popular packages",
+                        "Search for package",
+                        "Search for package on nuget.org",
+                        "Done - finish package selection"
+                    }));
 
-        if (selectionMode == "Select from popular packages")
-        {
-            selectedPackages = await SelectPackagesFromListAsync();
-        }
-        else if (selectionMode == "Search for package")
-        {
-            selectedPackages = await SearchForPackagesAsync();
+            if (selectionMode == "Done - finish package selection")
+            {
+                continueSelecting = false;
+            }
+            else if (selectionMode == "Select from popular packages")
+            {
+                var packages = await SelectPackagesFromListAsync();
+                selectedPackages.AddRange(packages);
+            }
+            else if (selectionMode == "Search for package")
+            {
+                var packages = await SearchForPackagesAsync();
+                selectedPackages.AddRange(packages);
+            }
+            else if (selectionMode == "Search for package on nuget.org")
+            {
+                var packages = await SearchNuGetPackagesAsync();
+                selectedPackages.AddRange(packages);
+            }
+
+            // Show current package count if any packages selected
+            if (selectedPackages.Count > 0 && continueSelecting)
+            {
+                AnsiConsole.MarkupLine($"\n[dim]Current selection: {selectedPackages.Count} package(s)[/]\n");
+            }
         }
 
         return selectedPackages;
@@ -135,7 +155,7 @@ public class PackageSelector
     /// <summary>
     /// Select packages from the full list with pagination
     /// </summary>
-    private async Task<List<string>> SelectPackagesFromListAsync()
+    private Task<List<string>> SelectPackagesFromListAsync()
     {
         var packageChoices = new List<string>();
 
@@ -155,12 +175,6 @@ public class PackageSelector
             packageChoices = ApiConfiguration.PopularPackages.ToList();
         }
 
-        // Add cancel option and NuGet search option at the top for easy access
-        const string cancelOption = "Cancel - don't add any packages";
-        const string nugetSearchOption = "Search for package on nuget.org";
-        packageChoices.Insert(0, nugetSearchOption);
-        packageChoices.Insert(0, cancelOption);
-
         var selections = AnsiConsole.Prompt(
             new MultiSelectionPrompt<string>()
                 .Title("Select [green]one or more packages[/] (use Space to select, Enter to confirm):")
@@ -169,266 +183,191 @@ public class PackageSelector
                 .InstructionsText("[grey](Press [blue]<space>[/] to toggle a package, [green]<enter>[/] to accept)[/]")
                 .AddChoices(packageChoices));
 
-        // Check for special options
         var selectedList = selections.ToList();
 
-        // If cancel was selected, return empty list
-        if (selectedList.Contains(cancelOption))
+        if (selectedList.Count > 0)
         {
-            AnsiConsole.MarkupLine("[dim]Cancelled package selection.[/]");
-            _logger?.LogInformation("User cancelled package selection from popular packages list");
-            return new List<string>();
-        }
-
-        // If NuGet search was selected, handle it
-        if (selectedList.Contains(nugetSearchOption))
-        {
-            // Remove the NuGet search option from the list
-            selectedList.Remove(nugetSearchOption);
-
-            var nugetSearchTerm = AnsiConsole.Ask<string>("Enter [green]NuGet search term[/] (e.g., json, logging, serilog):");
-
-            if (!string.IsNullOrWhiteSpace(nugetSearchTerm))
+            foreach (var pkg in selectedList)
             {
-                nugetSearchTerm = nugetSearchTerm.Trim();
-                _logger?.LogInformation("Searching NuGet.org from popular list for: {SearchTerm}", nugetSearchTerm);
-
-                // Search NuGet.org
-                var nugetResults = await AnsiConsole.Status()
-                    .Spinner(Spinner.Known.Dots)
-                    .SpinnerStyle(Style.Parse("green"))
-                    .StartAsync($"Searching NuGet.org for '{nugetSearchTerm}'...", async ctx =>
-                    {
-                        return await _packageService.SearchNuGetPackagesAsync(nugetSearchTerm, 20);
-                    });
-
-                if (nugetResults.Count > 0)
-                {
-                    _logger?.LogInformation("Found {Count} NuGet packages from popular list", nugetResults.Count);
-
-                    // Format results similar to Umbraco packages
-                    var nugetDisplayChoices = nugetResults
-                        .Select(p =>
-                        {
-                            var truncatedDesc = p.Description.Length > 100
-                                ? p.Description.Substring(0, 100) + "..."
-                                : p.Description;
-                            return $"{p.Id} - {truncatedDesc} (by {string.Join(", ", p.Authors)})";
-                        })
-                        .ToList();
-
-                    // Add cancel option at top
-                    const string nugetCancelOption = "Cancel - go back to package selection";
-                    nugetDisplayChoices.Insert(0, nugetCancelOption);
-
-                    var selectedNuGet = AnsiConsole.Prompt(
-                        new SelectionPrompt<string>()
-                            .Title($"Found [green]{nugetResults.Count}[/] package(s) on NuGet.org. Select one:")
-                            .PageSize(10)
-                            .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
-                            .AddChoices(nugetDisplayChoices));
-
-                    if (selectedNuGet != nugetCancelOption)
-                    {
-                        // Extract the package ID from the selected display text
-                        var selectedNuGetPackage = nugetResults.First(p =>
-                            selectedNuGet.StartsWith($"{p.Id} -"));
-
-                        selectedList.Add(selectedNuGetPackage.Id);
-                        AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {selectedNuGetPackage.Id}");
-                        _logger?.LogInformation("User added NuGet package from popular list: {PackageId}", selectedNuGetPackage.Id);
-                    }
-                    else
-                    {
-                        _logger?.LogInformation("User cancelled NuGet package selection from popular list");
-                    }
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine($"[yellow]No packages found on NuGet.org matching '{nugetSearchTerm}'.[/]");
-                    _logger?.LogInformation("No NuGet packages found from popular list matching: {SearchTerm}", nugetSearchTerm);
-                }
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {pkg}");
             }
+            _logger?.LogInformation("User selected {Count} packages from popular list", selectedList.Count);
         }
 
-        return selectedList;
+        return Task.FromResult(selectedList);
     }
 
     /// <summary>
     /// Search for packages using a search term
     /// </summary>
-    private async Task<List<string>> SearchForPackagesAsync()
+    private Task<List<string>> SearchForPackagesAsync()
     {
         var selectedPackages = new List<string>();
-        var continueAdding = true;
 
-        while (continueAdding)
+        // Ask user to enter a search term
+        var searchTerm = AnsiConsole.Ask<string>("Enter [green]search term[/] to find packages:");
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
         {
-            // Ask user to enter a search term
-            var searchTerm = AnsiConsole.Ask<string>("Enter [green]search term[/] to find packages:");
+            AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
+            return Task.FromResult(selectedPackages);
+        }
 
-            if (string.IsNullOrWhiteSpace(searchTerm))
+        searchTerm = searchTerm.Trim();
+        _logger?.LogInformation("Searching for packages with term: {SearchTerm}", searchTerm);
+
+        // Search packages using LINQ - check Title, PackageId, and authors (case-insensitive)
+        var matchingPackages = _allPackages
+            .Where(p =>
+                (!string.IsNullOrWhiteSpace(p.Title) && p.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(p.PackageId) && p.PackageId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(p.Authors) && p.Authors.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            )
+            .Select(p => new
             {
-                AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
-                continue;
+                p.PackageId,
+                p.Title,
+                p.Authors,
+                DisplayText = $"{p.PackageId} - {p.Title ?? "No title"} (by {p.Authors ?? "Unknown"})"
+            })
+            .OrderBy(p => p.PackageId)
+            .ToList();
+
+        _logger?.LogInformation("Found {Count} matching packages", matchingPackages.Count);
+
+        if (matchingPackages.Count > 0)
+        {
+            // Show matching packages in a select prompt (paged to 10)
+            var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
+
+            // Add cancel option at the top
+            const string cancelOption = "Cancel - go back to main menu";
+            displayChoices.Insert(0, cancelOption);
+
+            var selectedDisplay = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Found [green]{matchingPackages.Count}[/] matching package(s). Select one:")
+                    .PageSize(10)
+                    .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+                    .AddChoices(displayChoices));
+
+            // Check if user selected cancel option
+            if (selectedDisplay == cancelOption)
+            {
+                AnsiConsole.MarkupLine("[dim]Returning to main menu.[/]");
+                _logger?.LogInformation("User cancelled package selection from search results");
             }
+            else
+            {
+                // Extract the PackageId from the selected display text
+                var selectedPackage = matchingPackages.First(p => p.DisplayText == selectedDisplay);
+                selectedPackages.Add(selectedPackage.PackageId);
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {selectedPackage.PackageId}");
+                _logger?.LogInformation("User selected package: {PackageId}", selectedPackage.PackageId);
+            }
+        }
+        else
+        {
+            // No matches found
+            AnsiConsole.MarkupLine($"[yellow]No packages found matching '{searchTerm}'.[/]");
+            _logger?.LogInformation("No packages found matching search term: {SearchTerm}", searchTerm);
 
-            searchTerm = searchTerm.Trim();
-            _logger?.LogInformation("Searching for packages with term: {SearchTerm}", searchTerm);
+            // Check if the search term is a valid NuGet package ID
+            if (InputValidator.IsValidNuGetPackageId(searchTerm))
+            {
+                AnsiConsole.MarkupLine("[dim]The search term appears to be a valid NuGet package ID.[/]");
+                var addAnyway = AnsiConsole.Confirm($"Would you like to add [green]{searchTerm}[/] as a package anyway?", true);
 
-            // Search packages using LINQ - check Title, PackageId, and authors (case-insensitive)
-            var matchingPackages = _allPackages
-                .Where(p =>
-                    (!string.IsNullOrWhiteSpace(p.Title) && p.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.PackageId) && p.PackageId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.Authors) && p.Authors.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                )
-                .Select(p => new
+                if (addAnyway)
                 {
-                    p.PackageId,
-                    p.Title,
-                    p.Authors,
-                    DisplayText = $"{p.PackageId} - {p.Title ?? "No title"} (by {p.Authors ?? "Unknown"})"
+                    selectedPackages.Add(searchTerm);
+                    AnsiConsole.MarkupLine($"[green]✓[/] Added package: {searchTerm}");
+                    _logger?.LogInformation("User added package not in marketplace: {PackageId}", searchTerm);
+                }
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[dim]The search term is not a valid NuGet package ID format.[/]");
+            }
+        }
+
+        return Task.FromResult(selectedPackages);
+    }
+
+    /// <summary>
+    /// Search for packages on NuGet.org using search term
+    /// </summary>
+    private async Task<List<string>> SearchNuGetPackagesAsync()
+    {
+        var selectedPackages = new List<string>();
+
+        // Ask user to enter a search term
+        var searchTerm = AnsiConsole.Ask<string>("Enter [green]NuGet search term[/] (e.g., json, logging, serilog):");
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
+            return selectedPackages;
+        }
+
+        searchTerm = searchTerm.Trim();
+        _logger?.LogInformation("Searching NuGet.org for: {SearchTerm}", searchTerm);
+
+        // Search NuGet.org
+        var nugetResults = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync($"Searching NuGet.org for '{searchTerm}'...", async ctx =>
+            {
+                return await _packageService.SearchNuGetPackagesAsync(searchTerm, 20);
+            });
+
+        if (nugetResults.Count > 0)
+        {
+            _logger?.LogInformation("Found {Count} NuGet packages", nugetResults.Count);
+
+            // Format results with truncated descriptions
+            var nugetDisplayChoices = nugetResults
+                .Select(p =>
+                {
+                    var truncatedDesc = p.Description.Length > 100
+                        ? p.Description.Substring(0, 100) + "..."
+                        : p.Description;
+                    return $"{p.Id} - {truncatedDesc} (by {string.Join(", ", p.Authors)})";
                 })
-                .OrderBy(p => p.PackageId)
                 .ToList();
 
-            _logger?.LogInformation("Found {Count} matching packages", matchingPackages.Count);
+            // Add cancel option at top
+            const string cancelOption = "Cancel - go back to main menu";
+            nugetDisplayChoices.Insert(0, cancelOption);
 
-            if (matchingPackages.Count > 0)
+            var selectedNuGet = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Found [green]{nugetResults.Count}[/] package(s) on NuGet.org. Select one:")
+                    .PageSize(10)
+                    .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+                    .AddChoices(nugetDisplayChoices));
+
+            if (selectedNuGet != cancelOption)
             {
-                // Show matching packages in a select prompt (paged to 10)
-                var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
+                // Extract the package ID from the selected display text
+                var selectedNuGetPackage = nugetResults.First(p =>
+                    selectedNuGet.StartsWith($"{p.Id} -"));
 
-                // Add cancel option and NuGet search option at the top for easy access
-                const string cancelOption = "Cancel - don't add any of these packages";
-                const string nugetSearchOption = "Search for package on nuget.org";
-                displayChoices.Insert(0, nugetSearchOption);
-                displayChoices.Insert(0, cancelOption);
-
-                var selectedDisplay = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title($"Found [green]{matchingPackages.Count}[/] matching package(s). Select one or go back:")
-                        .PageSize(10)
-                        .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
-                        .AddChoices(displayChoices));
-
-                // Check if user selected cancel option
-                if (selectedDisplay == cancelOption)
-                {
-                    AnsiConsole.MarkupLine("[dim]Cancelled package selection.[/]");
-                    _logger?.LogInformation("User cancelled package selection from search results");
-                }
-                // Check if user wants to search NuGet.org
-                else if (selectedDisplay == nugetSearchOption)
-                {
-                    var nugetSearchTerm = AnsiConsole.Ask<string>("Enter [green]NuGet search term[/] (e.g., json, logging, serilog):");
-
-                    if (!string.IsNullOrWhiteSpace(nugetSearchTerm))
-                    {
-                        nugetSearchTerm = nugetSearchTerm.Trim();
-                        _logger?.LogInformation("Searching NuGet.org for: {SearchTerm}", nugetSearchTerm);
-
-                        // Search NuGet.org
-                        var nugetResults = await AnsiConsole.Status()
-                            .Spinner(Spinner.Known.Dots)
-                            .SpinnerStyle(Style.Parse("green"))
-                            .StartAsync($"Searching NuGet.org for '{nugetSearchTerm}'...", async ctx =>
-                            {
-                                return await _packageService.SearchNuGetPackagesAsync(nugetSearchTerm, 20);
-                            });
-
-                        if (nugetResults.Count > 0)
-                        {
-                            _logger?.LogInformation("Found {Count} NuGet packages", nugetResults.Count);
-
-                            // Format results similar to Umbraco packages
-                            var nugetDisplayChoices = nugetResults
-                                .Select(p =>
-                                {
-                                    var truncatedDesc = p.Description.Length > 100
-                                        ? p.Description.Substring(0, 100) + "..."
-                                        : p.Description;
-                                    return $"{p.Id} - {truncatedDesc} (by {string.Join(", ", p.Authors)})";
-                                })
-                                .ToList();
-
-                            // Add cancel option at top
-                            const string nugetCancelOption = "Cancel - go back to previous results";
-                            nugetDisplayChoices.Insert(0, nugetCancelOption);
-
-                            var selectedNuGet = AnsiConsole.Prompt(
-                                new SelectionPrompt<string>()
-                                    .Title($"Found [green]{nugetResults.Count}[/] package(s) on NuGet.org. Select one:")
-                                    .PageSize(10)
-                                    .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
-                                    .AddChoices(nugetDisplayChoices));
-
-                            if (selectedNuGet != nugetCancelOption)
-                            {
-                                // Extract the package ID from the selected display text
-                                var selectedNuGetPackage = nugetResults.First(p =>
-                                    selectedNuGet.StartsWith($"{p.Id} -"));
-
-                                selectedPackages.Add(selectedNuGetPackage.Id);
-                                AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {selectedNuGetPackage.Id}");
-                                _logger?.LogInformation("User added NuGet package: {PackageId}", selectedNuGetPackage.Id);
-                            }
-                            else
-                            {
-                                _logger?.LogInformation("User cancelled NuGet package selection");
-                            }
-                        }
-                        else
-                        {
-                            AnsiConsole.MarkupLine($"[yellow]No packages found on NuGet.org matching '{nugetSearchTerm}'.[/]");
-                            _logger?.LogInformation("No NuGet packages found matching: {SearchTerm}", nugetSearchTerm);
-                        }
-                    }
-                }
-                else
-                {
-                    // Extract the PackageId from the selected display text
-                    var selectedPackage = matchingPackages.First(p => p.DisplayText == selectedDisplay);
-                    selectedPackages.Add(selectedPackage.PackageId);
-                    AnsiConsole.MarkupLine($"[green]✓[/] Added package: {selectedPackage.PackageId}");
-                    _logger?.LogInformation("User selected package: {PackageId}", selectedPackage.PackageId);
-                }
+                selectedPackages.Add(selectedNuGetPackage.Id);
+                AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {selectedNuGetPackage.Id}");
+                _logger?.LogInformation("User added NuGet package: {PackageId}", selectedNuGetPackage.Id);
             }
             else
             {
-                // No matches found
-                AnsiConsole.MarkupLine($"[yellow]No packages found matching '{searchTerm}'.[/]");
-                _logger?.LogInformation("No packages found matching search term: {SearchTerm}", searchTerm);
-
-                // Check if the search term is a valid NuGet package ID
-                if (InputValidator.IsValidNuGetPackageId(searchTerm))
-                {
-                    AnsiConsole.MarkupLine("[dim]The search term appears to be a valid NuGet package ID.[/]");
-                    var addAnyway = AnsiConsole.Confirm($"Would you like to add [green]{searchTerm}[/] as a package anyway?", true);
-
-                    if (addAnyway)
-                    {
-                        selectedPackages.Add(searchTerm);
-                        AnsiConsole.MarkupLine($"[green]✓[/] Added package: {searchTerm}");
-                        _logger?.LogInformation("User added package not in marketplace: {PackageId}", searchTerm);
-                    }
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[dim]The search term is not a valid NuGet package ID format.[/]");
-                }
+                AnsiConsole.MarkupLine("[dim]Returning to main menu.[/]");
+                _logger?.LogInformation("User cancelled NuGet package selection");
             }
-
-            // Ask if they want to add another package
-            if (selectedPackages.Count > 0)
-            {
-                continueAdding = AnsiConsole.Confirm("Search for another package?", false);
-            }
-            else
-            {
-                continueAdding = AnsiConsole.Confirm("No packages added yet. Search for a package?", true);
-            }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[yellow]No packages found on NuGet.org matching '{searchTerm}'.[/]");
+            _logger?.LogInformation("No NuGet packages found matching: {SearchTerm}", searchTerm);
         }
 
         return selectedPackages;
