@@ -155,8 +155,10 @@ public class PackageSelector
             packageChoices = ApiConfiguration.PopularPackages.ToList();
         }
 
-        // Add cancel option at the top for easy access
+        // Add cancel option and NuGet search option at the top for easy access
         const string cancelOption = "Cancel - don't add any packages";
+        const string nugetSearchOption = "Search for package on nuget.org";
+        packageChoices.Insert(0, nugetSearchOption);
         packageChoices.Insert(0, cancelOption);
 
         var selections = AnsiConsole.Prompt(
@@ -167,13 +169,61 @@ public class PackageSelector
                 .InstructionsText("[grey](Press [blue]<space>[/] to toggle a package, [green]<enter>[/] to accept)[/]")
                 .AddChoices(packageChoices));
 
-        // If cancel was selected, return empty list
+        // Check for special options
         var selectedList = selections.ToList();
+
+        // If cancel was selected, return empty list
         if (selectedList.Contains(cancelOption))
         {
             AnsiConsole.MarkupLine("[dim]Cancelled package selection.[/]");
             _logger?.LogInformation("User cancelled package selection from popular packages list");
             return new List<string>();
+        }
+
+        // If NuGet search was selected, handle it
+        if (selectedList.Contains(nugetSearchOption))
+        {
+            // Remove the NuGet search option from the list
+            selectedList.Remove(nugetSearchOption);
+
+            var nugetPackageId = AnsiConsole.Ask<string>("Enter [green]NuGet package ID[/] (e.g., Newtonsoft.Json):");
+
+            if (!string.IsNullOrWhiteSpace(nugetPackageId))
+            {
+                nugetPackageId = nugetPackageId.Trim();
+
+                // Validate package ID format
+                if (InputValidator.IsValidNuGetPackageId(nugetPackageId))
+                {
+                    // Try to verify the package exists on NuGet
+                    AnsiConsole.MarkupLine($"[dim]Verifying package exists on NuGet.org...[/]");
+                    var versions = await GetPackageVersionsAsync(nugetPackageId);
+
+                    if (versions.Count > 0)
+                    {
+                        selectedList.Add(nugetPackageId);
+                        AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {nugetPackageId}");
+                        _logger?.LogInformation("User added NuGet package from popular list: {PackageId}", nugetPackageId);
+                    }
+                    else
+                    {
+                        AnsiConsole.MarkupLine($"[yellow]Could not find package '{nugetPackageId}' on NuGet.org.[/]");
+                        var addAnyway = AnsiConsole.Confirm($"Add [green]{nugetPackageId}[/] anyway?", false);
+
+                        if (addAnyway)
+                        {
+                            selectedList.Add(nugetPackageId);
+                            AnsiConsole.MarkupLine($"[green]✓[/] Added package: {nugetPackageId}");
+                            _logger?.LogInformation("User added unverified NuGet package from popular list: {PackageId}", nugetPackageId);
+                        }
+                    }
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine($"[red]'{nugetPackageId}' is not a valid NuGet package ID format.[/]");
+                    _logger?.LogWarning("Invalid NuGet package ID format from popular list: {PackageId}", nugetPackageId);
+                }
+            }
         }
 
         return selectedList;
@@ -225,8 +275,10 @@ public class PackageSelector
                 // Show matching packages in a select prompt (paged to 10)
                 var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
 
-                // Add cancel option at the top for easy access
+                // Add cancel option and NuGet search option at the top for easy access
                 const string cancelOption = "Cancel - don't add any of these packages";
+                const string nugetSearchOption = "Search for package on nuget.org";
+                displayChoices.Insert(0, nugetSearchOption);
                 displayChoices.Insert(0, cancelOption);
 
                 var selectedDisplay = AnsiConsole.Prompt(
@@ -241,6 +293,48 @@ public class PackageSelector
                 {
                     AnsiConsole.MarkupLine("[dim]Cancelled package selection.[/]");
                     _logger?.LogInformation("User cancelled package selection from search results");
+                }
+                // Check if user wants to search NuGet.org
+                else if (selectedDisplay == nugetSearchOption)
+                {
+                    var nugetPackageId = AnsiConsole.Ask<string>("Enter [green]NuGet package ID[/] (e.g., Newtonsoft.Json):");
+
+                    if (!string.IsNullOrWhiteSpace(nugetPackageId))
+                    {
+                        nugetPackageId = nugetPackageId.Trim();
+
+                        // Validate package ID format
+                        if (InputValidator.IsValidNuGetPackageId(nugetPackageId))
+                        {
+                            // Try to verify the package exists on NuGet
+                            AnsiConsole.MarkupLine($"[dim]Verifying package exists on NuGet.org...[/]");
+                            var versions = await GetPackageVersionsAsync(nugetPackageId);
+
+                            if (versions.Count > 0)
+                            {
+                                selectedPackages.Add(nugetPackageId);
+                                AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {nugetPackageId}");
+                                _logger?.LogInformation("User added NuGet package: {PackageId}", nugetPackageId);
+                            }
+                            else
+                            {
+                                AnsiConsole.MarkupLine($"[yellow]Could not find package '{nugetPackageId}' on NuGet.org.[/]");
+                                var addAnyway = AnsiConsole.Confirm($"Add [green]{nugetPackageId}[/] anyway?", false);
+
+                                if (addAnyway)
+                                {
+                                    selectedPackages.Add(nugetPackageId);
+                                    AnsiConsole.MarkupLine($"[green]✓[/] Added package: {nugetPackageId}");
+                                    _logger?.LogInformation("User added unverified NuGet package: {PackageId}", nugetPackageId);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            AnsiConsole.MarkupLine($"[red]'{nugetPackageId}' is not a valid NuGet package ID format.[/]");
+                            _logger?.LogWarning("Invalid NuGet package ID format: {PackageId}", nugetPackageId);
+                        }
+                    }
                 }
                 else
                 {
