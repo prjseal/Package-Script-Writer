@@ -184,6 +184,10 @@ public class PackageSelector
             packageChoices = ApiConfiguration.PopularPackages.ToList();
         }
 
+        // Add cancel option at the top
+        const string cancelOption = "Cancel - don't add any packages";
+        packageChoices.Insert(0, cancelOption);
+
         var selections = AnsiConsole.Prompt(
             new MultiSelectionPrompt<string>()
                 .Title("Select [green]one or more packages[/] (use Space to select, Enter to confirm):")
@@ -194,6 +198,14 @@ public class PackageSelector
 
         var selectedList = selections.ToList();
         var packageVersions = new Dictionary<string, string>();
+
+        // Check if cancel was selected
+        if (selectedList.Contains(cancelOption))
+        {
+            AnsiConsole.MarkupLine("[dim]Returning to main menu.[/]");
+            _logger?.LogInformation("User cancelled package selection from popular packages list");
+            return packageVersions;
+        }
 
         if (selectedList.Count > 0)
         {
