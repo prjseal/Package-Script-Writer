@@ -211,16 +211,20 @@ public class PackageSelector
             packageDisplayMap[displayText] = packageId;
         }
 
-        var selections = AnsiConsole.Prompt(
-            new MultiSelectionPrompt<string>()
-                .Title("Select packages to [green]keep[/] (uncheck to remove):")
-                .PageSize(10)
-                .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
-                .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                .AddChoices(displayChoices)
-                .Select(displayChoices)); // Pre-select all packages
+        var prompt = new MultiSelectionPrompt<string>()
+            .Title("Select packages to [green]keep[/] (uncheck to remove):")
+            .PageSize(10)
+            .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+            .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+            .AddChoices(displayChoices);
 
-        var keptDisplayTexts = selections.ToList();
+        // Pre-select all packages
+        foreach (var choice in displayChoices)
+        {
+            prompt.Select(choice);
+        }
+
+        var keptDisplayTexts = AnsiConsole.Prompt(prompt);
 
         // Create new dictionary with only the kept packages
         var updatedPackages = new Dictionary<string, string>();
