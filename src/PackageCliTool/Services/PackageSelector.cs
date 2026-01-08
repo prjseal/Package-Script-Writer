@@ -181,7 +181,34 @@ public class PackageSelector
         AnsiConsole.MarkupLine("[bold blue]Modify Selected Packages[/]\n");
         AnsiConsole.MarkupLine("[dim]Uncheck packages you want to remove, then press Enter to confirm.[/]\n");
 
-        var packageList = currentPackages.Keys.ToList();
+        // Create display strings with package ID and version
+        var packageDisplayMap = new Dictionary<string, string>();
+        var displayChoices = new List<string>();
+
+        foreach (var kvp in currentPackages)
+        {
+            var packageId = kvp.Key;
+            var version = kvp.Value;
+
+            // Format version for display
+            string versionDisplay;
+            if (string.IsNullOrEmpty(version))
+            {
+                versionDisplay = "Latest Stable";
+            }
+            else if (version == "--prerelease")
+            {
+                versionDisplay = "Pre-release";
+            }
+            else
+            {
+                versionDisplay = version;
+            }
+
+            var displayText = $"{packageId} ({versionDisplay})";
+            displayChoices.Add(displayText);
+            packageDisplayMap[displayText] = packageId;
+        }
 
         var selections = AnsiConsole.Prompt(
             new MultiSelectionPrompt<string>()
@@ -189,15 +216,16 @@ public class PackageSelector
                 .PageSize(10)
                 .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
                 .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
-                .AddChoices(packageList)
-                .Select(packageList)); // Pre-select all packages
+                .AddChoices(displayChoices)
+                .Select(displayChoices)); // Pre-select all packages
 
-        var keptPackages = selections.ToList();
+        var keptDisplayTexts = selections.ToList();
 
         // Create new dictionary with only the kept packages
         var updatedPackages = new Dictionary<string, string>();
-        foreach (var packageId in keptPackages)
+        foreach (var displayText in keptDisplayTexts)
         {
+            var packageId = packageDisplayMap[displayText];
             updatedPackages[packageId] = currentPackages[packageId];
         }
 
