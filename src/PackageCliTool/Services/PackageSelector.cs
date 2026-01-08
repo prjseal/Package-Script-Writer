@@ -119,6 +119,7 @@ public class PackageSelector
                         "Select from popular Umbraco packages",
                         "Search for package on Umbraco Marketplace",
                         "Search for package on nuget.org",
+                        "Modify selected packages",
                         "Done - finish package selection"
                     }));
 
@@ -150,6 +151,10 @@ public class PackageSelector
                     packageVersions[kvp.Key] = kvp.Value;
                 }
             }
+            else if (selectionMode == "Modify selected packages")
+            {
+                packageVersions = await ModifySelectedPackagesAsync(packageVersions);
+            }
 
             // Show current package count if any packages selected
             if (packageVersions.Count > 0 && continueSelecting)
@@ -159,6 +164,56 @@ public class PackageSelector
         }
 
         return packageVersions;
+    }
+
+    /// <summary>
+    /// Modify selected packages - allows deselecting packages that were already added
+    /// </summary>
+    private Task<Dictionary<string, string>> ModifySelectedPackagesAsync(Dictionary<string, string> currentPackages)
+    {
+        if (currentPackages.Count == 0)
+        {
+            AnsiConsole.MarkupLine("[yellow]No packages selected yet. Please add some packages first.[/]");
+            _logger?.LogInformation("User attempted to modify packages but none were selected");
+            return Task.FromResult(currentPackages);
+        }
+
+        AnsiConsole.MarkupLine("[bold blue]Modify Selected Packages[/]\n");
+        AnsiConsole.MarkupLine("[dim]Uncheck packages you want to remove, then press Enter to confirm.[/]\n");
+
+        var packageList = currentPackages.Keys.ToList();
+
+        var selections = AnsiConsole.Prompt(
+            new MultiSelectionPrompt<string>()
+                .Title("Select packages to [green]keep[/] (uncheck to remove):")
+                .PageSize(10)
+                .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+                .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+                .AddChoices(packageList)
+                .Select(packageList)); // Pre-select all packages
+
+        var keptPackages = selections.ToList();
+
+        // Create new dictionary with only the kept packages
+        var updatedPackages = new Dictionary<string, string>();
+        foreach (var packageId in keptPackages)
+        {
+            updatedPackages[packageId] = currentPackages[packageId];
+        }
+
+        // Show what was removed
+        var removedCount = currentPackages.Count - updatedPackages.Count;
+        if (removedCount > 0)
+        {
+            AnsiConsole.MarkupLine($"[yellow]Removed {removedCount} package(s)[/]");
+            _logger?.LogInformation("User removed {Count} packages", removedCount);
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("[dim]No packages removed.[/]");
+        }
+
+        return Task.FromResult(updatedPackages);
     }
 
     /// <summary>
