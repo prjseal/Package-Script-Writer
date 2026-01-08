@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-01-08
+
 ### Added
 - **Enhanced Package Selection System** - Completely redesigned package selection workflow with multiple discovery methods
   - New main menu with 5 options for adding packages
@@ -41,6 +43,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed compilation error in `ModifySelectedPackagesAsync` where `.Select()` was incorrectly called with a collection instead of individual items
 - Fixed issue where users could not press Enter if all packages were unchecked in the modify screen
+
+## [1.0.1] - 2026-01-05
+
+### Changed
+- **Community Templates API** - Migrated community templates data source from GitHub API to Package Script Writer API for improved performance and reliability
 
 ## [1.0.0] - 2025-12-18
 
@@ -85,5 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Secure password input
   - No script storage (regenerated from config)
 
-[Unreleased]: https://github.com/prjseal/Package-Script-Writer/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/prjseal/Package-Script-Writer/compare/v1.0.1...v1.1.0
+[1.0.1]: https://github.com/prjseal/Package-Script-Writer/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/prjseal/Package-Script-Writer/releases/tag/v1.0.0
