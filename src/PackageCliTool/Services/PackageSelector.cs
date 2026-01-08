@@ -216,6 +216,7 @@ public class PackageSelector
             .PageSize(10)
             .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
             .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+            .Required(false)
             .AddChoices(displayChoices);
 
         // Pre-select all packages
