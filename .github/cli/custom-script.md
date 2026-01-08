@@ -70,30 +70,75 @@ Enter solution name: MyCustomSolution
 
 ### 2. Packages
 
-Browse and select from 500+ Umbraco Marketplace packages:
+The package selection system provides multiple ways to discover and add packages with immediate version selection:
 
-**Selection**:
+**How would you like to add packages?**
+1. **Select from popular Umbraco packages** - Browse all marketplace packages
+2. **Search for package on Umbraco Marketplace** - Search by keyword
+3. **Search for package on nuget.org** - Find packages beyond the marketplace
+4. **Modify selected packages** - Review and remove previously selected packages
+5. **Done - finish package selection** - Continue with configuration
+
+**Selection Features**:
+- Cancel option at the top of all package lists
 - Use **Space** to select/deselect packages
 - Use **↑/↓** to navigate
-- Type to search/filter packages
-- Select **"Add custom package..."** to enter a package name manually
+- Immediate version selection after choosing each package
+- All cancel options return to the main package selection menu
 
-**Version Selection**:
-- For each selected package, choose a version
-- Options: Latest, Pre-release, or specific version
+**Version Selection (happens immediately after selecting each package)**:
+- Latest Stable - Uses most recent stable release
+- Pre-release - Uses latest pre-release version
+- Specific versions - Choose from list of available versions
 
-**Example:**
+**Modify Selected Packages**:
+After selecting packages, you can review and remove them:
+- All packages shown pre-selected
+- Package ID and version displayed on two lines
+- Uncheck any package to remove it
+- Can uncheck all packages to clear selections
+
+**Example Flow:**
 ```
+How would you like to add packages?
+> Select from popular Umbraco packages
+
 Select packages:
-  [X] uSync
-  [X] Diplo.GodMode
-  [X] Umbraco.Forms
+> Cancel - don't add any of these packages
   [ ] Umbraco.Community.BlockPreview
+  [X] uSync
+  [ ] Diplo.GodMode
 
 Select version for uSync:
-> 17.0.0 (latest stable)
-  17.0.0-beta1
+> Latest Stable
+  Pre-release
+  17.0.0
   16.0.0
+
+How would you like to add packages?
+> Search for package on nuget.org
+
+Enter search term: newtonsoft
+
+Search results (from nuget.org):
+> Cancel - don't add any of these packages
+  Newtonsoft.Json - Popular JSON framework for .NET (by James Newton-King)
+
+Select version for Newtonsoft.Json:
+> 13.0.3
+  13.0.2
+
+How would you like to add packages?
+> Modify selected packages
+
+Select packages to keep (uncheck to remove):
+  [X] uSync
+      - Latest Stable
+  [X] Newtonsoft.Json
+      - 13.0.3
+
+How would you like to add packages?
+> Done - finish package selection
 ```
 
 ### 3. Starter Kit
