@@ -336,6 +336,42 @@ The application is **intentionally stateless**:
 - All data fetched from external APIs
 - Perfect for sharing and CI/CD automation
 
+### Maintaining the Changelog
+
+**IMPORTANT**: When adding features or making changes, always update the CHANGELOG.md file.
+
+Location: `src/PackageCliTool/CHANGELOG.md`
+
+Process:
+1. Complete the feature and ensure builds/tests pass
+2. Add the change to the `[Unreleased]` section
+3. Use the appropriate category:
+   - `### Added` - New features
+   - `### Changed` - Changes to existing functionality
+   - `### Deprecated` - Soon-to-be removed features
+   - `### Removed` - Removed features
+   - `### Fixed` - Bug fixes
+   - `### Security` - Security-related changes
+
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standard:
+```markdown
+## [Unreleased]
+
+### Added
+- **Feature Name** - Brief description of the feature
+
+### Changed
+- **Updated Behavior** - What changed and why
+```
+
+Example:
+```markdown
+## [Unreleased]
+
+### Added
+- **Exit Option in Interactive Mode** - Added "Exit" option to the main menu for graceful application exit
+```
+
 ## Security Considerations
 
 - **No user input stored** - All data is transient
