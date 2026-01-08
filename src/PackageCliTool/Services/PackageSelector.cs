@@ -181,7 +181,7 @@ public class PackageSelector
         AnsiConsole.MarkupLine("[bold blue]Modify Selected Packages[/]\n");
         AnsiConsole.MarkupLine("[dim]Uncheck packages you want to remove, then press Enter to confirm.[/]\n");
 
-        // Create display strings with package ID and version
+        // Create display strings with package ID and version on separate lines
         var packageDisplayMap = new Dictionary<string, string>();
         var displayChoices = new List<string>();
 
@@ -205,7 +205,8 @@ public class PackageSelector
                 versionDisplay = version;
             }
 
-            var displayText = $"{packageId} ({versionDisplay})";
+            // Format with package ID on first line, version indented on second line
+            var displayText = $"{packageId}\n  → {versionDisplay}";
             displayChoices.Add(displayText);
             packageDisplayMap[displayText] = packageId;
         }
