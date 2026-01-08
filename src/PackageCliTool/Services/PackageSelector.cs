@@ -206,7 +206,7 @@ public class PackageSelector
             }
 
             // Format with package ID on first line, version indented on second line
-            var displayText = $"{packageId}\n  → {versionDisplay}";
+            var displayText = $"{packageId}\n  - {versionDisplay}";
             displayChoices.Add(displayText);
             packageDisplayMap[displayText] = packageId;
         }
