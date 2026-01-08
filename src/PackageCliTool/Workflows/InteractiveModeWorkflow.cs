@@ -94,7 +94,8 @@ public class InteractiveModeWorkflow
                         "Load script from history",
                         "Create new script",
                         "Load Umbraco versions table",
-                        "Help"
+                        "Help",
+                        "Exit"
                     }));
 
             switch (choice)
@@ -125,6 +126,11 @@ public class InteractiveModeWorkflow
 
                 case "Help":
                     ConsoleDisplay.DisplayHelp();
+                    break;
+
+                case "Exit":
+                    keepRunning = false;
+                    AnsiConsole.MarkupLine("[blue]Exiting application...[/]");
                     break;
 
             }
