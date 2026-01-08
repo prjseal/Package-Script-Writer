@@ -7,6 +7,7 @@ using PSW.Shared.Models;
 using static PSW.Shared.Enums.GlobalEnums;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Web;
 
 namespace PSW.Shared.Services;
 
@@ -144,5 +145,39 @@ public class MarketplacePackageService : IPackageService
         }
 
         return allPackages;
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "<Pending>")]
+    public async Task<List<NuGetSearchResult>> SearchNuGetPackagesAsync(string searchTerm, int take = 20)
+    {
+        try
+        {
+            // URL encode the search term
+            var encodedSearchTerm = HttpUtility.UrlEncode(searchTerm);
+
+            // NuGet.org search API endpoint
+            var url = $"https://azuresearch-usnc.nuget.org/query?q={encodedSearchTerm}&take={take}&prerelease=false";
+
+            var httpClient = _clientFactory.CreateClient();
+            var response = await httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new List<NuGetSearchResult>();
+            }
+
+            var searchResponse = await response.Content.ReadFromJsonAsync<NuGetSearchResponse>();
+
+            if (searchResponse?.Data != null)
+            {
+                return searchResponse.Data;
+            }
+
+            return new List<NuGetSearchResult>();
+        }
+        catch (Exception)
+        {
+            return new List<NuGetSearchResult>();
+        }
     }
 }

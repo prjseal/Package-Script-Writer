@@ -100,42 +100,160 @@ public class PackageSelector
     }
 
     /// <summary>
-    /// Allows user to select multiple packages using MultiSelectionPrompt
+    /// Allows user to select multiple packages with versions
     /// </summary>
-    public async Task<List<string>> SelectPackagesAsync()
+    public async Task<Dictionary<string, string>> SelectPackagesAsync()
     {
-        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Packages\n");
+        AnsiConsole.MarkupLine("[bold blue]Step 3:[/] Select Packages and Versions\n");
 
-        // Ask user how they want to select packages
-        var selectionMode = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title("How would you like to add packages?")
-                .AddChoices(new[] { "Select from popular packages", "Search for package", "None - skip packages" }));
+        var packageVersions = new Dictionary<string, string>();
+        var continueSelecting = true;
 
-        var selectedPackages = new List<string>();
-
-        if (selectionMode == "None - skip packages")
+        while (continueSelecting)
         {
-            AnsiConsole.MarkupLine("[dim]Skipping package selection...[/]");
-            return selectedPackages;
+            // Ask user how they want to select packages
+            var selectionMode = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("How would you like to add packages?")
+                    .AddChoices(new[] {
+                        "Select from popular Umbraco packages",
+                        "Search for package on Umbraco Marketplace",
+                        "Search for package on nuget.org",
+                        "Modify selected packages",
+                        "Done - finish package selection"
+                    }));
+
+            if (selectionMode == "Done - finish package selection")
+            {
+                continueSelecting = false;
+            }
+            else if (selectionMode == "Select from popular Umbraco packages")
+            {
+                var packages = await SelectPackagesFromListAsync();
+                foreach (var kvp in packages)
+                {
+                    packageVersions[kvp.Key] = kvp.Value;
+                }
+            }
+            else if (selectionMode == "Search for package on Umbraco Marketplace")
+            {
+                var packages = await SearchForPackagesAsync();
+                foreach (var kvp in packages)
+                {
+                    packageVersions[kvp.Key] = kvp.Value;
+                }
+            }
+            else if (selectionMode == "Search for package on nuget.org")
+            {
+                var packages = await SearchNuGetPackagesAsync();
+                foreach (var kvp in packages)
+                {
+                    packageVersions[kvp.Key] = kvp.Value;
+                }
+            }
+            else if (selectionMode == "Modify selected packages")
+            {
+                packageVersions = await ModifySelectedPackagesAsync(packageVersions);
+            }
+
+            // Show current package count if any packages selected
+            if (packageVersions.Count > 0 && continueSelecting)
+            {
+                AnsiConsole.MarkupLine($"\n[dim]Current selection: {packageVersions.Count} package(s)[/]\n");
+            }
         }
 
-        if (selectionMode == "Select from popular packages")
+        return packageVersions;
+    }
+
+    /// <summary>
+    /// Modify selected packages - allows deselecting packages that were already added
+    /// </summary>
+    private Task<Dictionary<string, string>> ModifySelectedPackagesAsync(Dictionary<string, string> currentPackages)
+    {
+        if (currentPackages.Count == 0)
         {
-            selectedPackages = await SelectPackagesFromListAsync();
-        }
-        else if (selectionMode == "Search for package")
-        {
-            selectedPackages = await SearchForPackagesAsync();
+            AnsiConsole.MarkupLine("[yellow]No packages selected yet. Please add some packages first.[/]");
+            _logger?.LogInformation("User attempted to modify packages but none were selected");
+            return Task.FromResult(currentPackages);
         }
 
-        return selectedPackages;
+        AnsiConsole.MarkupLine("[bold blue]Modify Selected Packages[/]\n");
+        AnsiConsole.MarkupLine("[dim]Uncheck packages you want to remove, then press Enter to confirm.[/]\n");
+
+        // Create display strings with package ID and version on separate lines
+        var packageDisplayMap = new Dictionary<string, string>();
+        var displayChoices = new List<string>();
+
+        foreach (var kvp in currentPackages)
+        {
+            var packageId = kvp.Key;
+            var version = kvp.Value;
+
+            // Format version for display
+            string versionDisplay;
+            if (string.IsNullOrEmpty(version))
+            {
+                versionDisplay = "Latest Stable";
+            }
+            else if (version == "--prerelease")
+            {
+                versionDisplay = "Pre-release";
+            }
+            else
+            {
+                versionDisplay = version;
+            }
+
+            // Format with package ID on first line, version indented on second line
+            var displayText = $"{packageId}\n  - {versionDisplay}";
+            displayChoices.Add(displayText);
+            packageDisplayMap[displayText] = packageId;
+        }
+
+        var prompt = new MultiSelectionPrompt<string>()
+            .Title("Select packages to [green]keep[/] (uncheck to remove):")
+            .PageSize(10)
+            .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+            .InstructionsText("[grey](Press [blue]<space>[/] to toggle, [green]<enter>[/] to confirm)[/]")
+            .Required(false)
+            .AddChoices(displayChoices);
+
+        // Pre-select all packages
+        foreach (var choice in displayChoices)
+        {
+            prompt.Select(choice);
+        }
+
+        var keptDisplayTexts = AnsiConsole.Prompt(prompt);
+
+        // Create new dictionary with only the kept packages
+        var updatedPackages = new Dictionary<string, string>();
+        foreach (var displayText in keptDisplayTexts)
+        {
+            var packageId = packageDisplayMap[displayText];
+            updatedPackages[packageId] = currentPackages[packageId];
+        }
+
+        // Show what was removed
+        var removedCount = currentPackages.Count - updatedPackages.Count;
+        if (removedCount > 0)
+        {
+            AnsiConsole.MarkupLine($"[yellow]Removed {removedCount} package(s)[/]");
+            _logger?.LogInformation("User removed {Count} packages", removedCount);
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("[dim]No packages removed.[/]");
+        }
+
+        return Task.FromResult(updatedPackages);
     }
 
     /// <summary>
     /// Select packages from the full list with pagination
     /// </summary>
-    private async Task<List<string>> SelectPackagesFromListAsync()
+    private async Task<Dictionary<string, string>> SelectPackagesFromListAsync()
     {
         var packageChoices = new List<string>();
 
@@ -155,6 +273,10 @@ public class PackageSelector
             packageChoices = ApiConfiguration.PopularPackages.ToList();
         }
 
+        // Add cancel option at the top
+        const string cancelOption = "Cancel - don't add any packages";
+        packageChoices.Insert(0, cancelOption);
+
         var selections = AnsiConsole.Prompt(
             new MultiSelectionPrompt<string>()
                 .Title("Select [green]one or more packages[/] (use Space to select, Enter to confirm):")
@@ -163,105 +285,293 @@ public class PackageSelector
                 .InstructionsText("[grey](Press [blue]<space>[/] to toggle a package, [green]<enter>[/] to accept)[/]")
                 .AddChoices(packageChoices));
 
-        return selections.ToList();
+        var selectedList = selections.ToList();
+        var packageVersions = new Dictionary<string, string>();
+
+        // Check if cancel was selected
+        if (selectedList.Contains(cancelOption))
+        {
+            AnsiConsole.MarkupLine("[dim]Returning to main menu.[/]");
+            _logger?.LogInformation("User cancelled package selection from popular packages list");
+            return packageVersions;
+        }
+
+        if (selectedList.Count > 0)
+        {
+            _logger?.LogInformation("User selected {Count} packages from popular list", selectedList.Count);
+
+            // For each selected package, prompt for version selection
+            foreach (var packageId in selectedList)
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {packageId}");
+
+                // Immediately select version for this package
+                var version = await SelectVersionForPackageAsync(packageId);
+                packageVersions[packageId] = version;
+            }
+        }
+
+        return packageVersions;
     }
 
     /// <summary>
     /// Search for packages using a search term
     /// </summary>
-    private async Task<List<string>> SearchForPackagesAsync()
+    private async Task<Dictionary<string, string>> SearchForPackagesAsync()
     {
-        var selectedPackages = new List<string>();
-        var continueAdding = true;
+        var packageVersions = new Dictionary<string, string>();
 
-        while (continueAdding)
+        // Ask user to enter a search term
+        var searchTerm = AnsiConsole.Ask<string>("Enter [green]search term[/] to find packages:");
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
         {
-            // Ask user to enter a search term
-            var searchTerm = AnsiConsole.Ask<string>("Enter [green]search term[/] to find packages:");
+            AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
+            return packageVersions;
+        }
 
-            if (string.IsNullOrWhiteSpace(searchTerm))
+        searchTerm = searchTerm.Trim();
+        _logger?.LogInformation("Searching for packages with term: {SearchTerm}", searchTerm);
+
+        // Search packages using LINQ - check Title, PackageId, and authors (case-insensitive)
+        var matchingPackages = _allPackages
+            .Where(p =>
+                (!string.IsNullOrWhiteSpace(p.Title) && p.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(p.PackageId) && p.PackageId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(p.Authors) && p.Authors.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            )
+            .Select(p => new
             {
-                AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
-                continue;
+                p.PackageId,
+                p.Title,
+                p.Authors,
+                DisplayText = $"{p.PackageId} - {p.Title ?? "No title"} (by {p.Authors ?? "Unknown"})"
+            })
+            .OrderBy(p => p.PackageId)
+            .ToList();
+
+        _logger?.LogInformation("Found {Count} matching packages", matchingPackages.Count);
+
+        if (matchingPackages.Count > 0)
+        {
+            // Show matching packages in a select prompt (paged to 10)
+            var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
+
+            // Add cancel option at the top
+            const string cancelOption = "Cancel - go back to main menu";
+            displayChoices.Insert(0, cancelOption);
+
+            var selectedDisplay = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Found [green]{matchingPackages.Count}[/] matching package(s). Select one:")
+                    .PageSize(10)
+                    .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+                    .AddChoices(displayChoices));
+
+            // Check if user selected cancel option
+            if (selectedDisplay == cancelOption)
+            {
+                AnsiConsole.MarkupLine("[dim]Returning to main menu.[/]");
+                _logger?.LogInformation("User cancelled package selection from search results");
             }
-
-            searchTerm = searchTerm.Trim();
-            _logger?.LogInformation("Searching for packages with term: {SearchTerm}", searchTerm);
-
-            // Search packages using LINQ - check Title, PackageId, and authors (case-insensitive)
-            var matchingPackages = _allPackages
-                .Where(p =>
-                    (!string.IsNullOrWhiteSpace(p.Title) && p.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.PackageId) && p.PackageId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) ||
-                    (!string.IsNullOrWhiteSpace(p.Authors) && p.Authors.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                )
-                .Select(p => new
-                {
-                    p.PackageId,
-                    p.Title,
-                    p.Authors,
-                    DisplayText = $"{p.PackageId} - {p.Title ?? "No title"} (by {p.Authors ?? "Unknown"})"
-                })
-                .OrderBy(p => p.PackageId)
-                .ToList();
-
-            _logger?.LogInformation("Found {Count} matching packages", matchingPackages.Count);
-
-            if (matchingPackages.Count > 0)
+            else
             {
-                // Show matching packages in a select prompt (paged to 10)
-                var displayChoices = matchingPackages.Select(p => p.DisplayText).ToList();
-
-                var selectedDisplay = AnsiConsole.Prompt(
-                    new SelectionPrompt<string>()
-                        .Title($"Found [green]{matchingPackages.Count}[/] matching package(s). Select one:")
-                        .PageSize(10)
-                        .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
-                        .AddChoices(displayChoices));
-
                 // Extract the PackageId from the selected display text
                 var selectedPackage = matchingPackages.First(p => p.DisplayText == selectedDisplay);
-                selectedPackages.Add(selectedPackage.PackageId);
-                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {selectedPackage.PackageId}");
-                _logger?.LogInformation("User selected package: {PackageId}", selectedPackage.PackageId);
+                var packageId = selectedPackage.PackageId;
+                AnsiConsole.MarkupLine($"[green]✓[/] Added package: {packageId}");
+                _logger?.LogInformation("User selected package: {PackageId}", packageId);
+
+                // Immediately select version for this package
+                var version = await SelectVersionForPackageAsync(packageId);
+                packageVersions[packageId] = version;
+            }
+        }
+        else
+        {
+            // No matches found
+            AnsiConsole.MarkupLine($"[yellow]No packages found matching '{searchTerm}'.[/]");
+            _logger?.LogInformation("No packages found matching search term: {SearchTerm}", searchTerm);
+
+            // Check if the search term is a valid NuGet package ID
+            if (InputValidator.IsValidNuGetPackageId(searchTerm))
+            {
+                AnsiConsole.MarkupLine("[dim]The search term appears to be a valid NuGet package ID.[/]");
+                var addAnyway = AnsiConsole.Confirm($"Would you like to add [green]{searchTerm}[/] as a package anyway?", true);
+
+                if (addAnyway)
+                {
+                    AnsiConsole.MarkupLine($"[green]✓[/] Added package: {searchTerm}");
+                    _logger?.LogInformation("User added package not in marketplace: {PackageId}", searchTerm);
+
+                    // Immediately select version for this package
+                    var version = await SelectVersionForPackageAsync(searchTerm);
+                    packageVersions[searchTerm] = version;
+                }
             }
             else
             {
-                // No matches found
-                AnsiConsole.MarkupLine($"[yellow]No packages found matching '{searchTerm}'.[/]");
-                _logger?.LogInformation("No packages found matching search term: {SearchTerm}", searchTerm);
-
-                // Check if the search term is a valid NuGet package ID
-                if (InputValidator.IsValidNuGetPackageId(searchTerm))
-                {
-                    AnsiConsole.MarkupLine("[dim]The search term appears to be a valid NuGet package ID.[/]");
-                    var addAnyway = AnsiConsole.Confirm($"Would you like to add [green]{searchTerm}[/] as a package anyway?", true);
-
-                    if (addAnyway)
-                    {
-                        selectedPackages.Add(searchTerm);
-                        AnsiConsole.MarkupLine($"[green]✓[/] Added package: {searchTerm}");
-                        _logger?.LogInformation("User added package not in marketplace: {PackageId}", searchTerm);
-                    }
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine("[dim]The search term is not a valid NuGet package ID format.[/]");
-                }
-            }
-
-            // Ask if they want to add another package
-            if (selectedPackages.Count > 0)
-            {
-                continueAdding = AnsiConsole.Confirm("Search for another package?", false);
-            }
-            else
-            {
-                continueAdding = AnsiConsole.Confirm("No packages added yet. Search for a package?", true);
+                AnsiConsole.MarkupLine("[dim]The search term is not a valid NuGet package ID format.[/]");
             }
         }
 
-        return selectedPackages;
+        return packageVersions;
+    }
+
+    /// <summary>
+    /// Select version for a single package
+    /// </summary>
+    private async Task<string> SelectVersionForPackageAsync(string packageId)
+    {
+        try
+        {
+            _logger?.LogDebug("Fetching versions for package: {Package}", packageId);
+
+            // Fetch versions with spinner (async)
+            var versions = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Dots)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync($"Fetching versions for [yellow]{packageId}[/]...", async ctx =>
+                {
+                    return await GetPackageVersionsAsync(packageId);
+                });
+
+            _logger?.LogDebug("Found {Count} versions for package {Package}", versions.Count, packageId);
+
+            // Build version choices with special options first
+            var versionChoices = new List<string>
+            {
+                "Latest Stable",
+                "Pre-release"
+            };
+
+            // Add actual versions if available
+            if (versions.Count > 0)
+            {
+                versionChoices.AddRange(versions);
+            }
+            else
+            {
+                ErrorHandler.Warning($"No specific versions found for {packageId}. Showing default options only.", _logger);
+            }
+
+            // Let user select a version
+            var selectedVersion = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Select version for [green]{packageId}[/]:")
+                    .PageSize(12)
+                    .MoreChoicesText("[grey](Move up and down to see more versions)[/]")
+                    .AddChoices(versionChoices));
+
+            // Map the selection to the appropriate value
+            if (selectedVersion == "Latest Stable")
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageId} - Latest Stable");
+                _logger?.LogInformation("Selected {Package} with latest stable version", packageId);
+                return "";
+            }
+            else if (selectedVersion == "Pre-release")
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageId} - Pre-release");
+                _logger?.LogInformation("Selected {Package} with pre-release version", packageId);
+                return "--prerelease";
+            }
+            else
+            {
+                AnsiConsole.MarkupLine($"[green]✓[/] Selected {packageId} version {selectedVersion}");
+                _logger?.LogInformation("Selected {Package} version {Version}", packageId, selectedVersion);
+                return selectedVersion;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogWarning(ex, "Error fetching versions for package {Package}", packageId);
+            ErrorHandler.Warning($"Error fetching versions for {packageId}: {ex.Message}. Using latest stable.", _logger);
+            return "";
+        }
+    }
+
+    /// <summary>
+    /// Search for packages on NuGet.org using search term
+    /// </summary>
+    private async Task<Dictionary<string, string>> SearchNuGetPackagesAsync()
+    {
+        var packageVersions = new Dictionary<string, string>();
+
+        // Ask user to enter a search term
+        var searchTerm = AnsiConsole.Ask<string>("Enter [green]NuGet search term[/] (e.g., json, logging, serilog):");
+
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            AnsiConsole.MarkupLine("[yellow]Search term cannot be empty.[/]");
+            return packageVersions;
+        }
+
+        searchTerm = searchTerm.Trim();
+        _logger?.LogInformation("Searching NuGet.org for: {SearchTerm}", searchTerm);
+
+        // Search NuGet.org
+        var nugetResults = await AnsiConsole.Status()
+            .Spinner(Spinner.Known.Dots)
+            .SpinnerStyle(Style.Parse("green"))
+            .StartAsync($"Searching NuGet.org for '{searchTerm}'...", async ctx =>
+            {
+                return await _packageService.SearchNuGetPackagesAsync(searchTerm, 20);
+            });
+
+        if (nugetResults.Count > 0)
+        {
+            _logger?.LogInformation("Found {Count} NuGet packages", nugetResults.Count);
+
+            // Format results with truncated descriptions
+            var nugetDisplayChoices = nugetResults
+                .Select(p =>
+                {
+                    var truncatedDesc = p.Description.Length > 100
+                        ? p.Description.Substring(0, 100) + "..."
+                        : p.Description;
+                    return $"{p.Id} - {truncatedDesc} (by {string.Join(", ", p.Authors)})";
+                })
+                .ToList();
+
+            // Add cancel option at top
+            const string cancelOption = "Cancel - go back to main menu";
+            nugetDisplayChoices.Insert(0, cancelOption);
+
+            var selectedNuGet = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title($"Found [green]{nugetResults.Count}[/] package(s) on NuGet.org. Select one:")
+                    .PageSize(10)
+                    .MoreChoicesText("[grey](Move up and down to see more packages)[/]")
+                    .AddChoices(nugetDisplayChoices));
+
+            if (selectedNuGet != cancelOption)
+            {
+                // Extract the package ID from the selected display text
+                var selectedNuGetPackage = nugetResults.First(p =>
+                    selectedNuGet.StartsWith($"{p.Id} -"));
+
+                var packageId = selectedNuGetPackage.Id;
+                AnsiConsole.MarkupLine($"[green]✓[/] Added NuGet package: {packageId}");
+                _logger?.LogInformation("User added NuGet package: {PackageId}", packageId);
+
+                // Immediately select version for this package
+                var version = await SelectVersionForPackageAsync(packageId);
+                packageVersions[packageId] = version;
+            }
+            else
+            {
+                AnsiConsole.MarkupLine("[dim]Returning to main menu.[/]");
+                _logger?.LogInformation("User cancelled NuGet package selection");
+            }
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[yellow]No packages found on NuGet.org matching '{searchTerm}'.[/]");
+            _logger?.LogInformation("No NuGet packages found matching: {SearchTerm}", searchTerm);
+        }
+
+        return packageVersions;
     }
 
     /// <summary>

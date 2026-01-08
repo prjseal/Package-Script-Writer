@@ -309,30 +309,99 @@ Enter solution name [MyCustomProject]: MyCustomSolution
 
 #### If you select "Packages":
 
-```
-Packages
+The package selection system offers multiple ways to find and add packages, with version selection happening immediately after each package is selected.
 
-Select one or more packages (use Space to select, Enter to confirm):
+```
+Step 3: Select Packages and Versions
+
+How would you like to add packages?
+> Select from popular Umbraco packages
+  Search for package on Umbraco Marketplace
+  Search for package on nuget.org
+  Modify selected packages
+  Done - finish package selection
+```
+
+**Option 1: Select from popular Umbraco packages**
+
+Browse all packages from the Umbraco Marketplace with a cancel option at the top:
+
+```
+Select packages (use Space to select, Enter to confirm):
+> Cancel - don't add any of these packages
   [ ] Umbraco.Community.BlockPreview
-  [X] Diplo.GodMode
-  [X] uSync
+  [ ] Diplo.GodMode
+  [ ] uSync
   [ ] Umbraco.Community.Contentment
   [ ] Umbraco.Forms
-  [X] Artikulate
+  [ ] Artikulate
   [ ] Our.Umbraco.GMaps
   ... (500+ packages available)
-  [ ] Add custom package...
+  (Page 1 of 50)
 ```
 
-Then for each selected package:
+**Option 2: Search for package on Umbraco Marketplace**
+
+Search for specific packages by name with a cancel option at the top:
+
+```
+Enter search term: god mode
+
+Search results:
+> Cancel - don't add any of these packages
+  Diplo.GodMode - God Mode for Umbraco
+  (1 result found)
+```
+
+**Option 3: Search for package on nuget.org**
+
+Search the full NuGet.org repository for packages not in the Umbraco Marketplace:
+
+```
+Enter search term: newtonsoft
+
+Search results (from nuget.org):
+> Cancel - don't add any of these packages
+  Newtonsoft.Json - Popular JSON framework for .NET (by James Newton-King)
+  Newtonsoft.Json.Schema - JSON Schema reader, generator, and validator (by James Newton-King)
+  ... (showing up to 20 results)
+```
+
+**Immediate version selection after each package:**
+
+After selecting any package, you immediately choose its version:
+
 ```
 Select version for Diplo.GodMode:
-> 3.0.3 (latest)
+> Latest Stable
+  Pre-release
+  3.0.3
   3.0.2
   3.0.1
   3.0.0
-  Specific version...
 ```
+
+**Option 4: Modify selected packages**
+
+Review and remove previously selected packages. All packages are pre-selected:
+
+```
+Select packages to keep (uncheck to remove):
+  [X] Diplo.GodMode
+      - 3.0.3
+  [X] uSync
+      - Latest Stable
+  [X] Newtonsoft.Json
+      - 13.0.3
+
+(Use Space to toggle, Enter to confirm)
+```
+
+You can uncheck any package to remove it, or uncheck all to clear your selections.
+
+**Option 5: Done - finish package selection**
+
+Returns to the configuration menu with all selected packages and their versions saved.
 
 #### If you select "Starter Kit":
 

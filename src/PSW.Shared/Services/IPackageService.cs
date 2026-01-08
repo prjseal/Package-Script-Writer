@@ -1,4 +1,5 @@
 ﻿using PSW.Shared.Models;
+using PSW.Shared.Models.NuGet;
 using static PSW.Shared.Enums.GlobalEnums;
 
 namespace PSW.Shared.Services;
@@ -10,4 +11,5 @@ public interface IPackageService
     Task<List<PagedPackagesPackage>> GetAllPackagesFromUmbracoAsync();
     Task<List<PagedPackagesPackage>> GetFromUmbracoMarketplaceAsync(UmbracoMarketplaceQueryType umbracoMarketplaceQueryType);
     Task<List<PagedPackagesPackage>> GetAllTemplatesFromUmbracoAsync();
+    Task<List<NuGetSearchResult>> SearchNuGetPackagesAsync(string searchTerm, int take = 20);
 }

@@ -208,63 +208,83 @@ flowchart TD
 
 ## 5. Package Selection Flow
 
-This diagram shows the three different modes for selecting packages (called from Configuration Editor).
+This diagram shows the five different options for selecting packages with immediate version selection after each package.
 
 ```mermaid
 flowchart TD
-    Start([Package Selection Flow]) --> AskMode{How to add packages?}
+    Start([Package Selection Flow]) --> MainLoop[Package Selection Main Loop]
 
-    AskMode -->|Select from popular| PopularMode[Popular Packages Mode]
-    AskMode -->|Search for package| SearchMode[Search Mode]
-    AskMode -->|None - skip| SkipMode[Skip Packages]
+    MainLoop --> AskMode{How would you like<br/>to add packages?<br/>Choices:<br/>- Select from popular<br/>- Search Marketplace<br/>- Search NuGet<br/>- Modify selected<br/>- Done}
+
+    AskMode -->|Select from popular<br/>Umbraco packages| PopularMode[Popular Packages Mode]
+    AskMode -->|Search for package on<br/>Umbraco Marketplace| MarketplaceSearchMode[Marketplace Search Mode]
+    AskMode -->|Search for package<br/>on nuget.org| NuGetSearchMode[NuGet Search Mode]
+    AskMode -->|Modify selected packages| ModifyMode[Modify Selected Packages Mode]
+    AskMode -->|Done - finish<br/>package selection| DoneMode[Done - Exit Loop]
 
     %% Popular Mode
-    PopularMode --> ShowAll[Display All Packages from API<br/>Multi-select prompt<br/>Page size: 10]
-    ShowAll --> UserSelects[User selects packages<br/>Space to toggle<br/>Enter to confirm]
-    UserSelects --> PackagesSelected[Packages Selected]
+    PopularMode --> ShowAll[Display All Packages from API<br/>Cancel option at TOP<br/>Multi-select prompt<br/>Page size: 10]
+    ShowAll --> UserSelectsPopular{User Selection}
+    UserSelectsPopular -->|Cancel| MainLoop
+    UserSelectsPopular -->|Packages selected| PopularSelected[Process each selected package]
+    PopularSelected --> VersionForPopular[Select version for package<br/>Immediate version selection]
+    VersionForPopular --> MorePopular{More packages<br/>to process?}
+    MorePopular -->|Yes| PopularSelected
+    MorePopular -->|No| MainLoop
 
-    %% Search Mode
-    SearchMode --> SearchLoop[Search Loop Start]
-    SearchLoop --> EnterTerm[Prompt: Enter search term]
-    EnterTerm --> ValidateTerm{Term not empty?}
-    ValidateTerm -->|No| EnterTerm
-    ValidateTerm -->|Yes| SearchAPI[Search in:<br/>- Title<br/>- PackageId<br/>- Authors<br/>case-insensitive]
+    %% Marketplace Search Mode
+    MarketplaceSearchMode --> MarketplaceLoop[Marketplace Search Loop]
+    MarketplaceLoop --> EnterMarketplaceTerm[Prompt: Enter search term]
+    EnterMarketplaceTerm --> SearchMarketplaceAPI[Search Umbraco Marketplace:<br/>- Title<br/>- PackageId<br/>- Authors<br/>case-insensitive]
 
-    SearchAPI --> FoundMatches{Found matches?}
+    SearchMarketplaceAPI --> FoundMarketplace{Found matches?}
 
-    FoundMatches -->|Yes| DisplayMatches[Display matching packages<br/>Show: PackageId - Title by Authors<br/>Page size: 10]
-    DisplayMatches --> UserPicksOne[User selects one package]
-    UserPicksOne --> AddToList[Add to selected list<br/>Show confirmation]
-    AddToList --> AskMore1{Search for another?}
+    FoundMarketplace -->|Yes| DisplayMarketplace[Display matching packages<br/>Cancel option at TOP<br/>Show: PackageId - Title by Authors<br/>Page size: 10]
+    DisplayMarketplace --> UserPicksMarketplace{User Selection}
+    UserPicksMarketplace -->|Cancel| MainLoop
+    UserPicksMarketplace -->|Package selected| VersionForMarketplace[Select version for package<br/>Immediate version selection]
+    VersionForMarketplace --> MainLoop
 
-    FoundMatches -->|No| ShowNoMatch[Show: No matches found]
-    ShowNoMatch --> ValidNuGet{Valid NuGet<br/>Package ID format?}
-    ValidNuGet -->|Yes| AskAddAnyway{Add anyway?}
-    AskAddAnyway -->|Yes| AddToList
-    AskAddAnyway -->|No| AskMore2{Search again?}
-    ValidNuGet -->|No| ShowInvalid[Show: Not valid NuGet ID]
-    ShowInvalid --> AskMore2
+    FoundMarketplace -->|No| ShowNoMarketplace[Show: No matches found<br/>in Marketplace]
+    ShowNoMarketplace --> MainLoop
 
-    AskMore1 -->|Yes| SearchLoop
-    AskMore1 -->|No| PackagesSelected
-    AskMore2 -->|Yes| SearchLoop
-    AskMore2 -->|No| CheckIfAnyAdded{Any packages added?}
-    CheckIfAnyAdded -->|Yes| PackagesSelected
-    CheckIfAnyAdded -->|No| NoPackages
+    %% NuGet Search Mode
+    NuGetSearchMode --> NuGetLoop[NuGet Search Loop]
+    NuGetLoop --> EnterNuGetTerm[Prompt: Enter search term]
+    EnterNuGetTerm --> SearchNuGetAPI[Search NuGet.org API:<br/>https://azuresearch-usnc.nuget.org/query<br/>Take: 20 results<br/>Prerelease: false]
 
-    %% Skip Mode
-    SkipMode --> NoPackages[No Packages Selected]
+    SearchNuGetAPI --> FoundNuGet{Found matches?}
 
-    %% Results
-    PackagesSelected --> VersionSelection[Package Version Selection Flow]
-    NoPackages --> Return[Return to Configuration Editor]
+    FoundNuGet -->|Yes| DisplayNuGet[Display NuGet packages<br/>Cancel option at TOP<br/>Show: PackageId - Description by Authors<br/>Truncate description to 100 chars<br/>Page size: 10]
+    DisplayNuGet --> UserPicksNuGet{User Selection}
+    UserPicksNuGet -->|Cancel| MainLoop
+    UserPicksNuGet -->|Package selected| VersionForNuGet[Select version for package<br/>Immediate version selection]
+    VersionForNuGet --> MainLoop
 
-    VersionSelection --> Return
+    FoundNuGet -->|No| ShowNoNuGet[Show: No matches found<br/>on NuGet.org]
+    ShowNoNuGet --> MainLoop
+
+    %% Modify Mode
+    ModifyMode --> CheckHasPackages{Any packages<br/>selected yet?}
+    CheckHasPackages -->|No| ShowNoPackages[Show: No packages selected yet]
+    ShowNoPackages --> MainLoop
+
+    CheckHasPackages -->|Yes| DisplayModify[Display Multi-Select List<br/>All packages pre-selected<br/>Show package and version on 2 lines:<br/>PackageId<br/>  - Version<br/>Required: false<br/>Page size: 10]
+    DisplayModify --> UserModifies[User toggles selections<br/>Space to toggle<br/>Enter to confirm]
+    UserModifies --> UpdateSelections[Update package dictionary<br/>Remove unchecked packages]
+    UpdateSelections --> ShowRemoved[Show removed count]
+    ShowRemoved --> MainLoop
+
+    %% Done Mode
+    DoneMode --> Return[Return to Configuration Editor<br/>with package dictionary]
 
     style Start fill:#FFE4B5
     style PopularMode fill:#E6E6FA
-    style SearchMode fill:#E6E6FA
-    style SkipMode fill:#E6E6FA
+    style MarketplaceSearchMode fill:#E6E6FA
+    style NuGetSearchMode fill:#E6E6FA
+    style ModifyMode fill:#E6E6FA
+    style DoneMode fill:#90EE90
+    style MainLoop fill:#87CEEB
     style Return fill:#E6E6FA
 ```
 
@@ -426,10 +446,15 @@ flowchart TD
    - Display configuration table
    - Choice: Edit again or Generate script
 4. **Template Selection Flow** → Sub-flow for selecting template and version
-5. **Package Selection Flow** → Sub-flow for selecting packages (3 modes)
-6. **Package Version Selection Flow** → Sub-flow for selecting versions for each package
-7. **Starter Kit Selection Flow** → Sub-flow for selecting starter kit and version
-8. **Script Actions Flow** → Run, Edit, Copy, Save, or Start Over
+5. **Package Selection Flow** → Main loop with 5 options:
+   - Select from popular Umbraco packages (with cancel option)
+   - Search for package on Umbraco Marketplace (with cancel option)
+   - Search for package on nuget.org (with cancel option)
+   - Modify selected packages (review and remove with two-line display)
+   - Done - finish package selection
+   - Version selection happens immediately after each package
+6. **Starter Kit Selection Flow** → Sub-flow for selecting starter kit and version
+7. **Script Actions Flow** → Run, Edit, Copy, Save, or Start Over
 
 ### Key Features
 

@@ -67,6 +67,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="CHANGELOG.md" Pack="true" PackagePath="\" />
     <None Include="icon.png" Pack="true" PackagePath="\" />
 	<None Include="appsettings.json" CopyToOutputDirectory="Always" Pack="true" PackagePath="contentFiles/any/any/" />
 	<None Include="packages-cache.json" CopyToOutputDirectory="Always" Pack="true" PackagePath="contentFiles/any/any/" />
