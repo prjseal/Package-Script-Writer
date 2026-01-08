@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed compilation error in `ModifySelectedPackagesAsync` where `.Select()` was incorrectly called with a collection instead of individual items
 - Fixed issue where users could not press Enter if all packages were unchecked in the modify screen
 
-## [1.0.1] - 2026-01-08
+## [1.0.1] - 2026-01-05
 
 ### Changed
 - **Community Templates API** - Migrated community templates data source from GitHub API to Package Script Writer API for improved performance and reliability
