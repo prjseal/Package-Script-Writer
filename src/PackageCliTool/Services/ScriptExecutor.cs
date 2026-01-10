@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using PackageCliTool.Exceptions;
 using PackageCliTool.Validation;
+using System.Diagnostics;
 
 namespace PackageCliTool.Services;
 
@@ -13,6 +14,9 @@ public class ScriptExecutor
     private readonly ILogger? _logger;
     private readonly CommandValidator _commandValidator;
     private readonly bool _skipValidation;
+    private static readonly List<Process> _activeProcesses = new();
+    private static readonly object _processLock = new();
+    private static bool _cleanupHandlersRegistered = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScriptExecutor"/> class
@@ -28,6 +32,114 @@ public class ScriptExecutor
         if (skipValidation)
         {
             _logger?.LogWarning("Command validation is DISABLED - scripts will execute without safety checks");
+        }
+
+        // Register cleanup handlers on first instance
+        RegisterCleanupHandlers();
+    }
+
+    /// <summary>
+    /// Registers handlers to clean up processes when the application exits
+    /// </summary>
+    private void RegisterCleanupHandlers()
+    {
+        lock (_processLock)
+        {
+            if (_cleanupHandlersRegistered)
+            {
+                return;
+            }
+
+            // Handle Ctrl+C
+            Console.CancelKeyPress += (sender, e) =>
+            {
+                _logger?.LogInformation("Ctrl+C detected, cleaning up processes...");
+                CleanupAllProcesses();
+            };
+
+            // Handle application exit
+            AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+            {
+                _logger?.LogInformation("Application exiting, cleaning up processes...");
+                CleanupAllProcesses();
+            };
+
+            _cleanupHandlersRegistered = true;
+            _logger?.LogDebug("Process cleanup handlers registered");
+        }
+    }
+
+    /// <summary>
+    /// Cleans up all active processes and their children
+    /// </summary>
+    private static void CleanupAllProcesses()
+    {
+        lock (_processLock)
+        {
+            foreach (var process in _activeProcesses.ToList())
+            {
+                try
+                {
+                    if (!process.HasExited)
+                    {
+                        KillProcessAndChildren(process);
+                    }
+                }
+                catch
+                {
+                    // Process may have already exited
+                }
+            }
+            _activeProcesses.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Kills a process and all its child processes
+    /// </summary>
+    private static void KillProcessAndChildren(Process process)
+    {
+        try
+        {
+            if (process.HasExited)
+            {
+                return;
+            }
+
+            // On Unix systems, kill the entire process group
+            if (!OperatingSystem.IsWindows())
+            {
+                try
+                {
+                    // Send SIGTERM to the process group
+                    var killProcess = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "/bin/bash",
+                            Arguments = $"-c \"pkill -P {process.Id}; kill {process.Id}\"",
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        }
+                    };
+                    killProcess.Start();
+                    killProcess.WaitForExit(1000);
+                }
+                catch
+                {
+                    // Fallback to direct kill
+                    process.Kill(entireProcessTree: true);
+                }
+            }
+            else
+            {
+                // On Windows, kill the process tree
+                process.Kill(entireProcessTree: true);
+            }
+        }
+        catch
+        {
+            // Process may have already exited
         }
     }
 
@@ -116,38 +228,70 @@ public class ScriptExecutor
 
         process.Start();
 
-        // Write the filtered script content to stdin
-        // For Windows cmd.exe, prepend @echo off to suppress command echoing
-        if (isWindows)
+        // Track the process for cleanup
+        lock (_processLock)
         {
-            await process.StandardInput.WriteLineAsync("@echo off");
+            _activeProcesses.Add(process);
         }
-        await process.StandardInput.WriteAsync(filteredScript);
-        await process.StandardInput.FlushAsync();
-        process.StandardInput.Close();
 
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-
-        await process.WaitForExitAsync();
-
-        if (process.ExitCode == 0)
+        try
         {
-            _logger?.LogInformation("Script executed successfully with exit code 0");
-            AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("[green]✓ Script executed successfully![/]");
+            // Write the filtered script content to stdin
+            // For Windows cmd.exe, prepend @echo off to suppress command echoing
+            if (isWindows)
+            {
+                await process.StandardInput.WriteLineAsync("@echo off");
+            }
+            await process.StandardInput.WriteAsync(filteredScript);
+            await process.StandardInput.FlushAsync();
+            process.StandardInput.Close();
+
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0)
+            {
+                _logger?.LogInformation("Script executed successfully with exit code 0");
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine("[green]✓ Script executed successfully![/]");
+            }
+            else
+            {
+                _logger?.LogWarning("Script exited with non-zero code: {ExitCode}", process.ExitCode);
+                AnsiConsole.WriteLine();
+                AnsiConsole.MarkupLine($"[yellow]⚠ Script exited with code {process.ExitCode}[/]");
+
+                throw new ScriptExecutionException(
+                    $"Script execution failed with exit code {process.ExitCode}",
+                    process.ExitCode,
+                    "Check the script output above for error details"
+                );
+            }
         }
-        else
+        finally
         {
-            _logger?.LogWarning("Script exited with non-zero code: {ExitCode}", process.ExitCode);
-            AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine($"[yellow]⚠ Script exited with code {process.ExitCode}[/]");
+            // Remove from active processes and clean up
+            lock (_processLock)
+            {
+                _activeProcesses.Remove(process);
+            }
 
-            throw new ScriptExecutionException(
-                $"Script execution failed with exit code {process.ExitCode}",
-                process.ExitCode,
-                "Check the script output above for error details"
-            );
+            // Ensure any child processes are cleaned up
+            if (!process.HasExited)
+            {
+                try
+                {
+                    KillProcessAndChildren(process);
+                }
+                catch
+                {
+                    // Process may have already exited
+                }
+            }
+
+            process.Dispose();
         }
     }
 
