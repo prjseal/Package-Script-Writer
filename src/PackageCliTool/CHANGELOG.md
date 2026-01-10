@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Process Cleanup on Exit** - Fixed issue where `dotnet run` processes spawned by scripts would continue running in the background after the CLI tool exited
+  - Added automatic tracking and cleanup of all spawned processes
+  - Implemented graceful shutdown handlers for Ctrl+C and application exit
+  - Process trees are now properly terminated on both Windows and Unix systems
+
 ## [1.1.1] - 2026-01-08
 
 ### Added
