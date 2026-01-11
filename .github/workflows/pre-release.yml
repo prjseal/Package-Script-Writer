@@ -1,0 +1,295 @@
+name: Pre-Release - Prepare Changelog
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.2.0)'
+        required: true
+        type: string
+
+jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    if: github.repository == 'prjseal/Package-Script-Writer'
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version format
+        id: validate
+        shell: bash
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          echo "Input version: $VERSION"
+
+          # Validate version format (X.Y.Z or X.Y.Z-suffix)
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)?$ ]]; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected format: X.Y.Z or X.Y.Z-suffix (e.g., 1.2.0 or 1.2.0-beta)"
+            exit 1
+          fi
+
+          echo "✅ Version format is valid: $VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+          # Get current date in YYYY-MM-DD format
+          RELEASE_DATE=$(date +%Y-%m-%d)
+          echo "release_date=$RELEASE_DATE" >> $GITHUB_OUTPUT
+          echo "Release date: $RELEASE_DATE"
+
+      - name: Check if unreleased section has content
+        id: check_content
+        shell: bash
+        run: |
+          CHANGELOG_PATH="src/PackageCliTool/CHANGELOG.md"
+
+          # Extract content between [Unreleased] and the next version heading
+          UNRELEASED_CONTENT=$(sed -n '/^## \[Unreleased\]/,/^## \[/p' "$CHANGELOG_PATH" | sed '$d' | tail -n +2)
+
+          # Remove empty lines and check if there's actual content
+          CONTENT_CHECK=$(echo "$UNRELEASED_CONTENT" | sed '/^$/d' | grep -v '^[[:space:]]*$' || true)
+
+          if [ -z "$CONTENT_CHECK" ]; then
+            echo "❌ No unreleased changes found in CHANGELOG.md"
+            echo "The [Unreleased] section is empty. Please add changelog entries before creating a release."
+            exit 1
+          fi
+
+          echo "✅ Found unreleased changes in CHANGELOG.md"
+
+      - name: Update CHANGELOG.md
+        id: update_changelog
+        shell: bash
+        run: |
+          VERSION="${{ steps.validate.outputs.version }}"
+          RELEASE_DATE="${{ steps.validate.outputs.release_date }}"
+          CHANGELOG_PATH="src/PackageCliTool/CHANGELOG.md"
+
+          echo "Updating CHANGELOG.md..."
+          echo "Version: $VERSION"
+          echo "Date: $RELEASE_DATE"
+
+          # Create a temporary file
+          TEMP_FILE=$(mktemp)
+
+          # Read the changelog and process it
+          FOUND_UNRELEASED=false
+          FOUND_FIRST_VERSION=false
+          INSERTED_NEW_VERSION=false
+
+          while IFS= read -r line; do
+            # Check if we found the [Unreleased] section
+            if [[ "$line" == "## [Unreleased]" ]]; then
+              FOUND_UNRELEASED=true
+              echo "$line" >> "$TEMP_FILE"
+              echo "" >> "$TEMP_FILE"
+              continue
+            fi
+
+            # If we found unreleased and now hit the next version header, insert the new version
+            if [[ "$FOUND_UNRELEASED" == true ]] && [[ "$FOUND_FIRST_VERSION" == false ]] && [[ "$line" =~ ^##\ \[([0-9]+\.[0-9]+\.[0-9]+.*)\] ]]; then
+              FOUND_FIRST_VERSION=true
+              # Insert the new version section
+              echo "## [$VERSION] - $RELEASE_DATE" >> "$TEMP_FILE"
+              echo "" >> "$TEMP_FILE"
+              INSERTED_NEW_VERSION=true
+            fi
+
+            # Skip empty lines immediately after [Unreleased] header until we hit content
+            if [[ "$FOUND_UNRELEASED" == true ]] && [[ "$FOUND_FIRST_VERSION" == false ]] && [[ -z "$line" ]]; then
+              continue
+            fi
+
+            # Write the line
+            echo "$line" >> "$TEMP_FILE"
+          done < "$CHANGELOG_PATH"
+
+          # Move temp file to original
+          mv "$TEMP_FILE" "$CHANGELOG_PATH"
+
+          echo "✅ CHANGELOG.md updated with version $VERSION"
+
+          # Extract the latest version (second one after [Unreleased])
+          PREVIOUS_VERSION=$(grep -m 2 '^## \[' "$CHANGELOG_PATH" | tail -n 1 | sed -E 's/^## \[([^]]+)\].*/\1/')
+          echo "previous_version=$PREVIOUS_VERSION" >> $GITHUB_OUTPUT
+          echo "Previous version: $PREVIOUS_VERSION"
+
+      - name: Update version links at bottom of CHANGELOG
+        shell: bash
+        run: |
+          VERSION="${{ steps.validate.outputs.version }}"
+          PREVIOUS_VERSION="${{ steps.update_changelog.outputs.previous_version }}"
+          CHANGELOG_PATH="src/PackageCliTool/CHANGELOG.md"
+
+          echo "Updating version comparison links..."
+
+          # Get the version before the one we just added (to update the Unreleased link)
+          # This will be used to create the new Unreleased comparison link
+
+          # Create temporary file
+          TEMP_FILE=$(mktemp)
+
+          # Process the file
+          IN_LINKS_SECTION=false
+          UPDATED_UNRELEASED=false
+          ADDED_NEW_VERSION_LINK=false
+
+          while IFS= read -r line; do
+            # Check if we're in the links section (starts with [X.Y.Z]:)
+            if [[ "$line" =~ ^\[([0-9]+\.[0-9]+\.[0-9]+.*)\]: ]]; then
+              IN_LINKS_SECTION=true
+            fi
+
+            # Update [Unreleased] link
+            if [[ "$line" =~ ^\[Unreleased\]: ]] && [[ "$UPDATED_UNRELEASED" == false ]]; then
+              echo "[Unreleased]: https://github.com/prjseal/Package-Script-Writer/compare/v${VERSION}...HEAD" >> "$TEMP_FILE"
+              UPDATED_UNRELEASED=true
+              continue
+            fi
+
+            # Add new version link after [Unreleased]
+            if [[ "$IN_LINKS_SECTION" == true ]] && [[ "$ADDED_NEW_VERSION_LINK" == false ]] && [[ "$line" =~ ^\[([0-9]+\.[0-9]+\.[0-9]+.*)\]: ]]; then
+              echo "[$VERSION]: https://github.com/prjseal/Package-Script-Writer/compare/v${PREVIOUS_VERSION}...v${VERSION}" >> "$TEMP_FILE"
+              ADDED_NEW_VERSION_LINK=true
+            fi
+
+            echo "$line" >> "$TEMP_FILE"
+          done < "$CHANGELOG_PATH"
+
+          # Move temp file to original
+          mv "$TEMP_FILE" "$CHANGELOG_PATH"
+
+          echo "✅ Version comparison links updated"
+
+      - name: Display updated CHANGELOG
+        shell: bash
+        run: |
+          echo "══════════════════════════════════════════════════"
+          echo "📝 Updated CHANGELOG.md Preview"
+          echo "══════════════════════════════════════════════════"
+          head -n 50 src/PackageCliTool/CHANGELOG.md
+          echo "══════════════════════════════════════════════════"
+
+      - name: Create Pull Request
+        id: create_pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          VERSION="${{ steps.validate.outputs.version }}"
+          RELEASE_DATE="${{ steps.validate.outputs.release_date }}"
+          BRANCH_NAME="release/prepare-v${VERSION}"
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Create and checkout new branch
+          git checkout -b "$BRANCH_NAME"
+
+          # Add and commit changes
+          git add src/PackageCliTool/CHANGELOG.md
+          git commit -m "chore: prepare release v${VERSION}
+
+          - Move unreleased changes to version ${VERSION}
+          - Update changelog links
+          - Release date: ${RELEASE_DATE}"
+
+          # Push branch
+          git push -u origin "$BRANCH_NAME"
+
+          # Create PR body
+          PR_BODY="## 🚀 Pre-Release Preparation for v${VERSION}
+
+          This PR prepares the changelog for the upcoming **v${VERSION}** release.
+
+          ### Changes
+          - ✅ Moved unreleased changes to version **${VERSION}** section
+          - ✅ Updated changelog comparison links
+          - ✅ Set release date to **${RELEASE_DATE}**
+
+          ### Next Steps
+          1. Review the changelog updates
+          2. Merge this PR to main
+          3. Create a GitHub release with tag \`v${VERSION}\`
+          4. The \`cli-publish.yml\` workflow will automatically publish to NuGet
+
+          ### Changelog Preview
+
+          \`\`\`markdown
+          ## [${VERSION}] - ${RELEASE_DATE}
+          \`\`\`
+
+          See the full changes in the Files Changed tab.
+
+          ---
+          *This PR was automatically created by the Pre-Release workflow*
+          *Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*"
+
+          # Create pull request
+          PR_URL=$(gh pr create \
+            --title "chore: prepare release v${VERSION}" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH_NAME" \
+            --label "release" \
+            --label "documentation")
+
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "✅ Pull request created: $PR_URL"
+
+      - name: Generate Summary
+        if: always()
+        shell: bash
+        run: |
+          VERSION="${{ steps.validate.outputs.version }}"
+          RELEASE_DATE="${{ steps.validate.outputs.release_date }}"
+          PR_URL="${{ steps.create_pr.outputs.pr_url }}"
+
+          # Determine status
+          if [ -n "$PR_URL" ]; then
+            STATUS="✅ Success"
+          else
+            STATUS="❌ Failed"
+          fi
+
+          # Create GitHub Actions Summary
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          # 📝 Pre-Release Preparation Summary
+
+          ## Release Information
+          | Property | Value |
+          |----------|-------|
+          | **Version** | \`${VERSION}\` |
+          | **Release Date** | ${RELEASE_DATE} |
+          | **Status** | ${STATUS} |
+
+          ## Results
+
+          $(if [ -n "$PR_URL" ]; then
+            echo "### ✅ Pull Request Created"
+            echo ""
+            echo "**PR URL**: ${PR_URL}"
+            echo ""
+            echo "### Next Steps"
+            echo "1. Review the pull request"
+            echo "2. Merge the PR to main"
+            echo "3. Create a GitHub release with tag \`v${VERSION}\`"
+            echo "4. The CLI will be automatically published to NuGet"
+          else
+            echo "### ❌ Failed to Create Pull Request"
+            echo ""
+            echo "Check the workflow logs for details."
+          fi)
+
+          ---
+          *Workflow triggered by: @${{ github.actor }}*
+          *Workflow run: [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
+          EOF
