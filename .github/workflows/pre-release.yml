@@ -168,6 +168,30 @@ jobs:
 
           echo "✅ Version comparison links updated"
 
+      - name: Extract release notes
+        id: extract_notes
+        shell: bash
+        run: |
+          VERSION="${{ steps.validate.outputs.version }}"
+          CHANGELOG_PATH="src/PackageCliTool/CHANGELOG.md"
+
+          echo "Extracting release notes for version $VERSION..."
+
+          # Extract content between [VERSION] and the next ## heading
+          RELEASE_NOTES=$(sed -n "/^## \[${VERSION}\]/,/^## \[/p" "$CHANGELOG_PATH" | sed '$d' | tail -n +2 | sed 's/^[[:space:]]*$//' | sed '/./,$!d')
+
+          # Save to file for multi-line output
+          echo "$RELEASE_NOTES" > release_notes.txt
+
+          # Also save to output (escaped for GitHub Actions)
+          {
+            echo 'notes<<EOF'
+            echo "$RELEASE_NOTES"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+          echo "✅ Release notes extracted"
+
       - name: Display updated CHANGELOG
         shell: bash
         run: |
@@ -175,6 +199,11 @@ jobs:
           echo "📝 Updated CHANGELOG.md Preview"
           echo "══════════════════════════════════════════════════"
           head -n 50 src/PackageCliTool/CHANGELOG.md
+          echo "══════════════════════════════════════════════════"
+          echo ""
+          echo "📋 Release Notes for GitHub Release:"
+          echo "══════════════════════════════════════════════════"
+          cat release_notes.txt
           echo "══════════════════════════════════════════════════"
 
       - name: Create Pull Request
@@ -205,7 +234,10 @@ jobs:
           # Push branch
           git push -u origin "$BRANCH_NAME"
 
-          # Create PR body
+          # Read release notes from file
+          RELEASE_NOTES=$(cat release_notes.txt)
+
+          # Create PR body with release notes
           PR_BODY="## 🚀 Pre-Release Preparation for v${VERSION}
 
           This PR prepares the changelog for the upcoming **v${VERSION}** release.
@@ -221,13 +253,11 @@ jobs:
           3. Create a GitHub release with tag \`v${VERSION}\`
           4. The \`cli-publish.yml\` workflow will automatically publish to NuGet
 
-          ### Changelog Preview
+          ### 📋 Release Notes (Copy for GitHub Release)
 
           \`\`\`markdown
-          ## [${VERSION}] - ${RELEASE_DATE}
+          ${RELEASE_NOTES}
           \`\`\`
-
-          See the full changes in the Files Changed tab.
 
           ---
           *This PR was automatically created by the Pre-Release workflow*
@@ -260,6 +290,12 @@ jobs:
             STATUS="❌ Failed"
           fi
 
+          # Read release notes if available
+          RELEASE_NOTES=""
+          if [ -f "release_notes.txt" ]; then
+            RELEASE_NOTES=$(cat release_notes.txt)
+          fi
+
           # Create GitHub Actions Summary
           cat << EOF >> $GITHUB_STEP_SUMMARY
           # 📝 Pre-Release Preparation Summary
@@ -287,6 +323,17 @@ jobs:
             echo "### ❌ Failed to Create Pull Request"
             echo ""
             echo "Check the workflow logs for details."
+          fi)
+
+          $(if [ -n "$RELEASE_NOTES" ]; then
+            echo ""
+            echo "## 📋 Release Notes for GitHub Release"
+            echo ""
+            echo "Copy the content below when creating the GitHub release:"
+            echo ""
+            echo "\`\`\`markdown"
+            echo "$RELEASE_NOTES"
+            echo "\`\`\`"
           fi)
 
           ---
