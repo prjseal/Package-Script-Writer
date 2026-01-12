@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added automatic tracking and cleanup of all spawned processes
   - Implemented graceful shutdown handlers for Ctrl+C and application exit
   - Process trees are now properly terminated on both Windows and Unix systems
+## [1.1.2] - 2026-01-12
 
 ## [1.1.1] - 2026-01-08
 
@@ -103,7 +104,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Secure password input
   - No script storage (regenerated from config)
 
-[Unreleased]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.2...v1.1.2
 [1.1.1]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/prjseal/Package-Script-Writer/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/prjseal/Package-Script-Writer/compare/v1.0.0...v1.0.1
