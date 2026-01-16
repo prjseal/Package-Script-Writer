@@ -5,7 +5,7 @@ All notable changes to Package Script Writer CLI will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.1.2] - 2026-01-16
 
 ### Fixed
 - **Process Cleanup on Exit** - Fixed issue where `dotnet run` processes spawned by scripts would continue running in the background after the CLI tool exited
