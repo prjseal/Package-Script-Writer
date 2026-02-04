@@ -355,16 +355,198 @@ psw --clear-cache
 
 **Talking Point**: *"Works offline after first fetch - perfect for trains, planes, and coffee shops with bad Wi-Fi."*
 
-### Scenario 8: "The Security Conscious"
+### Scenario 8: "The Security Conscious" (Trust & Transparency)
 
-Show command validation:
+**Story**: *"How do I know --auto-run won't do something malicious on my machine?"*
 
-```bash
-# Try to generate a script with dangerous commands
-# (PSW's command validator will catch it)
+**Why it's compelling**: Addresses the elephant in the room and turns security concerns into selling points.
+
+This is a **critical scenario** - proactively address security before anyone asks. It builds trust and shows you've thought about safety.
+
+#### Demo Flow
+
+**1. Acknowledge the Concern**
+
+*"I know what you're thinking - 'auto-run sounds scary.' Let me show you why it's actually safer than you might think."*
+
+**2. Show the Open Source Code**
+
+Open GitHub in browser:
+```
+https://github.com/prjseal/Package-Script-Writer
 ```
 
-**Talking Point**: *"PSW validates every command - no rm -rf surprises!"*
+**Talking Points**:
+- *"Everything is open source - no black boxes"*
+- *"You can audit every line of code"*
+- *"Over [X] stars and [Y] contributors watching for issues"*
+- *"Same code runs on the website at psw.codeshare.co.uk that thousands use"*
+
+**3. Demonstrate Command Validation**
+
+Show the validation code:
+```
+Navigate to: src/PackageCliTool/Validation/CommandValidator.cs
+```
+
+**Talking Points**:
+- *"Before ANY command runs, it goes through validation"*
+- *"There's an allowlist of safe commands - everything else is blocked"*
+- *"Only dotnet commands, file operations, and package management allowed"*
+- *"Dangerous commands like rm -rf, format, delete are completely blocked"*
+
+**4. Show What's Allowed**
+
+Explain the allowlist:
+
+```bash
+# These commands are ALLOWED:
+dotnet new install
+dotnet new sln
+dotnet add package
+dotnet run
+dotnet build
+dotnet restore
+
+# These are BLOCKED:
+rm -rf
+del /f
+format
+curl | bash (piped commands with external sources)
+Any system modification commands
+```
+
+**Talking Points**:
+- *"The validator uses regex patterns to verify each command"*
+- *"Chained commands (&&) are validated individually"*
+- *"Even a single dangerous command blocks the entire script"*
+
+**5. Generate and Show a Script**
+
+```bash
+# Generate a script WITHOUT auto-run
+psw -d -n SecurityDemo -s SecurityDemo -u \
+    --database-type SQLite \
+    --admin-email admin@demo.com \
+    --admin-password DemoPass123!
+
+# Save to file
+psw -d -n SecurityDemo -s SecurityDemo -u \
+    --database-type SQLite \
+    --admin-email admin@demo.com \
+    --admin-password DemoPass123! \
+    -o install-script.sh
+
+# Show the contents
+cat install-script.sh
+```
+
+**Talking Points**:
+- *"See? Just standard dotnet commands"*
+- *"Nothing hidden, nothing malicious"*
+- *"You can read every single line before running"*
+- *"This is EXACTLY what --auto-run would execute"*
+
+**6. Compare with Web Version**
+
+Show the web version side-by-side:
+```
+Open: https://psw.codeshare.co.uk
+Generate the same configuration
+Compare the output
+```
+
+**Talking Points**:
+- *"Identical output - same code, same validation"*
+- *"If you trust the website, you can trust the CLI"*
+- *"Thousands of developers already use this"*
+
+**7. Demonstrate the Copy Option**
+
+```bash
+# Generate and copy to clipboard
+psw -d -n SecurityDemo -s SecurityDemo -u \
+    --database-type SQLite \
+    --admin-email admin@demo.com \
+    --admin-password DemoPass123! \
+    --copy
+
+# Or output to file for review
+psw -d ... -o my-script.sh
+
+# Review it
+cat my-script.sh
+
+# Run it yourself when ready
+bash my-script.sh
+```
+
+**Talking Points**:
+- *"Don't trust --auto-run? No problem!"*
+- *"Use --copy to get the script on your clipboard"*
+- *"Or -o to save to a file"*
+- *"Review it, edit it, run it yourself - complete control"*
+
+**8. Show the Validation in Action**
+
+If possible, demonstrate a blocked command:
+
+```bash
+# This would be blocked if it tried to run
+# (Don't actually try to generate this - just explain)
+```
+
+**Example Talking Points**:
+- *"If somehow a malicious command snuck in, the validator would catch it"*
+- *"The script won't run at all - complete safety"*
+- *"You'd see an error message listing the dangerous commands"*
+
+#### Key Security Messages
+
+**Trust Through Transparency**:
+1. ✅ **Open Source**: Every line of code is visible on GitHub
+2. ✅ **Community Verified**: Stars, forks, contributors watching
+3. ✅ **Battle Tested**: Same code as the popular website
+4. ✅ **Validated Commands**: Strict allowlist, nothing dangerous
+5. ✅ **Full Control**: Copy, review, edit before running
+6. ✅ **No Network Calls in Scripts**: Scripts only call official package managers
+7. ✅ **No Sudo Required**: Everything runs in user space
+8. ✅ **Reversible**: All operations are standard dotnet commands
+
+#### Addressing Common Security Concerns
+
+| Concern | Response |
+|---------|----------|
+| "How do I know it's safe?" | "Open source, validated commands, same as website version" |
+| "What if it deletes my files?" | "Command validator blocks all file deletion commands" |
+| "Could it install malware?" | "Only installs from official NuGet and Umbraco Marketplace" |
+| "What about my data?" | "No data collected, no telemetry, runs completely local" |
+| "Can it access my network?" | "Only to download official packages - same as manual install" |
+| "What if I don't trust it?" | "Use --copy or -o, review the script yourself, run manually" |
+
+#### Live Demo Script
+
+**Setup** (What you say):
+> *"Before we go further, let's talk about security - because I know some of you are thinking '--auto-run sounds risky.' Here's why it's not..."*
+
+**Show** (What you demo):
+1. GitHub repository (30 seconds)
+2. CommandValidator.cs file (30 seconds)
+3. Generate a script and show contents (45 seconds)
+4. Demonstrate copy option (15 seconds)
+
+**Conclude** (What you emphasize):
+> *"So you have options: Trust the validator and use --auto-run for speed, or review everything yourself with --copy. Either way, you're in control."*
+
+#### Pro Tips for Security Demo
+
+1. **Be Proactive**: Bring up security BEFORE questions arise
+2. **Show Code**: Actually navigate to the validator - don't just talk about it
+3. **Offer Options**: Always mention the --copy and -o alternatives
+4. **Build Trust**: Reference the website version that people know
+5. **Be Honest**: If someone finds a security concern, acknowledge and discuss
+
+**Total Time**: 2-3 minutes (can be condensed to 1 minute if needed)
 
 ### Scenario 9: "The AI-Assisted Developer" (Future of Development)
 

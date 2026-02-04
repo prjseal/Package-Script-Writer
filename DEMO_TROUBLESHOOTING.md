@@ -261,6 +261,173 @@ psw
 
 ---
 
+## 🔒 Handling Security Questions During Demo
+
+### Issue: Audience Member Questions --auto-run Safety
+
+**Symptoms**: Someone asks "How do I know this won't delete my files?" or "Is it safe to run automated scripts?"
+
+**Quick Response Framework**:
+
+**1. Acknowledge the Concern** (5 seconds):
+```
+"Great question! Security is critical, and I'm glad you asked."
+```
+
+**2. Three-Point Answer** (30 seconds):
+```
+"Three things make this safe:
+1. Open source - you can audit all the code on GitHub
+2. Command validation - strict allowlist blocks dangerous commands
+3. You control execution - use --copy to review first if you want"
+```
+
+**3. Show Proof** (if time permits, 1 minute):
+```bash
+# Show the script output without running
+psw -d -n Demo -s Demo -u --database-type SQLite \
+    --admin-email admin@demo.com --admin-password Demo123!
+
+# Show it's just standard dotnet commands
+cat [output or pipe to less]
+```
+
+**4. Offer Alternative** (10 seconds):
+```
+"If you prefer, use --copy or -o to save the script and review it yourself
+before running. You have complete control."
+```
+
+### Deep Dive Security Answers
+
+**Q: "What commands can it run?"**
+**A**:
+- ✅ Allowed: `dotnet` CLI commands (new, add, build, run, restore)
+- ✅ Allowed: File creation in project directory
+- ❌ Blocked: File deletion (rm, del)
+- ❌ Blocked: System modifications
+- ❌ Blocked: Network commands except official package managers
+- ❌ Blocked: Any command not on the allowlist
+
+**Q: "How does the validation work?"**
+**A**:
+```
+"Before execution, every command is checked against regex patterns.
+The validator is in CommandValidator.cs - it's about 300 lines of
+strict checking. One dangerous command = entire script blocked."
+```
+
+**Q: "Can I see the validation code?"**
+**A**:
+```bash
+# Open in browser
+https://github.com/prjseal/Package-Script-Writer/blob/main/src/PackageCliTool/Validation/CommandValidator.cs
+
+# Or show in local editor if you have the repo cloned
+code src/PackageCliTool/Validation/CommandValidator.cs
+```
+
+**Q: "What if there's a bug in the validator?"**
+**A**:
+```
+"Fair point - defense in depth:
+1. Validator code is peer-reviewed and open source
+2. You can use -o or --copy to review scripts yourself
+3. Same validation as the website version used by thousands
+4. Community can report issues on GitHub
+5. All commands are standard dotnet - no custom executables"
+```
+
+**Q: "Does it collect my data?"**
+**A**:
+```
+"No telemetry, no analytics, no data collection.
+Everything runs locally. The only network calls are to:
+1. NuGet.org for package versions (same as dotnet CLI)
+2. Umbraco Marketplace for package list (same as website)
+That's it. No tracking, no third parties."
+```
+
+**Q: "Why not just generate without running?"**
+**A**:
+```
+"You absolutely can! Three options:
+1. --auto-run: Fastest, for when you trust it
+2. --copy: Get script on clipboard, review, run manually
+3. -o file.sh: Save to file, review, edit, run when ready
+
+Choose what fits your comfort level."
+```
+
+### Proactive Security Demo (Recommended)
+
+**Don't wait for questions - address it upfront:**
+
+**After Scenario 1 or 2, say this**:
+> *"Before we go further - I know some of you are thinking 'auto-run sounds risky.' Let me show you why it's safe..."*
+
+**Then do a 60-second security proof**:
+```bash
+# 1. Generate without auto-run (15 sec)
+psw -d -n SecurityDemo -s SecurityDemo -u --database-type SQLite \
+    --admin-email admin@demo.com --admin-password Demo123! \
+    -o script.sh
+
+# 2. Show the script (20 sec)
+cat script.sh | head -30
+# Point out: "See? Just standard dotnet commands"
+
+# 3. Mention alternatives (10 sec)
+"You can use --copy to review yourself, or -o to save and edit"
+
+# 4. Show the validator (15 sec)
+"Plus there's strict validation - here's the code..."
+[Open GitHub to CommandValidator.cs in browser]
+```
+
+**Impact**: Builds trust before questions arise, shows you're thinking about their concerns.
+
+### Turn Security Into a Selling Point
+
+**Reframe the narrative**:
+
+❌ **Defensive**: "Don't worry, it's safe"
+✅ **Confident**: "Security is built in from day one"
+
+**Key phrases**:
+- "We take security seriously - that's why everything is validated"
+- "Open source means transparency - no black boxes"
+- "You always have control - from full automation to manual review"
+- "Same trusted code as the website thousands use daily"
+- "Command validation means you can't accidentally run something dangerous"
+
+### If Someone Is Still Skeptical
+
+**Acknowledge and offer alternatives**:
+```
+"I totally understand being cautious with automated scripts.
+That's exactly why we built the --copy and -o options.
+Generate the script, review every line, edit if needed,
+then run it yourself when you're comfortable.
+
+Or use the website version at psw.codeshare.co.uk if you prefer.
+It generates the exact same output, you just copy-paste manually."
+```
+
+**Never**:
+- Get defensive
+- Dismiss concerns
+- Pressure anyone to use --auto-run
+- Claim it's "100% safe" (nothing is)
+
+**Always**:
+- Acknowledge the concern is valid
+- Show the safeguards
+- Offer alternatives
+- Respect their choice
+
+---
+
 ## 🎬 General Demo Recovery Strategies
 
 ### Strategy 1: Pivot to Backup Material

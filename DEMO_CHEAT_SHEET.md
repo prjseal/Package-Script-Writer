@@ -87,6 +87,32 @@ psw history rerun 5
 psw history rerun 5 -n NewProjectName --auto-run
 ```
 
+### Scenario 8: Security (IMPORTANT!)
+```bash
+# Generate WITHOUT auto-run - show the script first
+psw -d -n SecurityDemo -s SecurityDemo -u \
+    --database-type SQLite \
+    --admin-email admin@demo.com \
+    --admin-password DemoPass123!
+
+# Save to file for review
+psw -d -n SecurityDemo -s SecurityDemo -u \
+    --database-type SQLite \
+    --admin-email admin@demo.com \
+    --admin-password DemoPass123! \
+    -o install-script.sh
+
+# Show contents
+cat install-script.sh
+
+# Copy to clipboard for review
+psw -d ... --copy
+```
+
+**Show on GitHub**:
+- Validator: `src/PackageCliTool/Validation/CommandValidator.cs`
+- Repository: https://github.com/prjseal/Package-Script-Writer
+
 ### Bonus: Versions Table
 ```bash
 psw versions
@@ -117,7 +143,22 @@ export PATH="$PATH:$HOME/.dotnet/tools" && psw -d \
 | **CLI** | "Perfect for CI/CD, fully automated, reproducible" |
 | **Templates** | "Standardize teams, share configs, onboard faster" |
 | **History** | "Never lose a configuration, replay anytime" |
+| **Security** | "Open source, validated commands, full control" |
 | **AI-Ready** | "Official Umbraco skill - AI-assisted dev is here" |
+
+## 🔒 Security Quick Answers
+
+**"Is --auto-run safe?"**
+→ "Yes! Commands are validated against an allowlist. Plus it's open source and same code as the website."
+
+**"How can I verify?"**
+→ "Use --copy or -o to review the script yourself before running."
+
+**"What commands are allowed?"**
+→ "Only dotnet CLI commands. No file deletion, no system modifications, no dangerous operations."
+
+**"Why should I trust it?"**
+→ "Open source on GitHub, community verified, same as psw.codeshare.co.uk website, strict command validation."
 
 ---
 

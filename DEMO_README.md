@@ -35,7 +35,15 @@ This demo kit contains everything you need for a compelling CLI tool demonstrati
    - Quick fixes you can do live
    - Recovery strategies
    - How to handle errors gracefully
+   - **Security question handling** - Proactive responses
    - Pre-demo checklist
+
+### 6. **SECURITY_FAQ.md** - Security Reference
+   - Comprehensive security Q&A
+   - Command validation explained
+   - Trust and transparency details
+   - Best practices for production use
+   - **Print this for reference during Q&A**
 
 ### 5. **This File (DEMO_README.md)** - Overview
    - Navigation guide for all demo resources
@@ -136,6 +144,7 @@ psw history list
 - [ ] Run `prepare-demo.sh` again (fresh cache)
 - [ ] Open `DEMO_CHEAT_SHEET.md` for reference
 - [ ] Open `DEMO_TROUBLESHOOTING.md` (just in case)
+- [ ] **Print or open `SECURITY_FAQ.md` for Q&A reference**
 - [ ] Test network: `curl -I https://marketplace.umbraco.com`
 - [ ] Navigate to demo workspace: `cd ~/psw-demo-sydney`
 - [ ] Clear terminal for clean start: `clear`
@@ -144,6 +153,7 @@ psw history list
 - [ ] Open backup browser tabs:
   - https://psw.codeshare.co.uk (web version)
   - https://github.com/prjseal/Package-Script-Writer (repo)
+  - https://github.com/prjseal/Package-Script-Writer/blob/main/src/PackageCliTool/Validation/CommandValidator.cs (validator)
 
 ### Right Before You Start
 
@@ -320,9 +330,11 @@ Your demo is successful if attendees:
 ```
 Package-Script-Writer/
 ├── DEMO_README.md              ← You are here
-├── DEMO_SCENARIOS.md           ← Detailed scenarios
-├── DEMO_CHEAT_SHEET.md         ← Quick reference
-├── DEMO_TROUBLESHOOTING.md     ← Problem solving
+├── DEMO_SCENARIOS.md           ← Detailed scenarios (includes Scenario 8: Security!)
+├── DEMO_CHEAT_SHEET.md         ← Quick reference (includes security quick answers)
+├── DEMO_TROUBLESHOOTING.md     ← Problem solving (includes security Q&A handling)
+├── SECURITY_FAQ.md             ← Comprehensive security reference
+├── AI_INTEGRATION.md           ← AI skill integration guide
 ├── prepare-demo.sh             ← Setup script (Unix)
 └── prepare-demo.ps1            ← Setup script (Windows)
 ```
@@ -434,9 +446,58 @@ After your demo:
 
 ---
 
+## ⚠️ CRITICAL: Proactive Security Discussion
+
+**IMPORTANT: Address security BEFORE questions arise!**
+
+After Scenario 1 or 2 (around minute 3-4), take 60-90 seconds to address security:
+
+### The Script (What to Say)
+
+> *"Before we go further - I know some of you might be thinking 'auto-run sounds risky.' Let me show you why it's actually safe..."*
+
+### The Demo (What to Show)
+
+```bash
+# 1. Generate WITHOUT auto-run (15 sec)
+psw -d -n SecurityDemo -s SecurityDemo -u \
+    --database-type SQLite \
+    --admin-email admin@demo.com \
+    --admin-password Demo123! \
+    -o script.sh
+
+# 2. Show the script (20 sec)
+cat script.sh | head -30
+# Point out: "See? Just standard dotnet commands"
+
+# 3. Mention alternatives (10 sec)
+"You can use --copy to review yourself, or -o to save and edit"
+
+# 4. Show the validator (20 sec)
+"Plus there's strict validation - here's the code..."
+# Open: https://github.com/prjseal/Package-Script-Writer/blob/main/src/PackageCliTool/Validation/CommandValidator.cs
+```
+
+### Why This Matters
+
+✅ **Builds trust** before skepticism sets in
+✅ **Shows you've thought** about their concerns
+✅ **Turns objection into** selling point
+✅ **Reduces Q&A friction** later
+✅ **Demonstrates transparency** and confidence
+
+### Resources to Have Ready
+
+- [ ] **SECURITY_FAQ.md** - printed or on second screen
+- [ ] **GitHub tab** - CommandValidator.cs already open
+- [ ] **Example script** - already generated to show
+- [ ] **Confidence** - practice this section!
+
+---
+
 **Good luck with your Umbraco Sydney Meetup demo! 🚀**
 
-*Remember: Your enthusiasm and knowledge are more important than a perfect demo. Have fun with it!*
+*Remember: Your enthusiasm and knowledge are more important than a perfect demo. Address security proactively and have fun with it!*
 
 ---
 
@@ -445,7 +506,13 @@ After your demo:
 Use this area for demo-specific notes:
 
 **Attendee Count**: _____
+
 **Key Questions Asked**:
+-
+-
+-
+
+**Security Concerns Raised**:
 -
 -
 -
