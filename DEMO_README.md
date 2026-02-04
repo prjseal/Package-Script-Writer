@@ -235,8 +235,9 @@ psw -p "Diplo.GodMode,Umbraco.Community.BlockPreview,Contentment"
 | 3 | Power User | 2min | Automation & CLI | Developers |
 | 4 | Team Templates | 2min | Collaboration | Team leads |
 | 5 | History Replay | 1min | Workflow | Everyone |
+| Bonus | AI-Assisted Dev | 1-2min | AI Integration | Tech enthusiasts |
 
-**Total**: 10-12 minutes + Q&A
+**Total**: 10-12 minutes + Q&A (+ optional bonus)
 
 ---
 
@@ -279,6 +280,7 @@ dotnet tool install -g PackageScriptWriter.Cli
 - **GitHub**: https://github.com/prjseal/Package-Script-Writer
 - **NuGet**: https://www.nuget.org/packages/PackageScriptWriter.Cli/
 - **Docs**: In the GitHub repo
+- **Umbraco AI Skill**: https://github.com/umbraco/Umbraco-CMS-Backoffice-Skills/blob/main/plugins/umbraco-backoffice-skills/skills/package-script-writer/SKILL.md
 
 ### Social Media
 Prepare a tweet/post for attendees:

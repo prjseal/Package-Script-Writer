@@ -366,6 +366,64 @@ Show command validation:
 
 **Talking Point**: *"PSW validates every command - no rm -rf surprises!"*
 
+### Scenario 9: "The AI-Assisted Developer" (Future of Development)
+
+**Story**: *"What if AI could set up your entire Umbraco environment?"*
+
+**Why it's compelling**: Shows PSW's integration with cutting-edge AI development workflows.
+
+Demonstrate how PSW is being integrated into Umbraco's official AI-assisted development tools:
+
+**Background**:
+PSW is now an official skill in Umbraco's Backoffice Skills system for Claude Code, enabling AI-powered Umbraco setup.
+
+**Demo Talking Points**:
+
+1. **Show the Integration**:
+   ```bash
+   # This is the command structure used by AI assistants
+   export PATH="$PATH:$HOME/.dotnet/tools" && psw -d \
+       -n AIGeneratedProject -s AIGeneratedSolution -u \
+       --database-type SQLite \
+       --admin-email admin@test.com \
+       --admin-password SecurePass1234 \
+       --auto-run
+   ```
+
+2. **Explain the Workflow**:
+   - *"Umbraco's Backoffice Skills system can now use PSW automatically"*
+   - *"You can tell an AI 'set up an Umbraco site with uSync' and it happens"*
+   - *"The AI knows the exact flags and can run it in the background"*
+
+3. **Key Features for AI Integration**:
+   - `-d` flag ensures full script generation
+   - `--auto-run` enables complete automation
+   - Background execution support for long-running servers
+   - PATH management for tool availability
+
+4. **Show the Official Documentation**:
+   ```
+   GitHub: umbraco/Umbraco-CMS-Backoffice-Skills
+   Path: plugins/umbraco-backoffice-skills/skills/package-script-writer/SKILL.md
+   ```
+
+**Talking Points**:
+- *"PSW isn't just a CLI tool - it's becoming part of the AI-powered development workflow"*
+- *"Umbraco officially recognizes PSW as a backoffice skill for AI assistants"*
+- *"This is the future - describe what you want, AI sets it up using PSW"*
+- *"From conversation to running Umbraco site in minutes"*
+
+**Why This Matters**:
+- Shows PSW is forward-thinking and officially recognized
+- Demonstrates integration with modern AI development tools
+- Highlights Umbraco's commitment to AI-assisted development
+- Positions PSW at the cutting edge of developer tooling
+
+**Resource to Share**:
+```
+https://github.com/umbraco/Umbraco-CMS-Backoffice-Skills/blob/main/plugins/umbraco-backoffice-skills/skills/package-script-writer/SKILL.md
+```
+
 ---
 
 ## 🎬 Demo Tips & Tricks
@@ -409,6 +467,7 @@ If live demo fails:
 4. **Production-Ready**: "CI/CD pipelines, Docker support, unattended installs"
 5. **Safety**: "Command validation prevents mistakes, history keeps you safe"
 6. **Community**: "500+ packages, community templates, growing ecosystem"
+7. **AI-Ready**: "Official Umbraco backoffice skill - AI-assisted development is here"
 
 ---
 

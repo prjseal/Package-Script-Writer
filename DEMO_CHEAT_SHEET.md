@@ -92,6 +92,20 @@ psw history rerun 5 -n NewProjectName --auto-run
 psw versions
 ```
 
+### Bonus: AI-Assisted Development
+**Show Umbraco's official PSW skill integration:**
+```bash
+# Command structure used by AI assistants like Claude Code
+export PATH="$PATH:$HOME/.dotnet/tools" && psw -d \
+    -n AIProject -s AISolution -u \
+    --database-type SQLite \
+    --admin-email admin@test.com \
+    --admin-password SecurePass1234 \
+    --auto-run
+```
+
+**Resource**: https://github.com/umbraco/Umbraco-CMS-Backoffice-Skills/blob/main/plugins/umbraco-backoffice-skills/skills/package-script-writer/SKILL.md
+
 ---
 
 ## 💡 Key Talking Points
@@ -103,6 +117,7 @@ psw versions
 | **CLI** | "Perfect for CI/CD, fully automated, reproducible" |
 | **Templates** | "Standardize teams, share configs, onboard faster" |
 | **History** | "Never lose a configuration, replay anytime" |
+| **AI-Ready** | "Official Umbraco skill - AI-assisted dev is here" |
 
 ---
 
