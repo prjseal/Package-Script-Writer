@@ -1,0 +1,54 @@
+metadata:
+  name: "Umbraco 13 with Clean Starter Kit"
+  description: "An Umbraco 13 website using the Clean Starter Kit"
+  author: "Paul Seal"
+  created: 2026-02-05T00:00:00Z
+  modified: 2026-02-05T00:00:00Z
+  version: "1.0.0"
+  tags:
+    - umbraco
+    - umbraco 13
+    - umbraco 13
+    - starter kit
+    - clean starter kit
+
+configuration:
+  template:
+    name: "Umbraco.Templates"
+    version: "13.13.0"
+
+  project:
+    name: "MyProject"
+    createSolution: true
+    solutionName: "MySolution"
+
+  packages:
+    - name: "Clean"
+      version: "4.1.0"
+
+  starterKit:
+    enabled: false
+    package: null
+
+  docker:
+    dockerfile: false
+    dockerCompose: false
+
+  unattended:
+    enabled: true
+    database:
+      type: "SQLite"
+      connectionString: null
+    admin:
+      name: "Administrator"
+      email: "admin@example.com"
+      password: "1234567890"
+
+  output:
+    oneliner: false
+    removeComments: false
+    includePrerelease: false
+
+  execution:
+    autoRun: false
+    runDirectory: "."
