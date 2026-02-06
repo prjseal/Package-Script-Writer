@@ -24,7 +24,7 @@ configuration:
 
   packages:
     - name: "Clean"
-      version: "4.1.0"
+      version: "4.2.2"
 
   starterKit:
     enabled: false
