@@ -114,10 +114,25 @@ public class CommandLineOptionsTests
 
     [Theory]
     [InlineData("-t", "Umbraco.Templates|17.0.3")]
-    public void Parse_WithTemplateVersionFlag_SetsTemplateVersion(string flag, string version)
+    [InlineData("--template-package", "Umbraco.Templates|17.0.3")]
+    public void Parse_WithTemplatePipeSyntax_SetsTemplateNameAndVersion(string flag, string value)
     {
         // Arrange
-        var args = new[] { flag, version };
+        var args = new[] { flag, value };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.3");
+    }
+
+    [Fact]
+    public void Parse_WithTemplateVersionFlag_SetsTemplateVersion()
+    {
+        // Arrange
+        var args = new[] { "--template-version", "17.0.3" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
@@ -325,11 +340,10 @@ public class CommandLineOptionsTests
     [Fact]
     public void Parse_WithMultipleFlags_ParsesAllCorrectly()
     {
-        // Arrange
+        // Arrange - Use pipe syntax for template+version (unified -t and --template-package)
         var args = new[]
         {
-            "--template-package", "Umbraco.Templates",
-            "-t", "14.3.0",
+            "-t", "Umbraco.Templates|14.3.0",
             "-p", "uSync|17.0.0,Umbraco.Forms|14.2.0",
             "-n", "MyProject",
             "-s", "MySolution",
@@ -574,6 +588,128 @@ public class CommandLineOptionsTests
         options.StarterKitPackage.Should().Be(expectedName);
         options.StarterKitVersion.Should().Be(expectedVersion);
         options.IncludeStarterKit.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithOutputJsonFlag_SetsOutputFormat()
+    {
+        // Arrange
+        var args = new[] { "--output", "json" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.OutputFormat.Should().Be(OutputFormat.Json);
+    }
+
+    [Fact]
+    public void Parse_WithOutputPlainFlag_SetsOutputFormat()
+    {
+        // Arrange
+        var args = new[] { "--output", "plain" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.OutputFormat.Should().Be(OutputFormat.Plain);
+    }
+
+    [Fact]
+    public void Parse_WithScriptOnlyFlag_SetsScriptOnly()
+    {
+        // Arrange
+        var args = new[] { "--script-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ScriptOnly.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("--no-interaction")]
+    [InlineData("--non-interactive")]
+    public void Parse_WithNonInteractiveFlag_SetsNonInteractive(string flag)
+    {
+        // Arrange
+        var args = new[] { flag };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.NonInteractive.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithDryRunFlag_SetsDryRun()
+    {
+        // Arrange
+        var args = new[] { "--dry-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.DryRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithHelpJsonFlag_SetsShowHelpJson()
+    {
+        // Arrange
+        var args = new[] { "--help-json" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ShowHelpJson.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithListOptionsCommand_SetsListOptionsCommand()
+    {
+        // Arrange
+        var args = new[] { "list-options", "database-types" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ListOptionsCommand.Should().Be("database-types");
+        options.IsListOptionsCommand().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithListOptionsNoCategory_SetsEmptyString()
+    {
+        // Arrange
+        var args = new[] { "list-options" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ListOptionsCommand.Should().Be("");
+        options.IsListOptionsCommand().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithTemplateVersionExplicitFlag_SetsTemplateVersion()
+    {
+        // Arrange
+        var args = new[] { "-t", "Umbraco.Templates", "--template-version", "17.0.3" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.3");
     }
 
     [Fact]

@@ -121,6 +121,32 @@ public class CommandLineOptions
     /// <summary>Gets or sets whether to show Umbraco versions table</summary>
     public bool ShowVersionsTable { get; set; }
 
+    /// <summary>Gets or sets the output format (default, plain, json)</summary>
+    public OutputFormat OutputFormat { get; set; } = OutputFormat.Default;
+
+    /// <summary>Gets or sets whether to output only the raw script text</summary>
+    public bool ScriptOnly { get; set; }
+
+    /// <summary>Gets or sets whether to suppress all interactive prompts</summary>
+    public bool NonInteractive { get; set; }
+
+    /// <summary>Gets or sets whether to validate inputs without generating a script</summary>
+    public bool DryRun { get; set; }
+
+    /// <summary>Gets or sets whether to show help as structured JSON</summary>
+    public bool ShowHelpJson { get; set; }
+
+    /// <summary>Gets or sets the list-options subcommand category (e.g., database-types, starter-kits, defaults)</summary>
+    public string? ListOptionsCommand { get; set; }
+
+    /// <summary>
+    /// Checks if this is a list-options command
+    /// </summary>
+    public bool IsListOptionsCommand()
+    {
+        return ListOptionsCommand != null;
+    }
+
     /// <summary>
     /// Checks if this is a template command
     /// </summary>
@@ -217,32 +243,6 @@ public class CommandLineOptions
                     break;
 
                 case "-t":
-                    var tArg = GetNextArgument(args, ref i);
-                    if (!string.IsNullOrWhiteSpace(tArg))
-                    {
-                        // -t flag: if contains pipe, split into name|version. Otherwise, treat as version only
-                        if (tArg.Contains('|'))
-                        {
-                            var parts = tArg.Split('|', 2, StringSplitOptions.RemoveEmptyEntries);
-                            if (parts.Length == 2)
-                            {
-                                options.TemplatePackageName = parts[0].Trim();
-                                options.TemplateVersion = parts[1].Trim();
-                            }
-                            else
-                            {
-                                // Invalid format, just set the whole thing as template name
-                                options.TemplatePackageName = tArg;
-                            }
-                        }
-                        else
-                        {
-                            // No pipe, treat as template version only
-                            options.TemplateVersion = tArg;
-                        }
-                    }
-                    break;
-
                 case "--template-package":
                     var templateArg = GetNextArgument(args, ref i);
                     if (!string.IsNullOrWhiteSpace(templateArg))
@@ -381,6 +381,40 @@ public class CommandLineOptions
                     options.VerboseMode = true;
                     break;
 
+                case "--template-version":
+                    options.TemplateVersion = GetNextArgument(args, ref i);
+                    break;
+
+                case "--output":
+                    var outputArg = GetNextArgument(args, ref i);
+                    if (!string.IsNullOrWhiteSpace(outputArg))
+                    {
+                        options.OutputFormat = outputArg.ToLower() switch
+                        {
+                            "json" => OutputFormat.Json,
+                            "plain" => OutputFormat.Plain,
+                            _ => OutputFormat.Default
+                        };
+                    }
+                    break;
+
+                case "--script-only":
+                    options.ScriptOnly = true;
+                    break;
+
+                case "--no-interaction":
+                case "--non-interactive":
+                    options.NonInteractive = true;
+                    break;
+
+                case "--dry-run":
+                    options.DryRun = true;
+                    break;
+
+                case "--help-json":
+                    options.ShowHelpJson = true;
+                    break;
+
                 // Template commands
                 case "template":
                     // Next argument should be the subcommand (save, load, list, etc.)
@@ -465,6 +499,20 @@ public class CommandLineOptions
 
                 case "versions":
                     options.ShowVersionsTable = true;
+                    break;
+
+                case "list-options":
+                    // Get optional category argument
+                    if (i + 1 < args.Length && !args[i + 1].StartsWith("-"))
+                    {
+                        i++;
+                        options.ListOptionsCommand = args[i].ToLower();
+                    }
+                    else
+                    {
+                        // No category - list all
+                        options.ListOptionsCommand = "";
+                    }
                     break;
 
                 default:
