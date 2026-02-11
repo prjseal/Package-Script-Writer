@@ -52,6 +52,9 @@ public static class ConsoleDisplay
   [green]    --admin-password[/] <pwd>    Admin password for unattended install
   [green]    --auto-run[/]                Automatically run the generated script
   [green]    --clear-cache[/]             Clear all cached API responses
+  [green]    --no-run[/]                  Skip 'dotnet run' from the generated script
+  [green]    --output[/] <file>           Output file path for saving the generated script
+  [green]    --save-only[/]               Save script to file (via --output) and exit without prompts
   [green]    --connection-string[/] <str> Connection string (for SQLServer/SQLAzure)
   [green]    --database-type[/] <type>    Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
   [green]-d, --default[/]                 Generate a default script with minimal configuration
@@ -126,6 +129,13 @@ public static class ConsoleDisplay
 
   Interactive mode (no flags):
     [cyan]psw[/]
+
+[bold yellow]AUTOMATION EXAMPLES:[/]
+  Auto-run but skip 'dotnet run' (install + build only):
+    [cyan]psw -d -n MyProject -s MyProject -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run --no-run[/]
+
+  Save script to file without interactive prompts:
+    [cyan]psw -d -n MyProject -s MyProject -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --output install.sh --save-only[/]
 
 [bold yellow]TEMPLATE EXAMPLES:[/]
   Save current configuration as template:

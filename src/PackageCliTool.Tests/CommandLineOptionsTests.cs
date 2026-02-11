@@ -686,4 +686,166 @@ public class CommandLineOptionsTests
         options.DatabaseType.Should().Be("SqlServer");
         options.AdminEmail.Should().Be("custom@example.com");
     }
+
+    #region Non-Interactive Mode Flags
+
+    [Fact]
+    public void Parse_WithNoRunFlag_SetsNoRun()
+    {
+        // Arrange
+        var args = new[] { "--no-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.NoRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithSaveOnlyFlag_SetsSaveOnly()
+    {
+        // Arrange
+        var args = new[] { "--save-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.SaveOnly.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithOutputFlag_SetsOutputFile()
+    {
+        // Arrange
+        var args = new[] { "--output", "install.sh" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.OutputFile.Should().Be("install.sh");
+    }
+
+    [Fact]
+    public void Parse_WithNoRunAndAutoRun_SetsBothFlags()
+    {
+        // Arrange
+        var args = new[] { "--auto-run", "--no-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.AutoRun.Should().BeTrue();
+        options.NoRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithSaveOnlyAndOutput_SetsBothFlags()
+    {
+        // Arrange
+        var args = new[] { "--output", "install.sh", "--save-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.SaveOnly.Should().BeTrue();
+        options.OutputFile.Should().Be("install.sh");
+    }
+
+    [Fact]
+    public void HasAnyOptions_WithNoRunFlag_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--no-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void HasAnyOptions_WithSaveOnlyFlag_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--save-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void HasAnyOptions_WithOutputFlag_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--output", "install.sh" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithAllAutomationFlags_ParsesCorrectly()
+    {
+        // Arrange
+        var args = new[]
+        {
+            "-d",
+            "-n", "MyProject",
+            "-s", "MyProject",
+            "-u",
+            "--database-type", "SQLite",
+            "--admin-email", "admin@test.com",
+            "--admin-password", "SecurePass1234",
+            "-p", "Umbraco.Forms",
+            "--output", "install.sh",
+            "--save-only",
+            "--no-run"
+        };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.UseDefault.Should().BeTrue();
+        options.ProjectName.Should().Be("MyProject");
+        options.SolutionName.Should().Be("MyProject");
+        options.UseUnattended.Should().BeTrue();
+        options.DatabaseType.Should().Be("SQLite");
+        options.AdminEmail.Should().Be("admin@test.com");
+        options.AdminPassword.Should().Be("SecurePass1234");
+        options.Packages.Should().Be("Umbraco.Forms");
+        options.OutputFile.Should().Be("install.sh");
+        options.SaveOnly.Should().BeTrue();
+        options.NoRun.Should().BeTrue();
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithNoArguments_NewFlagsDefaultToFalse()
+    {
+        // Arrange
+        var args = Array.Empty<string>();
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.NoRun.Should().BeFalse();
+        options.SaveOnly.Should().BeFalse();
+        options.OutputFile.Should().BeNull();
+    }
+
+    #endregion
 }

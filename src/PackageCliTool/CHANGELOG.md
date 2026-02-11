@@ -5,6 +5,13 @@ All notable changes to Package Script Writer CLI will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Non-interactive Mode (`--save-only`)** - Save the generated script to a file (via `--output <file>`) and exit immediately without showing interactive prompts. Enables programmatic use from other tools (e.g., MCP servers, CI/CD pipelines) where stdin is not a TTY
+- **Build-only Mode (`--no-run`)** - Skip the `dotnet run` command from the generated script. When combined with `--auto-run`, this allows installing and building an Umbraco project without starting the web server
+- **Script Output File (`--output <file>`)** - Specify an output file path for the generated script, used with `--save-only`
+
 ## [1.1.2] - 2026-01-16
 
 ### Fixed

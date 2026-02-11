@@ -278,6 +278,13 @@ public class TemplateWorkflow
                     .Validate(pwd => pwd.Length >= 10 ? ValidationResult.Success() : ValidationResult.Error("Password must be at least 10 characters")));
         }
 
+        // Apply --no-run flag
+        if (options.NoRun)
+        {
+            scriptModel.SkipDotnetRun = true;
+            overrides["NoRun"] = true;
+        }
+
         // Display configuration summary
         DisplayConfigurationSummary(template, overrides);
 
@@ -299,6 +306,13 @@ public class TemplateWorkflow
             scriptModel,
             templateName: template.Metadata.Name,
             description: $"From template: {template.Metadata.Name}");
+
+        // Handle --save-only: write script to file and exit immediately
+        if (options.SaveOnly)
+        {
+            await SaveScriptToFileAsync(script, options);
+            return;
+        }
 
         // Display script
         ConsoleDisplay.DisplayGeneratedScript(script, "Generated Installation Script");
@@ -341,6 +355,33 @@ public class TemplateWorkflow
             // Handle script actions interactively
             await HandleScriptActionsAsync(script, scriptModel, packageVersions, template.Metadata.Name);
         }
+    }
+
+    /// <summary>
+    /// Saves the generated script to a file and exits
+    /// </summary>
+    private async Task SaveScriptToFileAsync(string script, CommandLineOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.OutputFile))
+        {
+            AnsiConsole.MarkupLine("[red]Error: --save-only requires --output <file> to specify the output file path[/]");
+            Environment.ExitCode = 1;
+            return;
+        }
+
+        var outputPath = Path.GetFullPath(options.OutputFile);
+        var outputDir = Path.GetDirectoryName(outputPath);
+
+        if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
+        {
+            Directory.CreateDirectory(outputDir);
+            _logger?.LogInformation("Created output directory: {Directory}", outputDir);
+        }
+
+        await File.WriteAllTextAsync(outputPath, script);
+
+        _logger?.LogInformation("Script saved to: {Path}", outputPath);
+        AnsiConsole.MarkupLine($"[green]✓ Script saved to:[/] {outputPath}");
     }
 
     /// <summary>
