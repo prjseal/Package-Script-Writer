@@ -35,7 +35,8 @@ namespace PackageCliTool.Extensions
                 StarterKitPackage = scriptModel.StarterKitPackage,
                 IncludeDockerfile = scriptModel.IncludeDockerfile,
                 IncludeDockerCompose = scriptModel.IncludeDockerCompose,
-                EnableContentDeliveryApi = scriptModel.EnableContentDeliveryApi
+                EnableContentDeliveryApi = scriptModel.EnableContentDeliveryApi,
+                SkipDotnetRun = scriptModel.SkipDotnetRun
             };
         }
     }

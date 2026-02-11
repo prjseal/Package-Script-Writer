@@ -125,4 +125,10 @@ public class PackagesViewModel
     [Display(Name = "Remove comments")]
     public bool RemoveComments { get; set; }
     public bool HasQueryString { get; set; }
+
+    /// <summary>
+    /// When true, the generated script will not include the 'dotnet run' command.
+    /// Used by the CLI --no-run flag for automation scenarios where the server should not be started.
+    /// </summary>
+    public bool SkipDotnetRun { get; set; }
 }

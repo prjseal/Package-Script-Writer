@@ -145,6 +145,12 @@ public class CliModeWorkflow
         HandleStarterKitPackage(options, model);
         HandleTemplatePackage(options, model);
 
+        // Apply --no-run flag
+        if (options.NoRun)
+        {
+            model.SkipDotnetRun = true;
+        }
+
         var script = await AnsiConsole.Status()
             .Spinner(Spinner.Known.Star)
             .SpinnerStyle(Style.Parse("green"))
@@ -160,6 +166,13 @@ public class CliModeWorkflow
             model,
             templateName: model.TemplateName,
             description: $"Default script for {model.ProjectName}");
+
+        // Handle --save-only: write script to file and exit immediately
+        if (options.SaveOnly)
+        {
+            await SaveScriptToFileAsync(script, options);
+            return;
+        }
 
         ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
 
@@ -249,6 +262,12 @@ public class CliModeWorkflow
         HandleStarterKitPackage(options, model);
         HandleTemplatePackage(options, model);
 
+        // Apply --no-run flag
+        if (options.NoRun)
+        {
+            model.SkipDotnetRun = true;
+        }
+
         // Generate the script
         _logger?.LogInformation("Generating installation script via API");
 
@@ -267,6 +286,13 @@ public class CliModeWorkflow
             model,
             templateName: model.TemplateName,
             description: $"Custom script for {model.ProjectName ?? "project"}");
+
+        // Handle --save-only: write script to file and exit immediately
+        if (options.SaveOnly)
+        {
+            await SaveScriptToFileAsync(script, options);
+            return;
+        }
 
         ConsoleDisplay.DisplayGeneratedScript(script);
 
@@ -398,6 +424,33 @@ public class CliModeWorkflow
                 _logger?.LogDebug("Using template {Template} with latest version", options.TemplatePackageName);
             }
         }
+    }
+
+    /// <summary>
+    /// Saves the generated script to a file and exits
+    /// </summary>
+    private async Task SaveScriptToFileAsync(string script, CommandLineOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.OutputFile))
+        {
+            AnsiConsole.MarkupLine("[red]Error: --save-only requires --output <file> to specify the output file path[/]");
+            Environment.ExitCode = 1;
+            return;
+        }
+
+        var outputPath = Path.GetFullPath(options.OutputFile);
+        var outputDir = Path.GetDirectoryName(outputPath);
+
+        if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
+        {
+            Directory.CreateDirectory(outputDir);
+            _logger?.LogInformation("Created output directory: {Directory}", outputDir);
+        }
+
+        await File.WriteAllTextAsync(outputPath, script);
+
+        _logger?.LogInformation("Script saved to: {Path}", outputPath);
+        AnsiConsole.MarkupLine($"[green]✓ Script saved to:[/] {outputPath}");
     }
 
     /// <summary>
@@ -586,6 +639,12 @@ public class CliModeWorkflow
             // Convert template to ScriptModel
             var model = ConvertTemplateToScriptModel(template, options);
 
+            // Apply --no-run flag
+            if (options.NoRun)
+            {
+                model.SkipDotnetRun = true;
+            }
+
             // Generate script
             var script = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
@@ -602,6 +661,13 @@ public class CliModeWorkflow
                 model,
                 templateName: template.Metadata.Name,
                 description: $"Community template: {template.Metadata.Description}");
+
+            // Handle --save-only: write script to file and exit immediately
+            if (options.SaveOnly)
+            {
+                await SaveScriptToFileAsync(script, options);
+                return;
+            }
 
             // Display script
             ConsoleDisplay.DisplayGeneratedScript(script, $"Generated Script from '{template.Metadata.Name}'");

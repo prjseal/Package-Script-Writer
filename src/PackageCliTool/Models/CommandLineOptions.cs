@@ -82,8 +82,17 @@ public class CommandLineOptions
     /// <summary>Gets or sets whether to automatically run the generated script</summary>
     public bool AutoRun { get; set; }
 
+    /// <summary>Gets or sets whether to skip the 'dotnet run' command in the generated script</summary>
+    public bool NoRun { get; set; }
+
     /// <summary>Gets or sets the directory where the script should be run</summary>
     public string? RunDirectory { get; set; }
+
+    /// <summary>Gets or sets whether to save the script to a file and exit immediately without interactive prompts</summary>
+    public bool SaveOnly { get; set; }
+
+    /// <summary>Gets or sets the output file path for saving the generated script</summary>
+    public string? OutputFile { get; set; }
 
     /// <summary>Gets or sets whether to enable verbose logging</summary>
     public bool VerboseMode { get; set; }
@@ -180,7 +189,10 @@ public class CommandLineOptions
                RemoveComments.HasValue ||
                IncludePrerelease.HasValue ||
                AutoRun ||
-               !string.IsNullOrWhiteSpace(RunDirectory);
+               NoRun ||
+               !string.IsNullOrWhiteSpace(RunDirectory) ||
+               SaveOnly ||
+               !string.IsNullOrWhiteSpace(OutputFile);
     }
 
     /// <summary>
@@ -373,8 +385,20 @@ public class CommandLineOptions
                     options.AutoRun = true;
                     break;
 
+                case "--no-run":
+                    options.NoRun = true;
+                    break;
+
                 case "--run-dir":
                     options.RunDirectory = GetNextArgument(args, ref i);
+                    break;
+
+                case "--save-only":
+                    options.SaveOnly = true;
+                    break;
+
+                case "--output":
+                    options.OutputFile = GetNextArgument(args, ref i);
                     break;
 
                 case "--verbose":
