@@ -82,7 +82,8 @@ public class ScriptModelTests
             IncludeDockerfile = true,
             IncludeDockerCompose = true,
             OnelinerOutput = true,
-            RemoveComments = true
+            RemoveComments = true,
+            SkipDotnetRun = true
         };
 
         // Act
@@ -110,6 +111,7 @@ public class ScriptModelTests
         deserialized.IncludeDockerCompose.Should().Be(model.IncludeDockerCompose);
         deserialized.OnelinerOutput.Should().Be(model.OnelinerOutput);
         deserialized.RemoveComments.Should().Be(model.RemoveComments);
+        deserialized.SkipDotnetRun.Should().Be(model.SkipDotnetRun);
     }
 
     [Fact]
@@ -270,7 +272,8 @@ public class ScriptModelTests
             IncludeDockerfile = true,
             IncludeDockerCompose = true,
             OnelinerOutput = false,
-            RemoveComments = true
+            RemoveComments = true,
+            SkipDotnetRun = true
         };
 
         // Act - Serialize and deserialize
@@ -330,6 +333,7 @@ public class ScriptModelTests
         model.IncludeDockerCompose.Should().BeFalse();
         model.OnelinerOutput.Should().BeFalse();
         model.RemoveComments.Should().BeFalse();
+        model.SkipDotnetRun.Should().BeFalse();
     }
 
     [Fact]
@@ -353,5 +357,60 @@ public class ScriptModelTests
         deserialized!.SolutionName.Should().BeNull();
         deserialized.Packages.Should().BeNull();
         deserialized.StarterKitPackage.Should().BeNull();
+    }
+
+    [Fact]
+    public void ScriptModel_WithSkipDotnetRun_SerializesCorrectly()
+    {
+        // Arrange
+        var model = new ScriptModel
+        {
+            TemplateName = "Umbraco.Templates",
+            ProjectName = "TestProject",
+            SkipDotnetRun = true
+        };
+
+        // Act
+        var json = JsonSerializer.Serialize(model);
+        var deserialized = JsonSerializer.Deserialize<ScriptModel>(json);
+
+        // Assert
+        json.Should().Contain("\"skipDotnetRun\":true");
+        deserialized!.SkipDotnetRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ScriptModel_Deserialization_WithSkipDotnetRun_MapsCorrectly()
+    {
+        // Arrange
+        var json = @"{
+            ""templateName"": ""Umbraco.Templates"",
+            ""projectName"": ""TestProject"",
+            ""skipDotnetRun"": true
+        }";
+
+        // Act
+        var model = JsonSerializer.Deserialize<ScriptModel>(json);
+
+        // Assert
+        model.Should().NotBeNull();
+        model!.SkipDotnetRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void ScriptModel_Deserialization_WithoutSkipDotnetRun_DefaultsToFalse()
+    {
+        // Arrange - JSON without skipDotnetRun field
+        var json = @"{
+            ""templateName"": ""Umbraco.Templates"",
+            ""projectName"": ""TestProject""
+        }";
+
+        // Act
+        var model = JsonSerializer.Deserialize<ScriptModel>(json);
+
+        // Assert
+        model.Should().NotBeNull();
+        model!.SkipDotnetRun.Should().BeFalse();
     }
 }
