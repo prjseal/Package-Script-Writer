@@ -364,7 +364,7 @@ public class TemplateWorkflow
     {
         if (string.IsNullOrWhiteSpace(options.OutputFile))
         {
-            AnsiConsole.MarkupLine("[red]Error: --save-only requires --output <file> to specify the output file path[/]");
+            AnsiConsole.MarkupLine("[red]Error: --save-only requires --output-file <file> to specify the output file path[/]");
             Environment.ExitCode = 1;
             return;
         }
