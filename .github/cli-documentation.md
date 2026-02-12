@@ -270,7 +270,7 @@ psw -d -n MyProject -s MyProject \
     --admin-email admin@test.com \
     --admin-password "SecurePass123!" \
     -p "Umbraco.Forms" \
-    --output install.sh --save-only
+    --output-file install.sh --save-only
 ```
 
 ### Command Reference
@@ -327,8 +327,8 @@ psw --default           # Generate default script
 --auto-run              # Automatically run the generated script
 --no-run                # Skip 'dotnet run' from the generated script
 --run-dir               # Directory to run script in
---output <file>         # Output file path for saving the generated script
---save-only             # Save script to file (via --output) and exit without prompts
+--output-file <file>    # Output file path for saving the generated script
+--save-only             # Save script to file (via --output-file) and exit without prompts
 ```
 
 #### Template Commands
