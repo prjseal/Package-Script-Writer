@@ -51,8 +51,8 @@ public class CommunityTemplatesApiController : ControllerBase
                 {
                     cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(CacheTimeInMinutes);
 
-                    var indexPath = Path.Combine(_webHostEnvironment.WebRootPath, 
-                        "community-templates", 
+                    var indexPath = Path.Combine(_webHostEnvironment.WebRootPath,
+                        "community-templates",
                         "index.json");
 
                     if (!System.IO.File.Exists(indexPath))
