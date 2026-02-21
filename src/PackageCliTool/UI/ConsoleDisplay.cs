@@ -75,7 +75,7 @@ public static class ConsoleDisplay
   [green]-r, --remove-comments[/]         Remove comments from generated script
   [green]    --include-prerelease[/]      Include prerelease package versions
   [green]    --auto-run[/]                Automatically execute the generated script
-  [green]    --no-build[/]               Skip 'dotnet run' from the generated script (build only)
+  [green]    --build-only[/]              Install and build without starting the web server
   [green]    --run-dir[/] <directory>     [dim](string)[/] Directory to run script in
   [green]    --save-only[/]               Save script to file (via --output-file) and exit without prompts
   [green]    --output-file[/] <file>      [dim](string)[/] Output file path for saving the generated script
@@ -143,8 +143,8 @@ public static class ConsoleDisplay
     [cyan]psw[/]
 
 [bold yellow]AUTOMATION EXAMPLES:[/]
-  Auto-run but skip 'dotnet run' (install + build only):
-    [cyan]psw -d -n MyProject -s MyProject -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run --no-build[/]
+  Auto-run with build only (no server start):
+    [cyan]psw -d -n MyProject -s MyProject -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run --build-only[/]
 
   Save script to file without interactive prompts:
     [cyan]psw -d -n MyProject -s MyProject -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --output-file install.sh --save-only[/]

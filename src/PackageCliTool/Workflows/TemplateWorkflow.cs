@@ -278,11 +278,11 @@ public class TemplateWorkflow
                     .Validate(pwd => pwd.Length >= 10 ? ValidationResult.Success() : ValidationResult.Error("Password must be at least 10 characters")));
         }
 
-        // Apply --no-build flag
-        if (options.NoBuild)
+        // Apply --build-only flag
+        if (options.BuildOnly)
         {
             scriptModel.SkipDotnetRun = true;
-            overrides["NoBuild"] = true;
+            overrides["BuildOnly"] = true;
         }
 
         // Display configuration summary

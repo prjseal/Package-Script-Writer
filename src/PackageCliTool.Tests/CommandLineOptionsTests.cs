@@ -826,16 +826,16 @@ public class CommandLineOptionsTests
     #region Non-Interactive Mode Flags
 
     [Fact]
-    public void Parse_WithNoBuildFlag_SetsNoBuild()
+    public void Parse_WithBuildOnlyFlag_SetsBuildOnly()
     {
         // Arrange
-        var args = new[] { "--no-build" };
+        var args = new[] { "--build-only" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
 
         // Assert
-        options.NoBuild.Should().BeTrue();
+        options.BuildOnly.Should().BeTrue();
     }
 
     [Fact]
@@ -865,17 +865,17 @@ public class CommandLineOptionsTests
     }
 
     [Fact]
-    public void Parse_WithNoBuildAndAutoRun_SetsBothFlags()
+    public void Parse_WithBuildOnlyAndAutoRun_SetsBothFlags()
     {
         // Arrange
-        var args = new[] { "--auto-run", "--no-build" };
+        var args = new[] { "--auto-run", "--build-only" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
 
         // Assert
         options.AutoRun.Should().BeTrue();
-        options.NoBuild.Should().BeTrue();
+        options.BuildOnly.Should().BeTrue();
     }
 
     [Fact]
@@ -893,10 +893,10 @@ public class CommandLineOptionsTests
     }
 
     [Fact]
-    public void HasAnyOptions_WithNoBuildFlag_ReturnsTrue()
+    public void HasAnyOptions_WithBuildOnlyFlag_ReturnsTrue()
     {
         // Arrange
-        var args = new[] { "--no-build" };
+        var args = new[] { "--build-only" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
@@ -947,7 +947,7 @@ public class CommandLineOptionsTests
             "-p", "Umbraco.Forms",
             "--output-file", "install.sh",
             "--save-only",
-            "--no-build"
+            "--build-only"
         };
 
         // Act
@@ -964,7 +964,7 @@ public class CommandLineOptionsTests
         options.Packages.Should().Be("Umbraco.Forms");
         options.OutputFile.Should().Be("install.sh");
         options.SaveOnly.Should().BeTrue();
-        options.NoBuild.Should().BeTrue();
+        options.BuildOnly.Should().BeTrue();
         options.HasAnyOptions().Should().BeTrue();
     }
 
@@ -978,7 +978,7 @@ public class CommandLineOptionsTests
         var options = CommandLineOptions.Parse(args);
 
         // Assert
-        options.NoBuild.Should().BeFalse();
+        options.BuildOnly.Should().BeFalse();
         options.SaveOnly.Should().BeFalse();
         options.OutputFile.Should().BeNull();
     }

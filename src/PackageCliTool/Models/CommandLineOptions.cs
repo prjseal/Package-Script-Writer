@@ -83,7 +83,7 @@ public class CommandLineOptions
     public bool AutoRun { get; set; }
 
     /// <summary>Gets or sets whether to skip the 'dotnet run' command in the generated script (build only, no server start)</summary>
-    public bool NoBuild { get; set; }
+    public bool BuildOnly { get; set; }
 
     /// <summary>Gets or sets the directory where the script should be run</summary>
     public string? RunDirectory { get; set; }
@@ -215,7 +215,7 @@ public class CommandLineOptions
                RemoveComments.HasValue ||
                IncludePrerelease.HasValue ||
                AutoRun ||
-               NoBuild ||
+               BuildOnly ||
                !string.IsNullOrWhiteSpace(RunDirectory) ||
                SaveOnly ||
                !string.IsNullOrWhiteSpace(OutputFile);
@@ -385,8 +385,8 @@ public class CommandLineOptions
                     options.AutoRun = true;
                     break;
 
-                case "--no-build":
-                    options.NoBuild = true;
+                case "--build-only":
+                    options.BuildOnly = true;
                     break;
 
                 case "--run-dir":

@@ -182,7 +182,7 @@ public static class OutputHelper
                 new { name = "--remove-comments", shortName = "-r", type = "flag", description = "Remove comments from generated script" },
                 new { name = "--include-prerelease", shortName = (string?)null, type = "flag", description = "Include prerelease package versions" },
                 new { name = "--auto-run", shortName = (string?)null, type = "flag", description = "Automatically execute the generated script" },
-                new { name = "--no-build", shortName = (string?)null, type = "flag", description = "Skip 'dotnet run' from the generated script (build only, no server start)" },
+                new { name = "--build-only", shortName = (string?)null, type = "flag", description = "Install and build without starting the web server" },
                 new { name = "--run-dir", shortName = (string?)null, type = "string", required = false, description = "Directory to run script in" },
                 new { name = "--save-only", shortName = (string?)null, type = "flag", description = "Save script to file (via --output-file) and exit without interactive prompts" },
                 new { name = "--output-file", shortName = (string?)null, type = "string", required = false, description = "Output file path for saving the generated script" },

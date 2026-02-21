@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Non-interactive Mode (`--save-only`)** - Save the generated script to a file (via `--output-file <file>`) and exit immediately without showing interactive prompts. Enables programmatic use from other tools (e.g., MCP servers, CI/CD pipelines) where stdin is not a TTY
-- **Build-only Mode (`--no-build`)** - Skip the `dotnet run` command from the generated script. When combined with `--auto-run`, this allows installing and building an Umbraco project without starting the web server. Previously named `--no-run`
+- **Build-only Mode (`--build-only`)** - Install and build without starting the web server. When combined with `--auto-run`, this allows setting up an Umbraco project in CI/CD without launching the server. Previously named `--no-run`
 - **Script Output File (`--output-file <file>`)** - Specify an output file path for the generated script, used with `--save-only`
 - **Machine-Readable Output (`--output json|plain`)** - New output format flag for AI agents and automation. JSON mode returns structured responses with script, configuration, and metadata. Plain mode outputs raw text with no ANSI codes or decoration
 - **Script-Only Output (`--script-only`)** - Outputs only the raw generated script with no panels, spinners, or status messages. Ideal for piping to files or other tools

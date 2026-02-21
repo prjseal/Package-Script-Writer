@@ -128,7 +128,7 @@ public class PackagesViewModel
 
     /// <summary>
     /// When true, the generated script will not include the 'dotnet run' command.
-    /// Used by the CLI --no-build flag for automation scenarios where the server should not be started.
+    /// Used by the CLI --build-only flag for automation scenarios where the server should not be started.
     /// </summary>
     public bool SkipDotnetRun { get; set; }
 }
