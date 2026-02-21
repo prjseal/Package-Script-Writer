@@ -64,11 +64,11 @@ public class TemplatePackageFlagTests
     [Fact]
     public void TemplatePackageFlag_WithVersionFlag_BothShouldBeParsed()
     {
-        // Arrange
+        // Arrange - Use --template-version for explicit version setting
         var args = new[]
         {
             "--template-package", "Umbraco.Templates",
-            "-t", "14.3.0"
+            "--template-version", "14.3.0"
         };
 
         // Act
@@ -96,8 +96,8 @@ public class TemplatePackageFlagTests
     [Fact]
     public void TemplateVersionFlag_WithoutTemplatePackage_ShouldStillBeParsed()
     {
-        // Arrange
-        var args = new[] { "-t", "14.3.0" };
+        // Arrange - Use --template-version for explicit version setting
+        var args = new[] { "--template-version", "14.3.0" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
@@ -108,13 +108,26 @@ public class TemplatePackageFlagTests
     }
 
     [Fact]
+    public void ShortTemplateFlag_WithBareValue_ShouldSetAsPackageName()
+    {
+        // Arrange - After unification, -t with bare value treats it as package name
+        var args = new[] { "-t", "Umbraco.Templates" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().BeNull();
+    }
+
+    [Fact]
     public void TemplatePackageFlag_InComplexCommand_ShouldParseWithOtherFlags()
     {
-        // Arrange
+        // Arrange - Use pipe syntax for template+version, or --template-version
         var args = new[]
         {
-            "--template-package", "Umbraco.Community.Templates.Clean",
-            "-t", "14.3.0",
+            "-t", "Umbraco.Community.Templates.Clean|14.3.0",
             "-p", "uSync|17.0.0,Umbraco.Forms",
             "-n", "MyCleanProject",
             "-s", "MyCleanSolution",

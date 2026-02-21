@@ -114,10 +114,25 @@ public class CommandLineOptionsTests
 
     [Theory]
     [InlineData("-t", "Umbraco.Templates|17.0.3")]
-    public void Parse_WithTemplateVersionFlag_SetsTemplateVersion(string flag, string version)
+    [InlineData("--template-package", "Umbraco.Templates|17.0.3")]
+    public void Parse_WithTemplatePipeSyntax_SetsTemplateNameAndVersion(string flag, string value)
     {
         // Arrange
-        var args = new[] { flag, version };
+        var args = new[] { flag, value };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.3");
+    }
+
+    [Fact]
+    public void Parse_WithTemplateVersionFlag_SetsTemplateVersion()
+    {
+        // Arrange
+        var args = new[] { "--template-version", "17.0.3" };
 
         // Act
         var options = CommandLineOptions.Parse(args);
@@ -325,11 +340,10 @@ public class CommandLineOptionsTests
     [Fact]
     public void Parse_WithMultipleFlags_ParsesAllCorrectly()
     {
-        // Arrange
+        // Arrange - Use pipe syntax for template+version (unified -t and --template-package)
         var args = new[]
         {
-            "--template-package", "Umbraco.Templates",
-            "-t", "14.3.0",
+            "-t", "Umbraco.Templates|14.3.0",
             "-p", "uSync|17.0.0,Umbraco.Forms|14.2.0",
             "-n", "MyProject",
             "-s", "MySolution",
@@ -577,6 +591,128 @@ public class CommandLineOptionsTests
     }
 
     [Fact]
+    public void Parse_WithOutputJsonFlag_SetsOutputFormat()
+    {
+        // Arrange
+        var args = new[] { "--output", "json" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.OutputFormat.Should().Be(OutputFormat.Json);
+    }
+
+    [Fact]
+    public void Parse_WithOutputPlainFlag_SetsOutputFormat()
+    {
+        // Arrange
+        var args = new[] { "--output", "plain" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.OutputFormat.Should().Be(OutputFormat.Plain);
+    }
+
+    [Fact]
+    public void Parse_WithScriptOnlyFlag_SetsScriptOnly()
+    {
+        // Arrange
+        var args = new[] { "--script-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ScriptOnly.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("--no-interaction")]
+    [InlineData("--non-interactive")]
+    public void Parse_WithNonInteractiveFlag_SetsNonInteractive(string flag)
+    {
+        // Arrange
+        var args = new[] { flag };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.NonInteractive.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithDryRunFlag_SetsDryRun()
+    {
+        // Arrange
+        var args = new[] { "--dry-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.DryRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithHelpJsonFlag_SetsShowHelpJson()
+    {
+        // Arrange
+        var args = new[] { "--help-json" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ShowHelpJson.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithListOptionsCommand_SetsListOptionsCommand()
+    {
+        // Arrange
+        var args = new[] { "list-options", "database-types" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ListOptionsCommand.Should().Be("database-types");
+        options.IsListOptionsCommand().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithListOptionsNoCategory_SetsEmptyString()
+    {
+        // Arrange
+        var args = new[] { "list-options" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.ListOptionsCommand.Should().Be("");
+        options.IsListOptionsCommand().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithTemplateVersionExplicitFlag_SetsTemplateVersion()
+    {
+        // Arrange
+        var args = new[] { "-t", "Umbraco.Templates", "--template-version", "17.0.3" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.TemplatePackageName.Should().Be("Umbraco.Templates");
+        options.TemplateVersion.Should().Be("17.0.3");
+    }
+
+    [Fact]
     public void Parse_WithCommunityTemplateFlag_SetsCommunityTemplate()
     {
         // Arrange
@@ -686,4 +822,166 @@ public class CommandLineOptionsTests
         options.DatabaseType.Should().Be("SqlServer");
         options.AdminEmail.Should().Be("custom@example.com");
     }
+
+    #region Non-Interactive Mode Flags
+
+    [Fact]
+    public void Parse_WithNoRunFlag_SetsNoRun()
+    {
+        // Arrange
+        var args = new[] { "--no-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.NoRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithSaveOnlyFlag_SetsSaveOnly()
+    {
+        // Arrange
+        var args = new[] { "--save-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.SaveOnly.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithOutputFileFlag_SetsOutputFile()
+    {
+        // Arrange
+        var args = new[] { "--output-file", "install.sh" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.OutputFile.Should().Be("install.sh");
+    }
+
+    [Fact]
+    public void Parse_WithNoRunAndAutoRun_SetsBothFlags()
+    {
+        // Arrange
+        var args = new[] { "--auto-run", "--no-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.AutoRun.Should().BeTrue();
+        options.NoRun.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithSaveOnlyAndOutputFile_SetsBothFlags()
+    {
+        // Arrange
+        var args = new[] { "--output-file", "install.sh", "--save-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.SaveOnly.Should().BeTrue();
+        options.OutputFile.Should().Be("install.sh");
+    }
+
+    [Fact]
+    public void HasAnyOptions_WithNoRunFlag_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--no-run" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void HasAnyOptions_WithSaveOnlyFlag_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--save-only" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void HasAnyOptions_WithOutputFileFlag_ReturnsTrue()
+    {
+        // Arrange
+        var args = new[] { "--output-file", "install.sh" };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithAllAutomationFlags_ParsesCorrectly()
+    {
+        // Arrange
+        var args = new[]
+        {
+            "-d",
+            "-n", "MyProject",
+            "-s", "MyProject",
+            "-u",
+            "--database-type", "SQLite",
+            "--admin-email", "admin@test.com",
+            "--admin-password", "SecurePass1234",
+            "-p", "Umbraco.Forms",
+            "--output-file", "install.sh",
+            "--save-only",
+            "--no-run"
+        };
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.UseDefault.Should().BeTrue();
+        options.ProjectName.Should().Be("MyProject");
+        options.SolutionName.Should().Be("MyProject");
+        options.UseUnattended.Should().BeTrue();
+        options.DatabaseType.Should().Be("SQLite");
+        options.AdminEmail.Should().Be("admin@test.com");
+        options.AdminPassword.Should().Be("SecurePass1234");
+        options.Packages.Should().Be("Umbraco.Forms");
+        options.OutputFile.Should().Be("install.sh");
+        options.SaveOnly.Should().BeTrue();
+        options.NoRun.Should().BeTrue();
+        options.HasAnyOptions().Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithNoArguments_NewFlagsDefaultToFalse()
+    {
+        // Arrange
+        var args = Array.Empty<string>();
+
+        // Act
+        var options = CommandLineOptions.Parse(args);
+
+        // Assert
+        options.NoRun.Should().BeFalse();
+        options.SaveOnly.Should().BeFalse();
+        options.OutputFile.Should().BeNull();
+    }
+
+    #endregion
 }

@@ -86,4 +86,8 @@ public class ScriptModel
     /// <summary>Gets or sets whether to remove comments from the generated script</summary>
     [JsonPropertyName("removeComments")]
     public bool RemoveComments { get; set; }
+
+    /// <summary>Gets or sets whether to skip the 'dotnet run' command in the generated script</summary>
+    [JsonPropertyName("skipDotnetRun")]
+    public bool SkipDotnetRun { get; set; }
 }

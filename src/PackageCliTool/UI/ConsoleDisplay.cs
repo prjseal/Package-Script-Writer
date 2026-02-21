@@ -45,39 +45,54 @@ public static class ConsoleDisplay
   psw template <command> [[options]]
   psw history <command> [[options]]
   psw versions
+  psw list-options [[category]]
 
 [bold yellow]MAIN OPTIONS:[/]
-  [green]    --admin-email[/] <email>     Admin email for unattended install
-  [green]    --admin-name[/] <name>       Admin user friendly name for unattended install
-  [green]    --admin-password[/] <pwd>    Admin password for unattended install
-  [green]    --auto-run[/]                Automatically run the generated script
-  [green]    --clear-cache[/]             Clear all cached API responses
-  [green]    --connection-string[/] <str> Connection string (for SQLServer/SQLAzure)
-  [green]    --database-type[/] <type>    Database type (SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)
   [green]-d, --default[/]                 Generate a default script with minimal configuration
+  [green]-p, --packages[/] <packages>     [dim](string)[/] Comma-separated packages with optional versions
+                                   Format: ""Package1|Version1,Package2""
+                                   Example: ""uSync|17.0.0,Umbraco.Forms""
+  [green]-t, --template-package[/] <pkg>  [dim](string)[/] Template package with optional version
+                                   Format: ""PackageName|Version"" or just ""PackageName""
+                                   Example: ""Umbraco.Templates|17.0.3""
+  [green]    --template-version[/] <ver>  [dim](string)[/] Template version (alternative to pipe syntax)
+  [green]-n, --project-name[/] <name>     [dim](string, default: MyProject)[/] Project name
+  [green]-s, --solution[/] <name>         [dim](string)[/] Solution name (enables solution file creation)
+  [green]-k, --starter-kit[/] <pkg>       [dim](string)[/] Starter kit: clean, Articulate, Portfolio, etc.
+                                   Format: ""PackageName|Version"" or just ""PackageName""
   [green]    --dockerfile[/]              Include Dockerfile in generated script
   [green]    --docker-compose[/]          Include Docker Compose file in generated script
   [green]-da, --delivery-api[/]           Enable Content Delivery API
-  [green]-h, --help[/]                    Show this help information
-  [green]    --include-prerelease[/]      Include prerelease package versions
-  [green]-k, --starter-kit[/] <package>   Starter kit package name
-  [green]-n, --project-name[/] <name>     Project name (default: MyProject)
+  [green]-u, --unattended-defaults[/]     Use unattended install with defaults (SQLite, admin@example.com)
+  [green]    --database-type[/] <type>    [dim](enum: SQLite, LocalDb, SQLServer, SQLAzure, SQLCE)[/]
+                                   Database type. Implies unattended install.
+                                   [dim]Note: SQLServer/SQLAzure require --connection-string[/]
+  [green]    --connection-string[/] <str> [dim](string)[/] Database connection string
+  [green]    --admin-name[/] <name>       [dim](string, default: Administrator)[/] Admin friendly name
+  [green]    --admin-email[/] <email>     [dim](string, default: admin@example.com)[/] Admin email
+  [green]    --admin-password[/] <pwd>    [dim](string, default: 1234567890)[/] Admin password (min 10 chars)
   [green]-o, --oneliner[/]                Output script as one-liner
-  [green]-p, --packages[/] <packages>     Comma-separated list of packages with optional versions
-                                   Format: ""Package1|Version1,Package2|Version2""
-                                   Or just package names: ""uSync,Umbraco.Forms"" (uses latest)
-                                   Example: ""uSync|17.0.0,clean|7.0.1""
   [green]-r, --remove-comments[/]         Remove comments from generated script
-  [green]    --run-dir[/] <directory>     Directory to run script in
-  [green]-s, --solution[/]                Solution name
-  [green]    --starter-kit-package[/] <pkg> Starter kit package name
-  [green]-t, --template-package[/] <package>     Comma-separated list of packages with optional version
-                                   Format: ""Package|Version""
-                                   Or just template name: ""Umbraco.Templates"" (uses latest)
-                                   Example: ""Umbraco.Templates|17.0.3""
-  [green]-u, --unattended-defaults[/]     Use unattended install defaults
+  [green]    --include-prerelease[/]      Include prerelease package versions
+  [green]    --auto-run[/]                Automatically run the generated script
+  [green]    --no-run[/]                  Skip 'dotnet run' from the generated script
+  [green]    --run-dir[/] <directory>     [dim](string)[/] Directory to run script in
+  [green]    --save-only[/]               Save script to file (via --output-file) and exit without prompts
+  [green]    --output-file[/] <file>      [dim](string)[/] Output file path for saving the generated script
+  [green]    --community-template[/] <n>  [dim](string)[/] Load community template by name, or 'list'
+
+[bold yellow]OUTPUT & AI AGENT OPTIONS:[/]
+  [green]    --output[/] <format>         [dim](enum: json, plain)[/] Output format for machine consumption
+  [green]    --script-only[/]             Output only the raw script text, no decoration
+  [green]    --no-interaction[/]          Suppress all interactive prompts (fail if input needed)
+  [green]    --dry-run[/]                 Validate inputs and show config without generating script
+  [green]    --help-json[/]               Show all commands and options as structured JSON
+
+[bold yellow]GENERAL OPTIONS:[/]
+  [green]-h, --help[/]                    Show this help information
   [green]-v, --version[/]                 Show version information
   [green]    --verbose[/]                 Enable verbose logging mode
+  [green]    --clear-cache[/]             Clear all cached API responses
 
 [bold yellow]TEMPLATE COMMANDS:[/]
   [green]psw template save[/] <name>      Save current configuration as a template
@@ -127,6 +142,13 @@ public static class ConsoleDisplay
   Interactive mode (no flags):
     [cyan]psw[/]
 
+[bold yellow]AUTOMATION EXAMPLES:[/]
+  Auto-run but skip 'dotnet run' (install + build only):
+    [cyan]psw -d -n MyProject -s MyProject -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --auto-run --no-run[/]
+
+  Save script to file without interactive prompts:
+    [cyan]psw -d -n MyProject -s MyProject -u --database-type SQLite --admin-email admin@test.com --admin-password MyPass123! --output-file install.sh --save-only[/]
+
 [bold yellow]TEMPLATE EXAMPLES:[/]
   Save current configuration as template:
     [cyan]psw template save my-blog --template-description ""My blog setup"" --template-tags ""blog,umbraco14""[/]
@@ -165,7 +187,32 @@ public static class ConsoleDisplay
 
 [bold yellow]VERSIONS EXAMPLES:[/]
   Display Umbraco versions table:
-    [cyan]psw versions[/]")
+    [cyan]psw versions[/]
+
+[bold yellow]AI AGENT / AUTOMATION EXAMPLES:[/]
+  Generate script as JSON (for programmatic use):
+    [cyan]psw --default --output json[/]
+
+  Generate script with no decoration (pipe-friendly):
+    [cyan]psw --default --script-only[/]
+
+  Validate config without generating (dry run):
+    [cyan]psw --dry-run -p ""uSync|17.0.0"" --database-type SQLite[/]
+
+  Get help as JSON (for AI tool discovery):
+    [cyan]psw --help-json[/]
+
+  List valid option values as JSON:
+    [cyan]psw list-options --output json[/]
+
+  List valid database types:
+    [cyan]psw list-options database-types[/]
+
+  Non-interactive mode (no prompts):
+    [cyan]psw --default --no-interaction --script-only[/]
+
+  Get version as plain text:
+    [cyan]psw --version --output plain[/]")
             .Header("[bold blue]Package Script Writer Help[/]")
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Blue)

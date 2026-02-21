@@ -5,6 +5,28 @@ All notable changes to Package Script Writer CLI will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Non-interactive Mode (`--save-only`)** - Save the generated script to a file (via `--output-file <file>`) and exit immediately without showing interactive prompts. Enables programmatic use from other tools (e.g., MCP servers, CI/CD pipelines) where stdin is not a TTY
+- **Build-only Mode (`--no-run`)** - Skip the `dotnet run` command from the generated script. When combined with `--auto-run`, this allows installing and building an Umbraco project without starting the web server
+- **Script Output File (`--output-file <file>`)** - Specify an output file path for the generated script, used with `--save-only`
+- **Machine-Readable Output (`--output json|plain`)** - New output format flag for AI agents and automation. JSON mode returns structured responses with script, configuration, and metadata. Plain mode outputs raw text with no ANSI codes or decoration
+- **Script-Only Output (`--script-only`)** - Outputs only the raw generated script with no panels, spinners, or status messages. Ideal for piping to files or other tools
+- **Non-Interactive Mode (`--no-interaction`)** - Suppresses all interactive prompts. In CLI mode, the tool will output the script and exit without asking "What would you like to do?"
+- **Dry Run (`--dry-run`)** - Validates all inputs and displays the resolved configuration without generating a script or calling any APIs
+- **Structured Help (`--help-json`)** - Outputs all commands, options, types, defaults, and valid values as structured JSON. Enables AI agents to programmatically discover CLI capabilities
+- **List Options Command (`psw list-options`)** - New subcommand to list valid values for CLI options. Supports categories: `database-types`, `starter-kits`, `defaults`. Works with `--output json` for machine-readable output
+- **Template Version Flag (`--template-version`)** - Explicit flag for setting template version as an alternative to the pipe syntax in `--template-package`
+- **Distinct Exit Codes** - Different exit codes for different error categories: 0 (success), 1 (general), 2 (validation), 3 (network), 4 (script execution), 5 (file system)
+- **Structured Version Output** - `psw --version --output json` returns version, runtime, and platform as JSON. `--output plain` returns just the version number
+- **JSON Error Responses** - When using `--output json`, errors are returned as structured JSON with error message, error code, and suggestion fields
+
+### Changed
+- **Unified `-t` and `--template-package` Flags** - Both `-t` and `--template-package` now behave identically: bare values are treated as package names, and `Name|Version` pipe syntax sets both. Previously `-t` treated bare values as version only
+- **Improved Help Text** - All options now show their type (string, enum, flag), default values, and dependency notes directly in help output. New "AI Agent / Automation" examples section added
+- **Stderr/Stdout Separation** - In `--output plain` and `--script-only` modes, status messages go to stderr while the script goes to stdout, enabling clean piping
+
 ## [1.1.2] - 2026-01-16
 
 ### Fixed

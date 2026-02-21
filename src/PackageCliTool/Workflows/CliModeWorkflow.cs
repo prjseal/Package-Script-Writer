@@ -10,6 +10,8 @@ using PackageCliTool.Validation;
 using PackageCliTool.Logging;
 using PSW.Shared.Services;
 using PackageCliTool.Extensions;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace PackageCliTool.Workflows;
 
@@ -78,11 +80,15 @@ public class CliModeWorkflow
     private async Task GenerateDefaultScriptAsync(CommandLineOptions options)
     {
         _logger?.LogInformation("Generating default script");
+        var machineReadable = OutputHelper.IsMachineReadable(options.OutputFormat) || options.ScriptOnly;
 
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
-        AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
-        AnsiConsole.WriteLine();
+        if (!machineReadable)
+        {
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("[bold blue]Generating Default Script[/]\n");
+            AnsiConsole.MarkupLine("[dim]Using default configuration (latest stable Umbraco with clean starter kit)[/]");
+            AnsiConsole.WriteLine();
+        }
 
         // Create default script model matching website defaults
         var model = new ScriptModel
@@ -145,13 +151,34 @@ public class CliModeWorkflow
         HandleStarterKitPackage(options, model);
         HandleTemplatePackage(options, model);
 
-        var script = await AnsiConsole.Status()
-            .Spinner(Spinner.Known.Star)
-            .SpinnerStyle(Style.Parse("green"))
-            .StartAsync("Generating default installation script...", async ctx =>
-            {
-                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-            });
+        // Apply --no-run flag
+        if (options.NoRun)
+        {
+            model.SkipDotnetRun = true;
+        }
+
+        // Dry-run: validate and show config without generating
+        if (options.DryRun)
+        {
+            WriteDryRunResult(options, model);
+            return;
+        }
+
+        string script;
+        if (machineReadable)
+        {
+            script = _scriptGeneratorService.GenerateScript(model.ToViewModel());
+        }
+        else
+        {
+            script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Star)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating default installation script...", async ctx =>
+                {
+                    return _scriptGeneratorService.GenerateScript(model.ToViewModel());
+                });
+        }
 
         _logger?.LogInformation("Default script generated successfully");
 
@@ -161,7 +188,14 @@ public class CliModeWorkflow
             templateName: model.TemplateName,
             description: $"Default script for {model.ProjectName}");
 
-        ConsoleDisplay.DisplayGeneratedScript(script, "Generated Default Installation Script");
+        // Handle --save-only: write script to file and exit immediately
+        if (options.SaveOnly)
+        {
+            await SaveScriptToFileAsync(script, options);
+            return;
+        }
+
+        OutputHelper.WriteScript(script, options.ScriptOnly ? OutputFormat.Plain : options.OutputFormat, model, "Generated Default Installation Script");
 
         // Handle auto-run or interactive run
         await HandleScriptExecutionAsync(script, options);
@@ -173,6 +207,7 @@ public class CliModeWorkflow
     private async Task GenerateCustomScriptFromOptionsAsync(CommandLineOptions options)
     {
         _logger?.LogInformation("Generating custom script from command-line options");
+        var machineReadable = OutputHelper.IsMachineReadable(options.OutputFormat) || options.ScriptOnly;
 
         var projectName = !string.IsNullOrWhiteSpace(options.ProjectName)
             ? options.ProjectName
@@ -249,16 +284,37 @@ public class CliModeWorkflow
         HandleStarterKitPackage(options, model);
         HandleTemplatePackage(options, model);
 
+        // Apply --no-run flag
+        if (options.NoRun)
+        {
+            model.SkipDotnetRun = true;
+        }
+
+        // Dry-run: validate and show config without generating
+        if (options.DryRun)
+        {
+            WriteDryRunResult(options, model);
+            return;
+        }
+
         // Generate the script
         _logger?.LogInformation("Generating installation script via API");
 
-        var script = await AnsiConsole.Status()
-            .Spinner(Spinner.Known.Star)
-            .SpinnerStyle(Style.Parse("green"))
-            .StartAsync("Generating installation script...", async ctx =>
-            {
-                return _scriptGeneratorService.GenerateScript(model.ToViewModel());
-            });
+        string script;
+        if (machineReadable)
+        {
+            script = _scriptGeneratorService.GenerateScript(model.ToViewModel());
+        }
+        else
+        {
+            script = await AnsiConsole.Status()
+                .Spinner(Spinner.Known.Star)
+                .SpinnerStyle(Style.Parse("green"))
+                .StartAsync("Generating installation script...", async ctx =>
+                {
+                    return _scriptGeneratorService.GenerateScript(model.ToViewModel());
+                });
+        }
 
         _logger?.LogInformation("Script generated successfully");
 
@@ -268,7 +324,14 @@ public class CliModeWorkflow
             templateName: model.TemplateName,
             description: $"Custom script for {model.ProjectName ?? "project"}");
 
-        ConsoleDisplay.DisplayGeneratedScript(script);
+        // Handle --save-only: write script to file and exit immediately
+        if (options.SaveOnly)
+        {
+            await SaveScriptToFileAsync(script, options);
+            return;
+        }
+
+        OutputHelper.WriteScript(script, options.ScriptOnly ? OutputFormat.Plain : options.OutputFormat, model);
 
         // Handle auto-run or interactive run
         await HandleScriptExecutionAsync(script, options);
@@ -276,6 +339,8 @@ public class CliModeWorkflow
 
     private void HandlePackages(CommandLineOptions options, ScriptModel model)
     {
+        var machineReadable = OutputHelper.IsMachineReadable(options.OutputFormat) || options.ScriptOnly;
+
         // Handle packages
         if (!string.IsNullOrWhiteSpace(options.Packages))
         {
@@ -305,12 +370,14 @@ public class CliModeWorkflow
                             InputValidator.ValidateVersion(version);
 
                             processedPackages.Add($"{packageName}|{version}");
-                            AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
+                            if (!machineReadable)
+                                AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} version {version}");
                             _logger?.LogDebug("Added package {Package} with version {Version}", packageName, version);
                         }
                         else
                         {
-                            ErrorHandler.Warning($"Invalid package format: {entry}, skipping...", _logger);
+                            if (!machineReadable)
+                                ErrorHandler.Warning($"Invalid package format: {entry}, skipping...", _logger);
                         }
                     }
                     else
@@ -320,7 +387,8 @@ public class CliModeWorkflow
                         InputValidator.ValidatePackageName(packageName);
 
                         processedPackages.Add(packageName);
-                        AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
+                        if (!machineReadable)
+                            AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
                         _logger?.LogDebug("Added package {Package} with latest version", packageName);
                     }
                 }
@@ -336,6 +404,8 @@ public class CliModeWorkflow
 
     private void HandleStarterKitPackage(CommandLineOptions options, ScriptModel model)
     {
+        var machineReadable = OutputHelper.IsMachineReadable(options.OutputFormat) || options.ScriptOnly;
+
         // Handle starter kit package
         if (!string.IsNullOrWhiteSpace(options.StarterKitPackage))
         {
@@ -355,14 +425,16 @@ public class CliModeWorkflow
                 // Store with --version flag for the model
                 model.StarterKitPackage = $"{options.StarterKitPackage} --version {options.StarterKitVersion}";
 
-                AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} version {options.StarterKitVersion}");
+                if (!machineReadable)
+                    AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} version {options.StarterKitVersion}");
                 _logger?.LogDebug("Using starter kit {Package} with version {Version}", options.StarterKitPackage, options.StarterKitVersion);
             }
             else
             {
                 model.StarterKitPackage = options.StarterKitPackage;
 
-                AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} (latest version)");
+                if (!machineReadable)
+                    AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} (latest version)");
                 _logger?.LogDebug("Using starter kit {Package} with latest version", options.StarterKitPackage);
             }
         }
@@ -370,6 +442,8 @@ public class CliModeWorkflow
 
     private void HandleTemplatePackage(CommandLineOptions options, ScriptModel model)
     {
+        var machineReadable = OutputHelper.IsMachineReadable(options.OutputFormat) || options.ScriptOnly;
+
         // Handle template package
         if (!string.IsNullOrWhiteSpace(options.TemplatePackageName))
         {
@@ -389,15 +463,44 @@ public class CliModeWorkflow
 
                 model.TemplateVersion = options.TemplateVersion;
 
-                AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} version {options.TemplateVersion}");
+                if (!machineReadable)
+                    AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} version {options.TemplateVersion}");
                 _logger?.LogDebug("Using template {Template} with version {Version}", options.TemplatePackageName, options.TemplateVersion);
             }
             else
             {
-                AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} (latest version)");
+                if (!machineReadable)
+                    AnsiConsole.MarkupLine($"[green]✓[/] Using {options.TemplatePackageName} (latest version)");
                 _logger?.LogDebug("Using template {Template} with latest version", options.TemplatePackageName);
             }
         }
+    }
+
+    /// <summary>
+    /// Saves the generated script to a file and exits
+    /// </summary>
+    private async Task SaveScriptToFileAsync(string script, CommandLineOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(options.OutputFile))
+        {
+            AnsiConsole.MarkupLine("[red]Error: --save-only requires --output-file <file> to specify the output file path[/]");
+            Environment.ExitCode = 1;
+            return;
+        }
+
+        var outputPath = Path.GetFullPath(options.OutputFile);
+        var outputDir = Path.GetDirectoryName(outputPath);
+
+        if (!string.IsNullOrWhiteSpace(outputDir) && !Directory.Exists(outputDir))
+        {
+            Directory.CreateDirectory(outputDir);
+            _logger?.LogInformation("Created output directory: {Directory}", outputDir);
+        }
+
+        await File.WriteAllTextAsync(outputPath, script);
+
+        _logger?.LogInformation("Script saved to: {Path}", outputPath);
+        AnsiConsole.MarkupLine($"[green]✓ Script saved to:[/] {outputPath}");
     }
 
     /// <summary>
@@ -405,6 +508,30 @@ public class CliModeWorkflow
     /// </summary>
     private async Task HandleScriptExecutionAsync(string script, CommandLineOptions options)
     {
+        // In machine-readable or non-interactive mode, skip post-generation prompts
+        if (OutputHelper.IsMachineReadable(options.OutputFormat) || options.ScriptOnly || options.NonInteractive)
+        {
+            // Only auto-run if explicitly requested
+            if (options.AutoRun || !string.IsNullOrWhiteSpace(options.RunDirectory))
+            {
+                var targetDir = !string.IsNullOrWhiteSpace(options.RunDirectory)
+                    ? options.RunDirectory
+                    : Directory.GetCurrentDirectory();
+
+                InputValidator.ValidateDirectoryPath(targetDir);
+                targetDir = Path.GetFullPath(targetDir);
+
+                if (!Directory.Exists(targetDir))
+                {
+                    _logger?.LogInformation("Creating directory: {Directory}", targetDir);
+                    Directory.CreateDirectory(targetDir);
+                }
+
+                await _scriptExecutor.RunScriptAsync(script, targetDir);
+            }
+            return;
+        }
+
         if (options.AutoRun || !string.IsNullOrWhiteSpace(options.RunDirectory))
         {
             var targetDir = !string.IsNullOrWhiteSpace(options.RunDirectory)
@@ -586,6 +713,12 @@ public class CliModeWorkflow
             // Convert template to ScriptModel
             var model = ConvertTemplateToScriptModel(template, options);
 
+            // Apply --no-run flag
+            if (options.NoRun)
+            {
+                model.SkipDotnetRun = true;
+            }
+
             // Generate script
             var script = await AnsiConsole.Status()
                 .Spinner(Spinner.Known.Dots)
@@ -602,6 +735,13 @@ public class CliModeWorkflow
                 model,
                 templateName: template.Metadata.Name,
                 description: $"Community template: {template.Metadata.Description}");
+
+            // Handle --save-only: write script to file and exit immediately
+            if (options.SaveOnly)
+            {
+                await SaveScriptToFileAsync(script, options);
+                return;
+            }
 
             // Display script
             ConsoleDisplay.DisplayGeneratedScript(script, $"Generated Script from '{template.Metadata.Name}'");
@@ -725,5 +865,92 @@ public class CliModeWorkflow
             model.RemoveComments = options.RemoveComments.Value;
 
         return model;
+    }
+
+    /// <summary>
+    /// Outputs a dry-run result showing validated configuration without generating a script
+    /// </summary>
+    private void WriteDryRunResult(CommandLineOptions options, ScriptModel model)
+    {
+        _logger?.LogInformation("Dry-run: validation passed, displaying configuration");
+
+        if (options.OutputFormat == OutputFormat.Json)
+        {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            var result = new
+            {
+                success = true,
+                dryRun = true,
+                message = "Validation passed. Configuration is valid.",
+                configuration = new
+                {
+                    templateName = model.TemplateName,
+                    templateVersion = model.TemplateVersion,
+                    projectName = model.ProjectName,
+                    solutionName = model.SolutionName,
+                    createSolutionFile = model.CreateSolutionFile,
+                    packages = model.Packages,
+                    includeStarterKit = model.IncludeStarterKit,
+                    starterKitPackage = model.StarterKitPackage,
+                    includeDockerfile = model.IncludeDockerfile,
+                    includeDockerCompose = model.IncludeDockerCompose,
+                    enableContentDeliveryApi = model.EnableContentDeliveryApi,
+                    useUnattendedInstall = model.UseUnattendedInstall,
+                    databaseType = model.DatabaseType,
+                    onelinerOutput = model.OnelinerOutput,
+                    removeComments = model.RemoveComments
+                }
+            };
+            Console.WriteLine(JsonSerializer.Serialize(result, jsonOptions));
+        }
+        else if (options.OutputFormat == OutputFormat.Plain || options.ScriptOnly)
+        {
+            Console.WriteLine("Dry-run: validation passed");
+            Console.WriteLine($"Template: {model.TemplateName} {model.TemplateVersion}");
+            Console.WriteLine($"Project: {model.ProjectName}");
+            if (!string.IsNullOrWhiteSpace(model.Packages))
+                Console.WriteLine($"Packages: {model.Packages}");
+            if (model.UseUnattendedInstall)
+                Console.WriteLine($"Database: {model.DatabaseType}");
+        }
+        else
+        {
+            AnsiConsole.MarkupLine("[green]✓ Dry-run: validation passed[/]");
+            AnsiConsole.MarkupLine("[dim]Configuration is valid. Remove --dry-run to generate the script.[/]");
+            AnsiConsole.WriteLine();
+
+            var table = new Table()
+                .Border(TableBorder.Rounded)
+                .BorderColor(Color.Green)
+                .Title("[bold green]Validated Configuration[/]");
+
+            table.AddColumn("[bold]Setting[/]");
+            table.AddColumn("[bold]Value[/]");
+
+            table.AddRow("Template", $"{model.TemplateName} {model.TemplateVersion}".Trim());
+            table.AddRow("Project Name", model.ProjectName ?? "N/A");
+            if (model.CreateSolutionFile)
+                table.AddRow("Solution Name", model.SolutionName ?? "N/A");
+            if (!string.IsNullOrWhiteSpace(model.Packages))
+                table.AddRow("Packages", model.Packages);
+            if (model.IncludeStarterKit)
+                table.AddRow("Starter Kit", model.StarterKitPackage ?? "N/A");
+            if (model.IncludeDockerfile)
+                table.AddRow("Dockerfile", "Yes");
+            if (model.IncludeDockerCompose)
+                table.AddRow("Docker Compose", "Yes");
+            if (model.UseUnattendedInstall)
+            {
+                table.AddRow("Unattended Install", "Yes");
+                table.AddRow("Database Type", model.DatabaseType ?? "N/A");
+            }
+
+            AnsiConsole.Write(table);
+        }
     }
 }
