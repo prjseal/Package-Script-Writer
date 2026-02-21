@@ -151,8 +151,8 @@ public class CliModeWorkflow
         HandleStarterKitPackage(options, model);
         HandleTemplatePackage(options, model);
 
-        // Apply --no-run flag
-        if (options.NoRun)
+        // Apply --no-build flag
+        if (options.NoBuild)
         {
             model.SkipDotnetRun = true;
         }
@@ -284,8 +284,8 @@ public class CliModeWorkflow
         HandleStarterKitPackage(options, model);
         HandleTemplatePackage(options, model);
 
-        // Apply --no-run flag
-        if (options.NoRun)
+        // Apply --no-build flag
+        if (options.NoBuild)
         {
             model.SkipDotnetRun = true;
         }
@@ -713,8 +713,8 @@ public class CliModeWorkflow
             // Convert template to ScriptModel
             var model = ConvertTemplateToScriptModel(template, options);
 
-            // Apply --no-run flag
-            if (options.NoRun)
+            // Apply --no-build flag
+            if (options.NoBuild)
             {
                 model.SkipDotnetRun = true;
             }

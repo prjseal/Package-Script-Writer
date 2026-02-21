@@ -262,7 +262,7 @@ psw -d -n MyProject -s MyProject \
     -u --database-type SQLite \
     --admin-email admin@test.com \
     --admin-password "SecurePass123!" \
-    --auto-run --no-run
+    --auto-run --no-build
 
 # Save script to file without interactive prompts (for programmatic use)
 psw -d -n MyProject -s MyProject \
@@ -324,8 +324,8 @@ psw --default           # Generate default script
 #### Execution
 
 ```bash
---auto-run              # Automatically run the generated script
---no-run                # Skip 'dotnet run' from the generated script
+--auto-run              # Automatically execute the generated script
+--no-build              # Skip 'dotnet run' from the generated script (build only)
 --run-dir               # Directory to run script in
 --output-file <file>    # Output file path for saving the generated script
 --save-only             # Save script to file (via --output-file) and exit without prompts
