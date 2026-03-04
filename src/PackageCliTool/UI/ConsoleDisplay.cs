@@ -211,8 +211,24 @@ public static class ConsoleDisplay
   Non-interactive mode (no prompts):
     [cyan]psw --default --no-interaction --script-only[/]
 
+  Save script to file (no prompts, for MCP/CI/CD):
+    [cyan]psw --default -p ""uSync"" --output-file install.sh --save-only[/]
+
   Get version as plain text:
-    [cyan]psw --version --output plain[/]")
+    [cyan]psw --version --output plain[/]
+
+[bold yellow]UPDATING:[/]
+  Update to the latest stable release:
+    [cyan]dotnet tool update --global PackageScriptWriter.Cli[/]
+
+  Update to the latest prerelease version:
+    [cyan]dotnet tool update --global PackageScriptWriter.Cli --prerelease[/]
+
+  Update to a specific version:
+    [cyan]dotnet tool update --global PackageScriptWriter.Cli --version 1.2.0[/]
+
+  Check current version:
+    [cyan]psw --version[/]")
             .Header("[bold blue]Package Script Writer Help[/]")
             .Border(BoxBorder.Rounded)
             .BorderColor(Color.Blue)
