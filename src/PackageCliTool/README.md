@@ -38,6 +38,19 @@ psw -p "uSync,Diplo.GodMode" -n MyProject
 dotnet tool install --global PackageScriptWriter.Cli
 ```
 
+### Updating
+
+```bash
+# Update to the latest stable release
+dotnet tool update --global PackageScriptWriter.Cli
+
+# Update to the latest prerelease version
+dotnet tool update --global PackageScriptWriter.Cli --prerelease
+
+# Update to a specific version
+dotnet tool update --global PackageScriptWriter.Cli --version 1.2.0
+```
+
 ### From Source
 
 ```bash
@@ -96,6 +109,33 @@ psw template delete <name>      # Delete template
 psw history list                # View recent scripts
 psw history show <#>            # Show script details
 psw history rerun <#>           # Re-run previous script
+```
+
+### AI Agent / Automation
+
+The CLI is designed to be used by AI agents, MCP servers, and CI/CD pipelines:
+
+```bash
+# Machine-readable JSON output
+psw --default --output json
+
+# Raw script output (pipe-friendly, no decoration)
+psw --default --script-only
+
+# Discover CLI capabilities as structured JSON
+psw --help-json
+
+# List valid option values
+psw list-options --output json
+
+# Validate inputs without generating
+psw --dry-run -p "uSync|17.0.0" --database-type SQLite
+
+# Save script to file without prompts
+psw --default -p "uSync" --output-file install.sh --save-only
+
+# Fully non-interactive
+psw --default --no-interaction --script-only
 ```
 
 ## Requirements

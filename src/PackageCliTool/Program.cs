@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using PackageCliTool.Configuration;
+using PackageCliTool.Exceptions;
 using PackageCliTool.Logging;
 using PackageCliTool.Models;
 using PackageCliTool.Services;
@@ -152,6 +153,13 @@ class Program
             var historyService = serviceProvider.GetRequiredService<HistoryService>();
             var versionCheckService = serviceProvider.GetRequiredService<VersionCheckService>();
 
+            // Handle --help-json flag (before regular help, for AI agents)
+            if (options.ShowHelpJson)
+            {
+                OutputHelper.WriteHelpJson();
+                return;
+            }
+
             // Handle help flag
             if (options.ShowHelp)
             {
@@ -159,10 +167,23 @@ class Program
                 return;
             }
 
-            // Handle version flag
+            // Handle version flag with output format support
             if (options.ShowVersion)
             {
-                ConsoleDisplay.DisplayVersion();
+                if (options.OutputFormat == OutputFormat.Json)
+                    OutputHelper.WriteVersionJson();
+                else if (options.OutputFormat == OutputFormat.Plain)
+                    OutputHelper.WriteVersionPlain();
+                else
+                    ConsoleDisplay.DisplayVersion();
+                return;
+            }
+
+            // Handle list-options command
+            if (options.IsListOptionsCommand())
+            {
+                var listOptionsWorkflow = new ListOptionsWorkflow(logger);
+                listOptionsWorkflow.Run(options);
                 return;
             }
 
@@ -170,7 +191,8 @@ class Program
             if (options.ClearCache)
             {
                 cacheService.Clear();
-                AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
+                if (!OutputHelper.IsMachineReadable(options.OutputFormat))
+                    AnsiConsole.MarkupLine("[green]✓ Cache cleared successfully[/]");
 
                 // If only clearing cache, exit
                 if (!options.HasAnyOptions() && !options.IsTemplateCommand() && !options.IsHistoryCommand())
@@ -241,8 +263,33 @@ class Program
         }
         catch (Exception ex)
         {
-            ErrorHandler.Handle(ex, logger, showStackTrace: logger != null);
-            Environment.ExitCode = 1;
+            // Determine output format from args (options may not be available if parsing failed)
+            var useJson = args.Any(a => a.Equals("--output", StringComparison.OrdinalIgnoreCase)) &&
+                          args.SkipWhile(a => !a.Equals("--output", StringComparison.OrdinalIgnoreCase)).Skip(1).FirstOrDefault()?.Equals("json", StringComparison.OrdinalIgnoreCase) == true;
+
+            if (useJson)
+            {
+                var errorCode = ex is PswException pswEx ? pswEx.ErrorCode : null;
+                var suggestion = ex is PswException pswEx2 ? pswEx2.Suggestion : null;
+                OutputHelper.WriteErrorJson(ex.Message, errorCode, suggestion);
+            }
+            else
+            {
+                ErrorHandler.Handle(ex, logger, showStackTrace: logger != null);
+            }
+
+            // Use distinct exit codes based on exception type
+            Environment.ExitCode = ex switch
+            {
+                ValidationException => ExitCodes.ValidationError,
+                ApiException => ExitCodes.NetworkError,
+                ScriptExecutionException => ExitCodes.ScriptExecutionError,
+                HttpRequestException => ExitCodes.NetworkError,
+                TimeoutException => ExitCodes.NetworkError,
+                UnauthorizedAccessException => ExitCodes.FileSystemError,
+                IOException => ExitCodes.FileSystemError,
+                _ => ExitCodes.GeneralError
+            };
         }
         finally
         {

@@ -48,7 +48,10 @@ public class ScriptGeneratorService : IScriptGeneratorService
 
         outputList.AddRange(GenerateAddPackagesScript(model, renderPackageName));
 
-        outputList.AddRange(GenerateRunProjectScript(model, renderPackageName));
+        if (!model.SkipDotnetRun)
+        {
+            outputList.AddRange(GenerateRunProjectScript(model, renderPackageName));
+        }
 
         if (model.RemoveComments)
         {

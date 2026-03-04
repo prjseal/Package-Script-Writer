@@ -173,6 +173,16 @@ psw --version
 dotnet tool update --global PackageScriptWriter.Cli
 ```
 
+**Update to the latest prerelease version:**
+```bash
+dotnet tool update --global PackageScriptWriter.Cli --prerelease
+```
+
+**Update to a specific version:**
+```bash
+dotnet tool update --global PackageScriptWriter.Cli --version 1.2.0
+```
+
 **Uninstall:**
 ```bash
 dotnet tool uninstall --global PackageScriptWriter.Cli
@@ -256,6 +266,21 @@ psw -p "uSync|17.0.0" -n MyProject -s MySolution \
     --admin-email admin@test.com \
     --admin-password "SecurePass123!" \
     --auto-run
+
+# Auto-run with build only (no server start)
+psw -d -n MyProject -s MyProject \
+    -u --database-type SQLite \
+    --admin-email admin@test.com \
+    --admin-password "SecurePass123!" \
+    --auto-run --build-only
+
+# Save script to file without interactive prompts (for programmatic use)
+psw -d -n MyProject -s MyProject \
+    -u --database-type SQLite \
+    --admin-email admin@test.com \
+    --admin-password "SecurePass123!" \
+    -p "Umbraco.Forms" \
+    --output-file install.sh --save-only
 ```
 
 ### Command Reference
@@ -309,8 +334,78 @@ psw --default           # Generate default script
 #### Execution
 
 ```bash
---auto-run              # Automatically run the generated script
+--auto-run              # Automatically execute the generated script
+--build-only            # Install and build without starting the web server
 --run-dir               # Directory to run script in
+--output-file <file>    # Output file path for saving the generated script
+--save-only             # Save script to file (via --output-file) and exit without prompts
+```
+
+#### AI Agent & Automation Options
+
+```bash
+--output <format>       # Output format: json, plain (for machine consumption)
+--script-only           # Output only the raw script text, no decoration
+--no-interaction        # Suppress all interactive prompts
+--dry-run               # Validate inputs and show config without generating script
+--help-json             # Show all commands and options as structured JSON
+```
+
+#### AI Agent / Automation Examples
+
+```bash
+# Generate script as JSON (for programmatic use)
+psw --default --output json
+
+# Generate script with no decoration (pipe-friendly)
+psw --default --script-only
+
+# Validate config without generating (dry run)
+psw --dry-run -p "uSync|17.0.0" --database-type SQLite
+
+# Get help as JSON (for AI tool discovery)
+psw --help-json
+
+# List valid option values as JSON
+psw list-options --output json
+
+# List valid database types
+psw list-options database-types
+
+# Non-interactive mode (no prompts)
+psw --default --no-interaction --script-only
+
+# Save script to file (no prompts, for MCP/CI/CD)
+psw --default -p "uSync" --output-file install.sh --save-only
+
+# Get version as plain text
+psw --version --output plain
+```
+
+**Exit Codes** (for scripting and automation):
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General or unknown error |
+| 2 | Validation error |
+| 3 | Network or API error |
+| 4 | Script execution error |
+| 5 | File system or permission error |
+
+#### Updating
+
+```bash
+# Update to the latest stable release
+dotnet tool update --global PackageScriptWriter.Cli
+
+# Update to the latest prerelease version
+dotnet tool update --global PackageScriptWriter.Cli --prerelease
+
+# Update to a specific version
+dotnet tool update --global PackageScriptWriter.Cli --version 1.2.0
+
+# Check current version
+psw --version
 ```
 
 #### Template Commands
