@@ -4,6 +4,9 @@
       "Bash(dotnet test:*)",
       "Bash(dotnet build:*)",
       "Bash(dotnet pack:*)"
+    ],
+    "additionalDirectories": [
+      "D:\\Code\\GitHub\\migration-validator"
     ]
   }
 }

@@ -18,8 +18,20 @@ public sealed class SecurityHeadersMiddleware
         context.Response.Headers.Append("X-Xss-Protection", "0");
         context.Response.Headers.Append("Referrer-Policy", "no-referrer");
         context.Response.Headers.Append("X-Permitted-Cross-Domain-Policies", "none");
-        context.Response.Headers.Append("X-Powered-By", "");
-        //context.Response.Headers.Add("Content-Security-Policy", "default-src 'self';script-src 'self' code.jquery.com;style-src 'self' cdn.rawgit.com cdn.jsdelivr.net;img-src 'self' our.umbraco.com;font-src 'self';connect-src 'self'");
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers.Remove("X-Powered-By");
+            context.Response.Headers.Remove("Server");
+            return Task.CompletedTask;
+        });
+        context.Response.Headers.Append("Content-Security-Policy",
+            "default-src 'self'; " +
+            "script-src 'self' 'unsafe-inline' www.googletagmanager.com cdnjs.cloudflare.com cdn.jsdelivr.net; " +
+            "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net; " +
+            "img-src 'self' data:; " +
+            "font-src 'self'; " +
+            "connect-src 'self' *.google-analytics.com *.analytics.google.com *.googletagmanager.com; " +
+            "frame-ancestors 'self'");
         context.Response.Headers.Append("Permissions-Policy", "fullscreen=(), geolocation=()");
         return _next(context);
     }
