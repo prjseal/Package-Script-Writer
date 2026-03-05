@@ -8,7 +8,25 @@
       "tags": ["shop", "uskinned"],
       "fileName": "uskinned-shop.yaml",
       "created": "2024-12-18"
+    },
+    {
+      "name": "umbraco-17-clean-starter-kit",
+      "displayName": "Umbraco 17 with Clean Starter Kit",
+      "description": "An Umbraco 17 website using the Clean Starter Kit",
+      "author": "Paul Seal",
+      "tags": ["umbraco", "umbraco17", "starter kit", "clean starter kit"],
+      "fileName": "umbraco-17-clean-starter-kit.yaml",
+      "created": "2026-02-05"
+    },
+    {
+      "name": "umbraco-13-clean-starter-kit",
+      "displayName": "Umbraco 13 with Clean Starter Kit",
+      "description": "An Umbraco 13 website using the Clean Starter Kit",
+      "author": "Paul Seal",
+      "tags": ["umbraco", "umbraco13", "starter kit", "clean starter kit"],
+      "fileName": "umbraco-13-clean-starter-kit.yaml",
+      "created": "2026-02-05"
     }
   ],
-  "lastUpdated": "2024-12-18"
+  "lastUpdated": "2026-02-05"
 }
