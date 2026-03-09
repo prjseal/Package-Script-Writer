@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Umbraco AI Kitchen Sink Community Template** - New community template by Matt Brailsford covering the full Umbraco AI package suite including all providers (OpenAI, Anthropic, Google, Amazon, Microsoft Foundry), AI Prompt, and AI Agents
+
 ## [1.2.0] - 2026-03-04
 
 ### Added

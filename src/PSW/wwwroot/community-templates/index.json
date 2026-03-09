@@ -8,7 +8,16 @@
       "tags": ["shop", "uskinned"],
       "fileName": "uskinned-shop.yaml",
       "created": "2024-12-18"
+    },
+    {
+      "name": "umbraco-ai-kitchen-sink",
+      "displayName": "Umbraco AI Kitchen Sink Install",
+      "description": "A kitchen sink demo installing all Umbraco AI packages, including providers for OpenAI, Anthropic, Google, Amazon and Microsoft Foundry, plus AI Prompt and AI Agents.",
+      "author": "Matt Brailsford",
+      "tags": ["AI", "Kitchen", "Sink"],
+      "fileName": "umbraco-ai-kitchen-sink.yaml",
+      "created": "2026-03-09"
     }
   ],
-  "lastUpdated": "2024-12-18"
+  "lastUpdated": "2026-03-09"
 }
