@@ -1,0 +1,68 @@
+metadata:
+  name: "Umbraco AI Kitchen Sink Install"
+  description: "A kitchen sink demo installing all Umbraco AI packages, including providers for OpenAI, Anthropic, Google, Amazon and Microsoft Foundry, plus AI Prompt and AI Agents. After running the script, seed demo data (connection, profile, context, prompts, agents) by running: curl -o Umbraco.AI.Demo/UmbracoAISeedData.cs https://gist.githubusercontent.com/mattbrailsford/199d0b45e926ffb122fa96467039bd90/raw/UmbracoAISeedData.cs?v=1"
+  author: "Matt Brailsford"
+  created: 2026-03-09T00:00:00Z
+  modified: 2026-03-09T00:00:00Z
+  version: "1.0.0"
+  tags:
+    - AI
+    - Kitchen
+    - Sink
+
+configuration:
+  template:
+    name: "Umbraco.Templates"
+    version: "latest"
+
+  project:
+    name: "Umbraco.AI.Demo"
+    createSolution: true
+    solutionName: "Umbraco.AI.Demo"
+
+  packages:
+    - name: "Umbraco.AI"
+      version: "latest"
+    - name: "Umbraco.AI.Prompt"
+      version: "latest"
+    - name: "Umbraco.AI.Agent"
+      version: "prerelease"
+    - name: "Umbraco.AI.Agent.Copilot"
+      version: "prerelease"
+    - name: "Umbraco.AI.Amazon"
+      version: "latest"
+    - name: "Umbraco.AI.Anthropic"
+      version: "latest"
+    - name: "Umbraco.AI.Google"
+      version: "latest"
+    - name: "Umbraco.AI.MicrosoftFoundry"
+      version: "latest"
+    - name: "Umbraco.AI.OpenAI"
+      version: "latest"
+
+  starterKit:
+    enabled: true
+    package: "clean"
+
+  docker:
+    dockerfile: false
+    dockerCompose: false
+
+  unattended:
+    enabled: true
+    database:
+      type: "SQLite"
+      connectionString: null
+    admin:
+      name: "Administrator"
+      email: "admin@example.com"
+      password: "password1234"
+
+  output:
+    oneliner: false
+    removeComments: false
+    includePrerelease: false
+
+  execution:
+    autoRun: false
+    runDirectory: "."
