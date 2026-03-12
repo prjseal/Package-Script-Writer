@@ -23,6 +23,7 @@
         packageCheckboxes: document.querySelectorAll('#packagelist input[type=checkbox]'),
         packageVersionDropdowns: document.querySelectorAll('#packagelist select'),
         packageCards: document.querySelectorAll('#packagelist .card'),
+        packageImages: document.querySelectorAll('.package-image'),
         codeNavItem: document.getElementById('code-nav-item'),
         onelinerOutput: document.getElementById('OnelinerOutput'),
         removeComments: document.getElementById('RemoveComments'),
@@ -248,6 +249,12 @@
             psw.toggleConnectionString();
             psw.updateOutput();
             psw.updateUrl();
+        });
+
+        psw.controls.packageImages.forEach(function (img) {
+            img.addEventListener('error', function () {
+                this.src = '/package-image-not-found.png';
+            });
         });
     },
     validateUmbracoUserPassword: function () {

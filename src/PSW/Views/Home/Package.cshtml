@@ -6,7 +6,7 @@
 
 <div class="col-md-4 mb-4 packageItem" data-packageid="@Model.Package.PackageId @Model.Package.Title @Model.Package?.Authors @Model.Package?.Category?.Name">
     <div class="card p-3 @(Model.IsChecked ? "selected" : null) text-center" style="min-height: 100%;">
-        <img src="@(Model.Package?.Image ?? "")?width=100" alt="@(Model.Package?.Title ?? "uknown")" loading="lazy" />
+        <img src="@(Model.Package?.Image ?? "")?width=100" alt="@(Model.Package?.Title ?? "unknown")" loading="lazy" class="package-image" />
         <div class="card-body">
             <h3 class="card-title"><a href="@(Model.Package?.Url ?? "#")" target="_blank" rel="noopener">@(Model.Package?.Title ?? "unknown")</a></h3>
             <p class="card-text">@(Model.Package?.Summary.Truncate(127) ?? "")</p>
