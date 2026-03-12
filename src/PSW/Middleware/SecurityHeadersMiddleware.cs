@@ -28,7 +28,7 @@ public sealed class SecurityHeadersMiddleware
             "default-src 'self'; " +
             "script-src 'self' 'unsafe-inline' www.googletagmanager.com cdnjs.cloudflare.com cdn.jsdelivr.net; " +
             "style-src 'self' 'unsafe-inline' cdnjs.cloudflare.com cdn.jsdelivr.net; " +
-            "img-src 'self' data:; " +
+            "img-src 'self' data: https://marketplace.umbraco.com; " +
             "font-src 'self'; " +
             "connect-src 'self' *.google-analytics.com *.analytics.google.com *.googletagmanager.com; " +
             "frame-ancestors 'self'");
