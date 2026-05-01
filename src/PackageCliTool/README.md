@@ -48,7 +48,7 @@ dotnet tool update --global PackageScriptWriter.Cli
 dotnet tool update --global PackageScriptWriter.Cli --prerelease
 
 # Update to a specific version
-dotnet tool update --global PackageScriptWriter.Cli --version 1.2.0
+dotnet tool update --global PackageScriptWriter.Cli --version 1.2.1
 ```
 
 ### From Source

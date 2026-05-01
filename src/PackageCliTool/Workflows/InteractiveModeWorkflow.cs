@@ -1092,16 +1092,14 @@ public class InteractiveModeWorkflow
                 if (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure")
                 {
                     AnsiConsole.MarkupLine("[yellow]Connection string is required for SQLServer/SQLAzure[/]");
-                    config.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:", config.ConnectionString ?? string.Empty);
-                    InputValidator.ValidateConnectionString(config.ConnectionString, config.DatabaseType);
+                    config.ConnectionString = InteractivePrompts.PromptForConnectionString(config.ConnectionString);
                 }
                 break;
 
             case "Connection string":
                 if (config.DatabaseType == "SQLServer" || config.DatabaseType == "SQLAzure")
                 {
-                    config.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:", config.ConnectionString ?? string.Empty);
-                    InputValidator.ValidateConnectionString(config.ConnectionString, config.DatabaseType);
+                    config.ConnectionString = InteractivePrompts.PromptForConnectionString(config.ConnectionString);
                 }
                 else
                 {

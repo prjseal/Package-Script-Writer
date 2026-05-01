@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-05-01
+
 ### Added
 - **Umbraco AI Kitchen Sink Community Template** - New community template by Matt Brailsford covering the full Umbraco AI package suite including all providers (OpenAI, Anthropic, Google, Amazon, Microsoft Foundry), AI Prompt, and AI Agents
+
+### Fixed
+- **Empty Connection String Crash** - When selecting SQL Server or SQL Azure as the database type in interactive mode, leaving the connection string blank no longer crashes the CLI. The prompt now accepts an empty value (so the user can exit it) and only validates format when a value is supplied
 
 ## [1.2.0] - 2026-03-04
 
@@ -130,7 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Secure password input
   - No script storage (regenerated from config)
 
-[Unreleased]: https://github.com/prjseal/Package-Script-Writer/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/prjseal/Package-Script-Writer/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/prjseal/Package-Script-Writer/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.2...v1.2.0
 [1.1.2]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/prjseal/Package-Script-Writer/compare/v1.1.0...v1.1.1

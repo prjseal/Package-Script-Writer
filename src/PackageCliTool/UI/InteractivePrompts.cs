@@ -179,7 +179,7 @@ public static class InteractivePrompts
 
             if (model.DatabaseType == "SQLServer" || model.DatabaseType == "SQLAzure")
             {
-                model.ConnectionString = AnsiConsole.Ask<string>("Enter [green]connection string[/]:", existingModel?.ConnectionString ?? string.Empty);
+                model.ConnectionString = PromptForConnectionString(existingModel?.ConnectionString);
             }
 
             model.UserFriendlyName = AnsiConsole.Ask<string>("Enter [green]admin user friendly name[/]:", existingModel?.UserFriendlyName ?? "Administrator");
@@ -244,5 +244,33 @@ public static class InteractivePrompts
     public static bool ConfirmScriptGeneration()
     {
         return AnsiConsole.Confirm("\nGenerate script with these settings?", true);
+    }
+
+    /// <summary>
+    /// Prompts the user for a SQL Server / SQL Azure connection string and re-prompts on empty/invalid input.
+    /// </summary>
+    public static string PromptForConnectionString(string? existingValue)
+    {
+        var prompt = new TextPrompt<string>("Enter [green]connection string[/] [dim](leave blank to skip)[/]:")
+            .AllowEmpty()
+            .Validate(value =>
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    return ValidationResult.Success();
+                }
+                if (!value.Contains(';') && !value.Contains('='))
+                {
+                    return ValidationResult.Error("Invalid connection string format (e.g. 'Server=localhost;Database=MyDb;...')");
+                }
+                return ValidationResult.Success();
+            });
+
+        if (!string.IsNullOrWhiteSpace(existingValue))
+        {
+            prompt.DefaultValue(existingValue);
+        }
+
+        return AnsiConsole.Prompt(prompt) ?? string.Empty;
     }
 }

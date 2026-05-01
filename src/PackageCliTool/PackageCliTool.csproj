@@ -12,7 +12,7 @@
 
     <!-- Package Metadata -->
     <PackageId>PackageScriptWriter.Cli</PackageId>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Authors>Paul Seal</Authors>
     <Company>CodeShare</Company>
     <Description>Interactive CLI tool for generating Umbraco CMS installation scripts. Features a beautiful terminal UI with Spectre.Console, supports 500+ Marketplace packages, includes template system for reusable configurations, and offers both interactive and automation modes for CI/CD pipelines.</Description>
@@ -60,6 +60,9 @@
     <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
     <PackageReference Include="YamlDotNet" Version="16.2.1" />
     <PackageReference Include="TextCopy" Version="6.2.1" />
+
+    <!-- Umbraco reference for Marketplace eligibility -->
+    <PackageReference Include="Umbraco.JsonSchema.Extensions" Version="0.4.0" />
 
     <!-- Source Link Support -->
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />

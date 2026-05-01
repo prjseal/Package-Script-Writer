@@ -225,7 +225,7 @@ public static class ConsoleDisplay
     [cyan]dotnet tool update --global PackageScriptWriter.Cli --prerelease[/]
 
   Update to a specific version:
-    [cyan]dotnet tool update --global PackageScriptWriter.Cli --version 1.2.0[/]
+    [cyan]dotnet tool update --global PackageScriptWriter.Cli --version 1.2.1[/]
 
   Check current version:
     [cyan]psw --version[/]")
