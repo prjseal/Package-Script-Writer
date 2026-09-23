@@ -388,7 +388,7 @@ public class CliModeWorkflow
 
                         processedPackages.Add(packageName);
                         if (!machineReadable)
-                            AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest version)");
+                            AnsiConsole.MarkupLine($"[green]✓[/] Using {packageName} (latest compatible version)");
                         _logger?.LogDebug("Added package {Package} with latest version", packageName);
                     }
                 }
@@ -434,7 +434,7 @@ public class CliModeWorkflow
                 model.StarterKitPackage = options.StarterKitPackage;
 
                 if (!machineReadable)
-                    AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} (latest version)");
+                    AnsiConsole.MarkupLine($"[green]✓[/] Using starter kit {options.StarterKitPackage} (latest compatible version)");
                 _logger?.LogDebug("Using starter kit {Package} with latest version", options.StarterKitPackage);
             }
         }

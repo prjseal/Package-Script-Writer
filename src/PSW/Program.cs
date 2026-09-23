@@ -37,6 +37,7 @@ builder.Services.AddScoped<IScriptGeneratorService, ScriptGeneratorService>();
 builder.Services.AddScoped<IPackageService, MarketplacePackageService>();
 builder.Services.AddScoped<IQueryStringService, QueryStringService>();
 builder.Services.AddScoped<IUmbracoVersionService, UmbracoVersionService>();
+builder.Services.AddScoped<IPackageCompatibilityService, PackageCompatibilityService>();
 
 builder.Services.Configure<PSWConfig>(
     builder.Configuration.GetSection(PSWConfig.SectionName));

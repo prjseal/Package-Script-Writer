@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Compatible Package Versions** - Starter kits and packages without an explicit version are now pinned to the newest version compatible with the selected Umbraco version (e.g. Umbraco 17 → Clean 7.0.8), instead of the latest version, which may target a newer Umbraco major. Compatibility is read from each package's Umbraco.Cms dependency range on NuGet and cached for 60 minutes. Explicit versions are unchanged; "latest" Umbraco and packages without a detectable Umbraco dependency stay unpinned
+
 ## [1.2.1] - 2026-05-01
 
 ### Added

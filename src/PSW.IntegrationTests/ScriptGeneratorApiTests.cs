@@ -195,6 +195,58 @@ public class ScriptGeneratorApiTests : IClassFixture<CustomWebApplicationFactory
         Assert.NotEmpty(content);
     }
 
+    // These call NuGet, so they assert on the major version only
+    [Theory]
+    [InlineData("17.7.0", "clean", "package clean --version 7.")]
+    [InlineData("13.8.0", "clean", "package clean --version 4.")]
+    [InlineData("17.7.0", "clean --version 7.0.3", "package clean --version 7.0.3")]
+    public async Task GenerateScript_WithStarterKit_PinsCompatibleVersion(string templateVersion, string starterKitPackage, string expected)
+    {
+        // Arrange
+        var request = new GeneratorApiRequest
+        {
+            TemplateName = "Umbraco.Templates",
+            TemplateVersion = templateVersion,
+            IncludeStarterKit = true,
+            StarterKitPackage = starterKitPackage,
+            ProjectName = "StarterKitProject"
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/ScriptGeneratorApi/generatescript", request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains(expected, content);
+    }
+
+    [Theory]
+    [InlineData("13.8.0", "uSync|", "package uSync --version 13.")]
+    [InlineData("17.7.0", "uSync", "package uSync --version 17.")]
+    [InlineData("17.7.0", "uSync|17.0.0", "package uSync --version 17.0.0")]
+    public async Task GenerateScript_WithUnversionedPackage_PinsCompatibleVersion(string templateVersion, string packages, string expected)
+    {
+        // Arrange
+        var request = new GeneratorApiRequest
+        {
+            TemplateName = "Umbraco.Templates",
+            TemplateVersion = templateVersion,
+            Packages = packages,
+            ProjectName = "PackagesProject"
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/ScriptGeneratorApi/generatescript", request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains(expected, content);
+    }
+
     [Fact]
     public async Task GenerateScript_WithUnattendedInstall_ReturnsScriptContent()
     {
