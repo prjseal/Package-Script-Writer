@@ -10,11 +10,13 @@ public class ScriptGeneratorService : IScriptGeneratorService
 {
     private readonly PSWConfig _pswConfig;
     private readonly IUmbracoVersionService _umbracoVersionService;
+    private readonly IPackageCompatibilityService _packageCompatibilityService;
 
-    public ScriptGeneratorService(IOptions<PSWConfig> pswConfig, IUmbracoVersionService umbracoVersionService)
+    public ScriptGeneratorService(IOptions<PSWConfig> pswConfig, IUmbracoVersionService umbracoVersionService, IPackageCompatibilityService packageCompatibilityService)
     {
         _pswConfig = pswConfig.Value;
         _umbracoVersionService = umbracoVersionService;
+        _packageCompatibilityService = packageCompatibilityService;
     }
 
     public string GenerateScript(PackagesViewModel model)
@@ -262,18 +264,62 @@ public class ScriptGeneratorService : IScriptGeneratorService
             outputList.Add("#Add starter kit");
         }
 
+        var starterKitPackage = model.StarterKitPackage?.Trim() ?? "";
+
+        // Pin a compatible version unless one (or other arguments) was given, e.g. "clean --version 4.1.0"
+        if (!string.IsNullOrWhiteSpace(starterKitPackage) && !starterKitPackage.Contains(' '))
+        {
+            var compatibility = GetCompatibleVersions(model, new[] { starterKitPackage })[starterKitPackage];
+            starterKitPackage = AppendCompatibleVersion(model, outputList, starterKitPackage, compatibility);
+        }
+
         if (renderPackageName)
         {
-            outputList.Add($"dotnet add \"{model.ProjectName}\" package {model.StarterKitPackage}");
+            outputList.Add($"dotnet add \"{model.ProjectName}\" package {starterKitPackage}");
         }
         else
         {
-            outputList.Add($"dotnet add package {model.StarterKitPackage}");
+            outputList.Add($"dotnet add package {starterKitPackage}");
         }
 
         outputList.Add("");
 
         return outputList;
+    }
+
+    /// <summary>
+    /// Looks up the newest version of each package compatible with the selected Umbraco version.
+    /// Only applies to a specific Umbraco.Templates version; "latest" leaves packages unpinned.
+    /// </summary>
+    private Dictionary<string, PackageCompatibilityResult> GetCompatibleVersions(PackagesViewModel model, IEnumerable<string> packageIds)
+    {
+        var ids = packageIds.ToList();
+
+        if (!GlobalConstants.TEMPLATE_NAME_UMBRACO.Equals(model.TemplateName, StringComparison.InvariantCultureIgnoreCase)
+            || string.IsNullOrWhiteSpace(model.TemplateVersion))
+        {
+            return ids.ToDictionary(x => x, _ => PackageCompatibilityResult.Unknown, StringComparer.OrdinalIgnoreCase);
+        }
+
+        var umbracoVersion = model.TemplateVersion;
+        var lookups = ids.Select(async id => (Id: id, Result: await _packageCompatibilityService.GetCompatibleVersionAsync(id, umbracoVersion)));
+        var results = Task.WhenAll(lookups).GetAwaiter().GetResult();
+
+        return results.ToDictionary(x => x.Id, x => x.Result, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string AppendCompatibleVersion(PackagesViewModel model, List<string> outputList, string packageId, PackageCompatibilityResult compatibility)
+    {
+        switch (compatibility.Status)
+        {
+            case PackageCompatibilityStatus.Compatible:
+                return $"{packageId} --version {compatibility.Version}";
+            case PackageCompatibilityStatus.NoCompatibleVersion when !model.OnelinerOutput:
+                outputList.Add($"#No version of {packageId} found that is compatible with Umbraco {model.TemplateVersion}, installing the latest version");
+                return packageId;
+            default:
+                return packageId;
+        }
     }
 
     public List<string> GenerateAddPackagesScript(PackagesViewModel model, bool renderPackageName)
@@ -293,6 +339,14 @@ public class ScriptGeneratorService : IScriptGeneratorService
                 outputList.Add("#Add Packages");
             }
 
+            // Packages without a version get pinned to the newest version compatible with the Umbraco version
+            var unversionedPackages = packages
+                .Select(x => x.Trim().TrimEnd('|'))
+                .Where(x => !x.Contains('|'))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            var compatibleVersions = GetCompatibleVersions(model, unversionedPackages);
+
             foreach (var package in packages)
             {
                 var packageName = package.Split('|').FirstOrDefault();
@@ -303,6 +357,11 @@ public class ScriptGeneratorService : IScriptGeneratorService
                 }
 
                 var packageIdAndVersion = package.TrimEnd('|').Replace("|--prerelease", " --prerelease ").Replace("|", " --version ");
+                if (compatibleVersions.TryGetValue(package.Trim().TrimEnd('|'), out var compatibility))
+                {
+                    packageIdAndVersion = AppendCompatibleVersion(model, outputList, packageIdAndVersion.Trim(), compatibility);
+                }
+
                 if (renderPackageName)
                 {
                     outputList.Add($"dotnet add \"{model.ProjectName}\" package {packageIdAndVersion}");

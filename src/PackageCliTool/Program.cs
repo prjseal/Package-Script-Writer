@@ -308,6 +308,7 @@ class Program
         services.AddSingleton<IScriptGeneratorService, ScriptGeneratorService>();
         services.AddSingleton<IPackageService, MarketplacePackageService>();
         services.AddSingleton<IUmbracoVersionService, UmbracoVersionService>();
+        services.AddSingleton<IPackageCompatibilityService, PackageCompatibilityService>();
 
         // Register CacheService with factory pattern for logger injection
         services.AddSingleton<CacheService>(sp =>
