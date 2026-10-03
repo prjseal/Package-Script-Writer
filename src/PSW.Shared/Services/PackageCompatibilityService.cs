@@ -2,6 +2,8 @@ using System.IO.Compression;
 using System.Text.Json;
 
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 using NuGet.Versioning;
 
@@ -23,11 +25,13 @@ public class PackageCompatibilityService : IPackageCompatibilityService
 
     private readonly IHttpClientFactory _clientFactory;
     private readonly IMemoryCache _memoryCache;
+    private readonly ILogger<PackageCompatibilityService> _logger;
 
-    public PackageCompatibilityService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache)
+    public PackageCompatibilityService(IHttpClientFactory httpClientFactory, IMemoryCache memoryCache, ILogger<PackageCompatibilityService>? logger = null)
     {
         _clientFactory = httpClientFactory;
         _memoryCache = memoryCache;
+        _logger = logger ?? NullLogger<PackageCompatibilityService>.Instance;
     }
 
     public async Task<PackageCompatibilityResult> GetCompatibleVersionAsync(string packageId, string umbracoVersion)
@@ -104,45 +108,54 @@ public class PackageCompatibilityService : IPackageCompatibilityService
             return cached;
         }
 
-        var versions = await FetchPackageVersionsAsync(packageId);
+        var (versions, complete) = await FetchPackageVersionsAsync(packageId);
 
-        // Don't cache failures, so a transient NuGet outage doesn't stick for an hour
-        if (versions != null)
+        // Don't cache failed or partial lookups, so a transient NuGet outage doesn't stick for an hour
+        if (complete)
         {
             _memoryCache.Set(cacheKey, versions, CacheDuration);
         }
 
-        return versions ?? new List<PackageVersionInfo>();
+        return versions;
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "Compatibility lookup is best effort; failures fall back to an unpinned package")]
-    private async Task<List<PackageVersionInfo>?> FetchPackageVersionsAsync(string packageId)
+    /// <returns>The versions found, and whether the index and every page were read. A partial list is still usable
+    /// (any version it pins is compatible, if not the newest) but must not be cached.</returns>
+    private async Task<(List<PackageVersionInfo> Versions, bool Complete)> FetchPackageVersionsAsync(string packageId)
     {
         try
         {
             var client = _clientFactory.CreateClient();
-            var index = await GetJsonAsync<NuGetRegistrationIndex>(client, $"{RegistrationBaseUrl}{packageId.ToLowerInvariant()}/index.json");
-            if (index == null) return null;
+            var index = await GetJsonAsync<NuGetRegistrationIndex>(client, packageId, $"{RegistrationBaseUrl}{packageId.ToLowerInvariant()}/index.json");
+            if (index == null) return (new List<PackageVersionInfo>(), false);
 
             var pages = await Task.WhenAll(index.Items.Select(async page =>
-                page.Items ?? (await GetJsonAsync<NuGetRegistrationPage>(client, page.Id))?.Items ?? new List<NuGetRegistrationLeaf>()));
+                page.Items ?? (await GetJsonAsync<NuGetRegistrationPage>(client, packageId, page.Id))?.Items));
 
-            return pages
-                .SelectMany(x => x)
+            var versions = pages
+                .SelectMany(x => x ?? new List<NuGetRegistrationLeaf>())
                 .Select(x => PackageVersionInfo.FromCatalogEntry(x.CatalogEntry))
                 .OfType<PackageVersionInfo>()
                 .ToList();
+
+            return (versions, pages.All(x => x != null));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return null;
+            LogFailure(packageId, $"{ex.GetType().Name}: {ex.Message}", ex);
+            return (new List<PackageVersionInfo>(), false);
         }
     }
 
-    private static async Task<T?> GetJsonAsync<T>(HttpClient client, string url)
+    private async Task<T?> GetJsonAsync<T>(HttpClient client, string packageId, string url)
     {
         using var response = await client.GetAsync(url);
-        if (!response.IsSuccessStatusCode) return default;
+        if (!response.IsSuccessStatusCode)
+        {
+            LogFailure(packageId, $"{url} returned {(int)response.StatusCode} {response.StatusCode}");
+            return default;
+        }
 
         var stream = await response.Content.ReadAsStreamAsync();
 
@@ -157,6 +170,9 @@ public class PackageCompatibilityService : IPackageCompatibilityService
             return await JsonSerializer.DeserializeAsync<T>(stream);
         }
     }
+
+    private void LogFailure(string packageId, string reason, Exception? exception = null) =>
+        _logger.LogWarning(exception, "NuGet compatibility lookup for {PackageId} failed: {Reason}", packageId, reason);
 
     private sealed record PackageVersionInfo(NuGetVersion Version, string OriginalVersion, bool Listed, List<(string Id, VersionRange Range)> Dependencies)
     {

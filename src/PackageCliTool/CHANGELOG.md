@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Compatibility Lookup Logging** - Failed NuGet compatibility lookups (HTTP errors, network failures) are logged as server-side warnings via `ILogger` instead of being silently swallowed
+
 ### Fixed
+- **Partial NuGet Lookups No Longer Cached** - If a NuGet registration page fails to load, the versions that did load are still used for that request but are no longer cached for 60 minutes, so the next request retries the missing page
 - **Compatible Package Versions** - Starter kits and packages without an explicit version are now pinned to the newest version compatible with the selected Umbraco version (e.g. Umbraco 17 → Clean 7.0.8), instead of the latest version, which may target a newer Umbraco major. Compatibility is read from each package's Umbraco.Cms dependency range on NuGet and cached for 60 minutes. Explicit versions are unchanged; "latest" Umbraco and packages without a detectable Umbraco dependency stay unpinned
 
 ## [1.2.1] - 2026-05-01
