@@ -11,10 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Compatibility Lookup Logging** - Failed NuGet compatibility lookups (HTTP errors, network failures) are logged as server-side warnings via `ILogger` instead of being silently swallowed
 
 ### Fixed
+- **Starter Kit Version Matching Across Umbraco Majors** - Packages with open-ended Umbraco dependency ranges (e.g. Clean) are now pinned to the version built for the selected Umbraco major (Umbraco 19 → Clean 19) instead of an older major whose open range also accepts it. A prerelease is used when it is the only version for that major
 - **Partial NuGet Lookups No Longer Cached** - If a NuGet registration page fails to load, the versions that did load are still used for that request but are no longer cached for 60 minutes, so the next request retries the missing page
 - **Compatible Package Versions** - Starter kits and packages without an explicit version are now pinned to the newest version compatible with the selected Umbraco version (e.g. Umbraco 17 → Clean 7.0.8), instead of the latest version, which may target a newer Umbraco major. Compatibility is read from each package's Umbraco.Cms dependency range on NuGet and cached for 60 minutes. Explicit versions are unchanged; "latest" Umbraco and packages without a detectable Umbraco dependency stay unpinned
 
 ### Security
+- **Patched Vulnerable Dependencies** - Updated System.Security.Cryptography.Xml to 10.0.15 (which also lifts System.Security.Cryptography.Pkcs to 10.0.15), Microsoft.AspNetCore.Mvc to 2.3.14 with Microsoft.AspNetCore.WebUtilities pinned to 2.3.14, and Microsoft.SourceLink.GitHub to 10.0.404 (replacing the vulnerable Microsoft.Build.Tasks.Git 8.0.0), clearing all NU1902/NU1903 warnings
 - **System.Security.Cryptography.Xml Vulnerabilities** - Pinned System.Security.Cryptography.Xml to 10.0.12 in PSW.Shared, replacing the vulnerable 8.0.2 pulled in transitively by Microsoft.AspNetCore.Mvc 2.3.0 (NU1903, 8 high severity advisories)
 
 ## [1.2.1] - 2026-05-01

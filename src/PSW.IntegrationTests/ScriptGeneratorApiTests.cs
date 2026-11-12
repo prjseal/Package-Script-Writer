@@ -199,6 +199,7 @@ public class ScriptGeneratorApiTests : IClassFixture<CustomWebApplicationFactory
     [Theory]
     [InlineData("17.7.0", "clean", "package clean --version 7.")]
     [InlineData("13.8.0", "clean", "package clean --version 4.")]
+    [InlineData("19.0.0-beta1", "clean", "package clean --version 19.")]
     [InlineData("17.7.0", "clean --version 7.0.3", "package clean --version 7.0.3")]
     public async Task GenerateScript_WithStarterKit_PinsCompatibleVersion(string templateVersion, string starterKitPackage, string expected)
     {
