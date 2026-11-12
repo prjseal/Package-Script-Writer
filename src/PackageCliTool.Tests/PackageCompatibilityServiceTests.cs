@@ -40,6 +40,94 @@ public class PackageCompatibilityServiceTests
         result.Version.Should().Be(expected);
     }
 
+    [Theory]
+    [InlineData("19.0.0-beta1", "19.0.0-beta01")]
+    [InlineData("19.0.0", "19.0.0-beta01")]
+    [InlineData("18.3.1", "8.0.2")]
+    [InlineData("17.7.0", "7.0.8")]
+    public async Task GetCompatibleVersionAsync_PrefersVersionBuiltForSameUmbracoMajor(string umbracoVersion, string expected)
+    {
+        // Every Clean release has an open-ended range, so 8.0.2 also accepts Umbraco 19. Clean 19 is the one built for it,
+        // and is used even for a stable Umbraco 19 while only a prerelease exists
+        var service = CreateService(new Dictionary<string, object>
+        {
+            ["clean"] = Index(
+                Leaf("7.0.8", ("Umbraco.Cms.Web.Website", "[17.5.1, )")),
+                Leaf("8.0.2", ("Umbraco.Cms.Web.Website", "[18.3.1, )")),
+                Leaf("19.0.0-beta01", ("Umbraco.Cms.Web.Website", "[19.0.0-beta1, )")))
+        });
+
+        var result = await service.GetCompatibleVersionAsync("clean", umbracoVersion);
+
+        result.Status.Should().Be(PackageCompatibilityStatus.Compatible);
+        result.Version.Should().Be(expected);
+    }
+
+    [Fact]
+    public async Task GetCompatibleVersionAsync_PrefersStableOverPrerelease_ForSameUmbracoMajor()
+    {
+        var service = CreateService(new Dictionary<string, object>
+        {
+            ["clean"] = Index(
+                Leaf("8.0.2", ("Umbraco.Cms.Web.Website", "[18.3.1, )")),
+                Leaf("19.0.0-beta01", ("Umbraco.Cms.Web.Website", "[19.0.0-beta1, )")),
+                Leaf("19.0.0", ("Umbraco.Cms.Web.Website", "[19.0.0, )")))
+        });
+
+        var result = await service.GetCompatibleVersionAsync("clean", "19.0.0");
+
+        result.Version.Should().Be("19.0.0");
+    }
+
+    [Fact]
+    public async Task GetCompatibleVersionAsync_FallsBackToOlderMajor_WhenNoVersionMatchesUmbracoMajor()
+    {
+        var service = CreateService(new Dictionary<string, object>
+        {
+            ["pkg"] = Index(Leaf("2.0.0", ("Umbraco.Cms.Core", "[14.0.0, )")))
+        });
+
+        var result = await service.GetCompatibleVersionAsync("pkg", "17.7.0");
+
+        result.Status.Should().Be(PackageCompatibilityStatus.Compatible);
+        result.Version.Should().Be("2.0.0");
+    }
+
+    [Fact]
+    public async Task GetCompatibleVersionAsync_FallbackSkipsPrerelease_ForStableUmbraco()
+    {
+        // Neither version targets Umbraco 17, so the old rule applies: stable only for a stable Umbraco
+        var service = CreateService(new Dictionary<string, object>
+        {
+            ["pkg"] = Index(
+                Leaf("2.0.0", ("Umbraco.Cms.Core", "[14.0.0, )")),
+                Leaf("3.0.0-beta", ("Umbraco.Cms.Core", "[16.0.0, )")))
+        });
+
+        var result = await service.GetCompatibleVersionAsync("pkg", "17.7.0");
+
+        result.Version.Should().Be("2.0.0");
+    }
+
+    [Fact]
+    public async Task GetCompatibleVersionAsync_ResolvesMetaPackageAsSameMajor()
+    {
+        // Stable uSync 17.1.0 also accepts Umbraco 19 through an open range, but the 19 prerelease is the one built for it
+        var service = CreateService(new Dictionary<string, object>
+        {
+            ["uSync"] = Index(
+                Leaf("17.1.0", ("uSync.BackOffice", "[17.1.0, )")),
+                Leaf("19.0.0-beta1", ("uSync.BackOffice", "[19.0.0-beta1, )"))),
+            ["uSync.BackOffice"] = Index(
+                Leaf("17.1.0", ("Umbraco.Cms.Api.Management", "[17.0.0, )")),
+                Leaf("19.0.0-beta1", ("Umbraco.Cms.Api.Management", "[19.0.0-beta1, 20.0.0)")))
+        });
+
+        var result = await service.GetCompatibleVersionAsync("uSync", "19.0.0-beta1");
+
+        result.Version.Should().Be("19.0.0-beta1");
+    }
+
     [Fact]
     public async Task GetCompatibleVersionAsync_RespectsFullVersionOfLowerBound()
     {

@@ -16,6 +16,13 @@ namespace PSW.Shared.Services;
 /// from the NuGet registration API. A package version is compatible when one of its Umbraco.Cms.*
 /// dependency ranges accepts the Umbraco version. Meta-packages without a direct Umbraco.Cms.*
 /// dependency (e.g. uSync) are resolved through their own dependencies.
+/// <para>
+/// Many packages declare open-ended ranges (e.g. Clean 8 depends on Umbraco [18.3.1, )), so an older package major
+/// also "accepts" a newer Umbraco major. A version built for the same Umbraco major (its range's lower bound has the
+/// same major as the Umbraco version) is therefore preferred: stable first, then a prerelease, even when the Umbraco
+/// version itself is stable. Only when no version matches the major does it fall back to the newest version whose
+/// range accepts the Umbraco version, considering prereleases only for a prerelease Umbraco version.
+/// </para>
 /// </summary>
 public class PackageCompatibilityService : IPackageCompatibilityService
 {
@@ -43,37 +50,56 @@ public class PackageCompatibilityService : IPackageCompatibilityService
 
         var versions = await GetPackageVersionsAsync(packageId);
 
-        // Stable versions first; prereleases are only considered for a prerelease Umbraco version
+        // Stable versions first, so a stable same-major match always beats a prerelease one
         var candidates = versions
-            .Where(x => x.Listed && (!x.Version.IsPrerelease || umbraco.IsPrerelease))
+            .Where(x => x.Listed)
             .OrderBy(x => x.Version.IsPrerelease)
             .ThenByDescending(x => x.Version);
 
+        PackageVersionInfo? fallback = null;
         var foundIncompatible = false;
         foreach (var candidate in candidates)
         {
-            var isCompatible = await IsCompatibleAsync(candidate, umbraco, 0);
-            if (isCompatible == true)
+            var compatibility = await IsCompatibleAsync(candidate, umbraco, 0);
+            if (compatibility == Compatibility.CompatibleSameMajor)
             {
                 return new PackageCompatibilityResult(PackageCompatibilityStatus.Compatible, candidate.OriginalVersion);
             }
 
-            foundIncompatible |= isCompatible == false;
+            // Fallback for when no version targets the Umbraco major: prereleases only for a prerelease Umbraco
+            if (compatibility == Compatibility.Compatible && fallback == null
+                && (!candidate.Version.IsPrerelease || umbraco.IsPrerelease))
+            {
+                fallback = candidate;
+            }
+
+            foundIncompatible |= compatibility == Compatibility.Incompatible;
+        }
+
+        if (fallback != null)
+        {
+            return new PackageCompatibilityResult(PackageCompatibilityStatus.Compatible, fallback.OriginalVersion);
         }
 
         return foundIncompatible ? PackageCompatibilityResult.NoCompatibleVersion : PackageCompatibilityResult.Unknown;
     }
 
-    /// <returns>true/false when an Umbraco.Cms dependency was found, null when compatibility can't be determined.</returns>
-    private async Task<bool?> IsCompatibleAsync(PackageVersionInfo packageVersion, NuGetVersion umbraco, int depth)
+    /// <returns>Whether an Umbraco.Cms dependency accepts the Umbraco version, and whether it was built for the same
+    /// Umbraco major. Unknown when no Umbraco.Cms dependency was found.</returns>
+    private async Task<Compatibility> IsCompatibleAsync(PackageVersionInfo packageVersion, NuGetVersion umbraco, int depth)
     {
         var umbracoDependencies = packageVersion.Dependencies.Where(x => IsUmbracoCmsPackage(x.Id)).ToList();
         if (umbracoDependencies.Count > 0)
         {
-            return umbracoDependencies.Any(x => x.Range.Satisfies(umbraco));
+            var satisfying = umbracoDependencies.Where(x => x.Range.Satisfies(umbraco)).ToList();
+            if (satisfying.Count == 0) return Compatibility.Incompatible;
+
+            return satisfying.Any(x => x.Range.HasLowerBound && x.Range.MinVersion!.Major == umbraco.Major)
+                ? Compatibility.CompatibleSameMajor
+                : Compatibility.Compatible;
         }
 
-        if (depth >= MaxDependencyDepth) return null;
+        if (depth >= MaxDependencyDepth) return Compatibility.Unknown;
 
         foreach (var dependency in packageVersion.Dependencies.Where(x => !IsFrameworkPackage(x.Id)))
         {
@@ -85,11 +111,22 @@ public class PackageCompatibilityService : IPackageCompatibilityService
 
             if (resolved == null) continue;
 
-            var isCompatible = await IsCompatibleAsync(resolved, umbraco, depth + 1);
-            if (isCompatible != null) return isCompatible;
+            var compatibility = await IsCompatibleAsync(resolved, umbraco, depth + 1);
+            if (compatibility != Compatibility.Unknown) return compatibility;
         }
 
-        return null;
+        return Compatibility.Unknown;
+    }
+
+    private enum Compatibility
+    {
+        /// <summary>No Umbraco.Cms dependency was found, so compatibility can't be determined.</summary>
+        Unknown,
+        Incompatible,
+        /// <summary>A dependency range accepts the Umbraco version, but was built for an older Umbraco major.</summary>
+        Compatible,
+        /// <summary>A dependency range accepts the Umbraco version and its lower bound has the same major.</summary>
+        CompatibleSameMajor
     }
 
     private static bool IsUmbracoCmsPackage(string packageId) =>
