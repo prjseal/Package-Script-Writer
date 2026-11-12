@@ -65,7 +65,7 @@
     <PackageReference Include="Umbraco.JsonSchema.Extensions" Version="0.4.0" />
 
     <!-- Source Link Support -->
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.404" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

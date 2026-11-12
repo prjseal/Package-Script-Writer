@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Compatible Package Versions** - Starter kits and packages without an explicit version are now pinned to the newest version compatible with the selected Umbraco version (e.g. Umbraco 17 → Clean 7.0.8), instead of the latest version, which may target a newer Umbraco major. Compatibility is read from each package's Umbraco.Cms dependency range on NuGet and cached for 60 minutes. Explicit versions are unchanged; "latest" Umbraco and packages without a detectable Umbraco dependency stay unpinned
 
 ### Security
+- **Patched Vulnerable Dependencies** - Updated System.Security.Cryptography.Xml to 10.0.15 (which also lifts System.Security.Cryptography.Pkcs to 10.0.15), Microsoft.AspNetCore.Mvc to 2.3.14 with Microsoft.AspNetCore.WebUtilities pinned to 2.3.14, and Microsoft.SourceLink.GitHub to 10.0.404 (replacing the vulnerable Microsoft.Build.Tasks.Git 8.0.0), clearing all NU1902/NU1903 warnings
 - **System.Security.Cryptography.Xml Vulnerabilities** - Pinned System.Security.Cryptography.Xml to 10.0.12 in PSW.Shared, replacing the vulnerable 8.0.2 pulled in transitively by Microsoft.AspNetCore.Mvc 2.3.0 (NU1903, 8 high severity advisories)
 
 ## [1.2.1] - 2026-05-01

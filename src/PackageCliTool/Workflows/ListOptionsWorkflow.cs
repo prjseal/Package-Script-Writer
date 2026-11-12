@@ -28,6 +28,10 @@ public class ListOptionsWorkflow
     /// <summary>Available starter kits accepted by --starter-kit</summary>
     public static readonly string[] StarterKits = { "clean", "Articulate", "Portfolio", "LittleNorth.Igloo", "Umbraco.BlockGrid.Example.Website", "Umbraco.TheStarterKit", "uSkinnedSiteBuilder" };
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ListOptionsWorkflow"/> class
+    /// </summary>
+    /// <param name="logger">Optional logger</param>
     public ListOptionsWorkflow(ILogger? logger = null)
     {
         _logger = logger;
